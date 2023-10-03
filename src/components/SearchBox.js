@@ -29,13 +29,31 @@ function SearchBox() {
     state.setAllQueryString
   ], shallow);
 
-  useEffect(() => {
-    if (router.query.search) {
-      const unescapedSearch = decodeURIComponent(router.query.search);
-      setQuery(router.query.search);
-      setSearchValue(unescapedSearch);
-    }
-  }, [router.query, setQuery]);
+    // Function to update the query string
+  
+    useEffect(() => {
+      if (router.query.search) {
+        const unescapedSearch = decodeURIComponent(router.query.search);
+    
+        const newQuery = updateQueryTerm(movieQueryString, unescapedSearch);
+        const newBookQuery = updateQueryTerm(bookQueryString, unescapedSearch);
+        const newAllQuery = updateQueryTerm(allQueryString, unescapedSearch);
+    
+        console.log('New Movie Query:', newQuery);
+        console.log('New Book Query:', newBookQuery);
+        console.log('New All Query:', newAllQuery);
+    
+        setMovieQueryString(newQuery);
+        setBookQueryString(newBookQuery);
+        setAllQueryString(newAllQuery);
+    
+        setQuery(router.query.search);
+        setSearchValue(unescapedSearch);
+        setShouldRefetch(true);
+      }
+    }, [router.query.search]);
+    
+
 
   const handleSearch = (e) => {
     e.preventDefault();

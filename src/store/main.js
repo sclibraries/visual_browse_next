@@ -1,6 +1,6 @@
 const initialState = {
     query: '*',
-    shouldRefetch: true,
+    shouldRefetch: false,
     recordModal: false,
     loading: false,
 }

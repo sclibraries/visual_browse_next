@@ -67,12 +67,10 @@ function Books() {
     ], shallow)
 
 
-    useEffect(() => {
-        setShouldRefetch(true);
-    },[])
 
     useEffect(() => {
         if(shouldRefetch){
+            console.log(bookQueryString)
             executeSearch({
                 variables: {
                     query: bookQueryString,
@@ -84,7 +82,7 @@ function Books() {
             });
             setShouldRefetch(false)
         }
-    }, [bookQueryString, bookFacetAction, bookSort, bookLimiter, bookDateLimiter, shouldRefetch])
+    }, [bookQueryString, bookFacetAction, bookSort, bookLimiter, bookDateLimiter, shouldRefetch, setShouldRefetch])
 
     const handleOnComplete = data => {
         setBookData(data?.search?.records)
