@@ -6,6 +6,7 @@ import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { useRouter } from 'next/router'
 import CampusLocation from './CampusLocation'
+import { DisplayLoadingSkeleton } from './Loading'
 
 function MaterialDisplay(props) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,12 +15,13 @@ function MaterialDisplay(props) {
     const [modal, setModal] = useState(false);
     const router = useRouter();
 
-    const [setAn,setDbid, setMaterial, recordModal, setRecordModal] = useStore(state => [
+    const [setAn,setDbid, setMaterial, recordModal, setRecordModal, loading] = useStore(state => [
       state.setAn,
       state.setDbid,
       state.setMaterial,
       state.recordModal,
-      state.setRecordModal
+      state.setRecordModal,
+      state.loading
     ], shallow)
 
     const toggleModal = () => setModal(!modal);
@@ -96,7 +98,7 @@ function MaterialDisplay(props) {
             <Col sm="12" md="9" className="scrollable-middle">
               <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
               <Row>
-               {records && records.length > 0  ? Object.keys(records).map((key,index) => {
+               {loading ? <DisplayLoadingSkeleton /> : records && records.length > 0  ? Object.keys(records).map((key,index) => {
                     let image = ''
                     if(records[key].imageItem){
                         image = records[key].imageItem

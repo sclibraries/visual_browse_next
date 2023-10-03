@@ -34,7 +34,8 @@ function Books() {
         bookPage,
         setBookPage,
         bookTotalPages,
-        setBookTotalPages
+        setBookTotalPages,
+        setLoading
     ] = useStore(state => [
         state.query,
         state.setBookData,
@@ -61,7 +62,8 @@ function Books() {
         state.bookPage,
         state.setBookPage,
         state.bookTotalPages,
-        state.setBookTotalPages
+        state.setBookTotalPages,
+        state.setLoading
     ], shallow)
 
 
@@ -98,6 +100,7 @@ function Books() {
         nextFetchPolicy: 'cache-first',
         onCompleted: data => { handleOnComplete(data) }
     })
+    setLoading(loading)
 
     if (error) return <div>Error loading books.</div>
     const records = bookData

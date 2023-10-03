@@ -42,6 +42,7 @@ function Movies() {
         setMovieTotalPages,
         moviePage,
         setMoviePage,
+        setLoading
     ] = useStore(state => [
         state.query,
         state.setMovieData,
@@ -70,7 +71,8 @@ function Movies() {
         state.movieTotalPages,
         state.setMovieTotalPages,
         state.moviePage,
-        state.setMoviePage
+        state.setMoviePage,
+        state.setLoading
     ], shallow)
 
     useEffect(() => {
@@ -110,6 +112,7 @@ function Movies() {
         onCompleted: data => { handleOnComplete(data) }
     });
     
+    setLoading(loading)
     
     if (error) {
         return <div>Error: {error.message}</div>;

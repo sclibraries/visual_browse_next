@@ -4,7 +4,7 @@ import { useQuery } from '@apollo/client';
 import HomeLayout from '../../../layouts/HomeLayout';
 import { DisplayImage } from '../../../components/DisplayImage';
 import { useRouter } from 'next/router';
-import { DisplayLoadingSkeleton } from '../../../components/Loading';
+import { DashboardLoading } from '../../../components/Loading';
 
 function FolioLocationsMaterial(){
     const router = useRouter();
@@ -14,8 +14,6 @@ function FolioLocationsMaterial(){
     const [limit] = useState(50);
     const [loadMore, setLoadMore] = useState(false);
     const [records, setRecord] = useState([]);
-
-    console.log(collections)
 
     const endPointMapping = {
         'fiction-nonfiction' : "%28items.effectiveLocationId%3D%3D%2294842c61-93dc-44e4-b167-a29192c14b30%22%29%20sortby%20title"
@@ -71,7 +69,7 @@ function FolioLocationsMaterial(){
             {instances && instances.length > 0 ?
                 <Fragment>
                     <p>Results: <strong>{totalRecords}</strong></p>
-                {loading ? <DisplayLoadingSkeleton /> : Object.keys(instances).map((key, index) => {
+                {loading ? <DashboardLoading /> : Object.keys(instances).map((key, index) => {
                     return(
                         <div className="col" key={index} onClick={e => handleRecord(instances[key].id)}>
                             <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "14em"}}>

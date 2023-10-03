@@ -1,7 +1,7 @@
 import React, { useState, Fragment } from 'react'
 import { GET_ORDERS } from '../lib/api'
 import { useQuery } from '@apollo/client'
-import { DisplayLoadingSkeleton } from '../components/Loading';
+import { DashboardLoading } from '../components/Loading';
 import moment from 'moment';
 import HomeLayout from '../layouts/HomeLayout';
 import { DisplayImage } from '../components/DisplayImage';
@@ -83,10 +83,9 @@ function Home() {
   return(
       <HomeLayout>
       <Fragment>
-          {poLines && poLines.length > 0 ?
               <Fragment>
                   <p>Results: <strong>{totalRecords}</strong></p>
-              {loading ? <DisplayLoadingSkeleton /> : Object.keys(poLines).map((key, index) => {
+              {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {
                   return(
                       <div className="col" key={index} onClick={e => handleRecord(poLines[key].instanceId)}>
                           <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "14em"}}>
@@ -99,7 +98,7 @@ function Home() {
                           </div>
                       </div>
                   )
-              })}
+              }): ''}
               {page <= Math.ceil(totalRecords/limit) ?
               <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}>
                   <button
@@ -114,7 +113,6 @@ function Home() {
               </div>
               : <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}><button className="btn btn-primary" disabled>End of results</button></div>}
               </Fragment> 
-          : ''}
       </Fragment>
       </HomeLayout>
   )

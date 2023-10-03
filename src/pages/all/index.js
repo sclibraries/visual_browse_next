@@ -34,7 +34,8 @@ function All() {
         allPage,
         setAllPage,
         allTotalPages,
-        setAllTotalPages
+        setAllTotalPages,
+        setLoading
     ] = useStore(state => [
         state.query,
         state.setAllData,
@@ -61,7 +62,8 @@ function All() {
         state.allPage,
         state.setAllPage,
         state.allTotalPages,
-        state.setAllTotalPages
+        state.setAllTotalPages,
+        state.setLoading
     ], shallow)
 
   useEffect(() => {
@@ -99,10 +101,11 @@ useEffect(() => {
     })
 
     if (error) return <div>Error loading.</div>
+    setLoading(loading)
 
     const records = allData
 
-    console.log(allData)
+    
 
     const handleFacetAction = (action) => {
         setAllFacetAction(action)
