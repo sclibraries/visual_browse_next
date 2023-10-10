@@ -66,6 +66,9 @@ function Books() {
         state.setLoading
     ], shallow)
 
+    useEffect(() => {
+        setShouldRefetch(true)
+    }, [])
 
 
     useEffect(() => {

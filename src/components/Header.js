@@ -11,6 +11,7 @@ function Header() {
   const [loggedIn] = useStore((state) => [state.loggedIn], shallow);
   const router = useRouter();
   const currentPath = router.asPath;
+  const currentQuery = router.query;
 
   const toggle = () => setIsOpen(!isOpen);
 
@@ -21,6 +22,11 @@ function Header() {
     container: "fluid",
     fixed: "top",
   }
+
+  const generateLink = (path) => {
+    const queryString = new URLSearchParams(currentQuery).toString();
+    return `${path}${queryString ? `?${queryString}` : ''}`;
+  };
 
   return (
     <div>
@@ -33,14 +39,11 @@ function Header() {
               <Link className="nav-link" href="/">New</Link>
             </NavItem>
             <NavItem>
-              <Link className="nav-link" href="/movies/">Movies</Link>
-            </NavItem>
+            <Link className="nav-link" href={generateLink('/movies/')}>Movies</Link>
+          </NavItem>
             <NavItem>
-              <Link className="nav-link" href="/television/">Television</Link>
-            </NavItem>
-            <NavItem>
-              <Link className="nav-link" href="/books/">Books</Link>
-            </NavItem>
+            <Link className="nav-link" href={generateLink('/books/')}>Books</Link>
+          </NavItem>
             <NavItem>
               <Link className="nav-link" href="/collections/">Collections</Link>
             </NavItem>
