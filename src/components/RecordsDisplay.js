@@ -2,21 +2,51 @@ import React, {Fragment, useState} from 'react'
 import { useStore } from '../store/store'
 import { shallow } from 'zustand/shallow'
 import { decode } from 'html-entities'
-import { Accordion, AccordionItem, AccordionHeader,AccordionBody } from 'reactstrap'
+import { Accordion, AccordionItem, AccordionHeader,AccordionBody, Modal, ModalHeader, ModalBody} from 'reactstrap'
 import RecordAvailability from './RecordAvailability'
 import FullCast from './FullCast'
 import RecommendationDisplay from './Recommendations'
-
+import axios from 'axios';
+import { useFavorite } from '@/hooks/useFavorite';
+import { useCollections } from '@/hooks/useCollections';
+import { useToggleFavorite } from '@/hooks/useToggleFavorite';
+import { useCurrentCollections } from '@/hooks/useCurrentCollections';
+import { useAddToCollection } from '@/hooks/useAddToCollection'
+import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection'
+import { getImage, getTitleString  } from '../lib/functions';
+import NewCollectionForm from './NewCollectionForm'
 function RecordsDisplay(){
 
-    const [open, setOpen] = useState("1");
-
-    const [recordData, baseImage, an] = useStore(state => [
+    const [recordData, baseImage, an, loggedIn, currentCollections, collections] = useStore(state => [
         state.recordData,
         state.baseImage,
-        state.an
+        state.an,
+        state.loggedIn,
+        state.currentCollections,
+        state.collections
     ], shallow)
 
+    const [open, setOpen] = useState("1");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFavorite, setIsFavorite] = useFavorite(an);
+    useCollections();
+    useCurrentCollections(an);
+    const refreshCurrentCollections = useCurrentCollections(an);
+    const toggleFavorite = useToggleFavorite(an, isFavorite, setIsFavorite);
+    const addToCollection = useAddToCollection(refreshCurrentCollections);
+    const removeFromCollection = useRemoveFromCollection(refreshCurrentCollections);
+    const isInCollection = currentCollections && currentCollections.length > 0;
+
+
+    // Update the removeFromCollection function call
+    const handleRemoveFromCollection = (collection_records_id) => {
+        removeFromCollection(collection_records_id);
+    };
+
+
+    const toggleModal = () => {
+        setIsModalOpen(!isModalOpen);
+    };
 
     const toggle = (id) => {
         if (open === id) {
@@ -26,31 +56,9 @@ function RecordsDisplay(){
         }
       };
 
-    let image = baseImage
-    if(recordData.image){
-        recordData.image.map(items => {
-            if(items.Size === "medium"){
-                image = items.Target
-            } else if(items.Size === "thumb"){
-                image = items.Target
-            }
-        })
-    }
-
-    const titleString = recordData?.titleItem?.toString() || recordData?.items?.map(items => ( items.label === "Title" ? items.data : '' )) || ''
-    let titleStringDisplay = titleString || ''
-    if(titleString !== '' && titleString.includes('/')){
-        const titleClean = titleString.split('/')
-        if(titleClean[0].includes('[')){
-            titleStringDisplay = titleClean[0].split('[')[0]
-        } else {
-            titleStringDisplay = titleClean[0]
-        }
-    } else if(titleString !== '' && titleString.includes('[')){
-            titleStringDisplay = titleString.split('[')[0]
-    } else {
-        titleStringDisplay = recordData?.titles ? recordData.titles[0]?.TitleFull : ''
-    }
+            
+   const image = getImage(recordData, baseImage);
+   const titleStringDisplay = getTitleString(recordData);
 
     let imdb = ''
     if(recordData?.urlItem?.length > 0){
@@ -67,7 +75,6 @@ function RecordsDisplay(){
     if(recordData?.itemsRaw?.length > 0){
         recordData.itemsRaw.map(items => {
             if(items.name === "Subject"){
-                console.log(items.data)
             }
         })
     }
@@ -90,22 +97,58 @@ function RecordsDisplay(){
                                 <div className="hide-scrollbar flex-1 h-100">
                                     <div className="container-fluid">
                                     <h1 className="display-6">{titleStringDisplay}</h1> 
-                                        <div class="d-flex justify-content-between mb-3" style={{marginTop: "20px"}}>
-                                            <div className="p-2">
+                                        <div class="d-flex flex-nowrap" style={{marginTop: "20px"}}>
+                                            <div className="order-1 p-2">
                                                 <a target="_blank" className="btn btn-primary btn-lg" href={recordData.pLink}>Place Hold</a>{ ' ' }
-                                                <button className="btn btn-danger btn-lg">Save to Favorites</button>
                                             </div>
-                                            <div className="p-2">
-                                            {/* {collections && collections.length > 0 ?
-                                                <select className="form-select" aria-label="Default select example" onChange={e => addToCollection(e.target.value)}>
-                                                    <option selected>Add to a collection</option>
-                                                    {Object.keys(collections).map(items => (                                        
-                                                        <option value={collections[items].collection_id}>{collections[items].name}</option>
-                                                    ))}
-                                                </select>
-                                            : ''} */}
-                                            </div>
+                                            {loggedIn && (
+                                            <Fragment>
+                                                <div className="order-2 p-2">
+                                                <button className="btn btn-danger btn-lg" onClick={toggleFavorite}>
+                                                    {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+                                                </button>
+                                                </div>
+                                                <div className="order-3 p-2 ms-auto">
+                                                    <div className="d-flex mb-3">
+                                                        <div className="p-2">
+                                                            <select
+                                                                className="form-select-lg mb-3"
+                                                                onChange={(e) => addToCollection(e.target.value, an)}
+                                                            >
+                                                                <option value="">Add to collection</option>
+                                                                {collections.map((collection, index) => (
+                                                                <option key={index} value={collection.collection_id}>
+                                                                    {collection.name}
+                                                                </option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                            <div className="p-2">
+                                                                <button className="btn btn-primary btn-lg" onClick={toggleModal}>Create New Collection</button>
+                                                                <Modal isOpen={isModalOpen} toggle={toggleModal}>
+                                                                    <ModalHeader toggle={toggleModal}>Create New Collection</ModalHeader>
+                                                                    <ModalBody>
+                                                                        <NewCollectionForm />
+                                                                    </ModalBody>
+                                                                </Modal>
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            </Fragment>
+                                            )}
                                         </div>
+                                        {loggedIn && isInCollection && (
+                                        <div className="d-flex flex-wrap mb-3">
+                                                    {currentCollections.map((collection, index) => (
+                                                    <div className="btn btn-outline-secondary" key={index} onClick={() => handleRemoveFromCollection(collection.collection_records_id)}>
+                                                        {collection.collectionName.name}{' '}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+                                                        </svg>
+                                                    </div>
+                                                    ))}
+                                                </div>      
+                                        )}      
                             {recordData.items ? 
                                 recordData.items.map((items,index) => (
                                     <div key={index}>

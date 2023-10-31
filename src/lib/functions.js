@@ -29,4 +29,29 @@ const commonTerms = [
     
     return recommendations;
   }
+
+  export const getImage = (recordData, baseImage) => {
+    const imageSize = ['medium'];
+    const image = recordData?.image?.find(item => imageSize.includes(item.Size))?.Target || baseImage;
+    return image;
+  };
+
+
+  export const getTitleString = (recordData) => {
+    let titleString = recordData?.titleItem?.toString() || '';
+    let titleStringDisplay = titleString || ''
+    if(titleString !== '' && titleString.includes('/')){
+        const titleClean = titleString.split('/')
+        if(titleClean[0].includes('[')){
+            titleStringDisplay = titleClean[0].split('[')[0]
+        } else {
+            titleStringDisplay = titleClean[0]
+        }
+    } else if(titleString !== '' && titleString.includes('[')){
+            titleStringDisplay = titleString.split('[')[0]
+    } else {
+        titleStringDisplay = recordData?.titles ? recordData.titles[0]?.TitleFull : ''
+    }
+    return titleString;
+  };
   

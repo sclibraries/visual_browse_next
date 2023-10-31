@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { GET_RECORD } from '../lib/api'
@@ -10,6 +10,13 @@ import { useRouter } from 'next/router'
 function Records(){
 
     const router = useRouter();
+    const [previousUrl, setPreviousUrl] = useState('');
+
+    useEffect(() => {
+        // Store the current URL when the component mounts
+        setPreviousUrl(router.asPath);
+    }, []);
+
     const [an, dbid, setRecordData, setRecordModal] = useStore(state => [
         state.an,
         state.dbid,
@@ -22,24 +29,19 @@ function Records(){
     }
 
     const handleToggle = () => {
-        setRecordModal(false)
-        let value = ''
-        if(router.query.material){
-            value = router.query.material
-        }
+        setRecordModal(false);
 
-        if(router.query.collection_id){
-            value = router.query.collection_id
-        }
-
-        if (value) {
-          
-          const newPath = router.pathname.replace(router.query.material ? '[material]' : '[collection_id]', value);
-          router.push(newPath, undefined, { shallow: true });
+        // Check if previousUrl contains 'an' or 'dbid'
+        const urlContainsAnOrDbid = previousUrl.includes('an=') || previousUrl.includes('dbid=');
+      
+        if (urlContainsAnOrDbid) {
+          // If it does, redirect to the homepage
+          router.push('/', undefined, { shallow: true });
         } else {
-          router.push(router.pathname, undefined, { shallow: true });
+          // Otherwise, go to the previousUrl
+          router.push(previousUrl, undefined, { shallow: true });
         }
-    }
+    };
 
     const { loading, error, data } = useQuery(GET_RECORD, {
         variables: {

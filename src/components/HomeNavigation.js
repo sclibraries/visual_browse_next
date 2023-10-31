@@ -6,10 +6,8 @@ export const HomeNavigation = props => {
 
     const router = useRouter();
 
-    console.log(router.pathname)
-
     return(
-        <ul className="nav nav-pills">
+        <ul className="nav nav-underline">
             <li className="nav-item">
                 <Link 
                     className={`nav-link ${router.pathname === "/" ? "active" : ""}`}

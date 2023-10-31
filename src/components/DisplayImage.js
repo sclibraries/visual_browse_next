@@ -3,12 +3,18 @@ import { useQuery } from "@apollo/client"
 import {GET_RECORD} from '../lib/api'
 
   export const DisplayImage = props => {
-    const { data } = useQuery(GET_RECORD, {
+    const anVariable = props.an ? props.an.replace(/-/g, '.') : '';
+    const { data, error } = useQuery(GET_RECORD, {
       variables: {
-          an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${props.an.replace(/-/g, ".")}` ,
-          dbid: 'cat09206a'
-      }    
-    })
+        an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${anVariable}`,
+        dbid: 'cat09206a',
+      },
+    });
+  
+    if (error) {
+      console.error('Apollo error:', error);
+      return <div>Error loading image.</div>;
+    }
 
     const records = data?.record?.records || []
 

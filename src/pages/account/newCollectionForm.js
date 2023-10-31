@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useStore } from '../../store/store';
-import { Toast, ToastBody, ToastHeader, Form, FormGroup, Label, Input, Button, Container, Col, Row } from 'reactstrap';
+import {  Form, FormGroup, Label, Input, Button, Container, Col, Row } from 'reactstrap';
 
 function NewCollectionForm() {
   const [newCollection, setNewCollection] = useState({

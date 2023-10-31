@@ -8,6 +8,8 @@ import { DisplayImage } from '../../../components/DisplayImage';
 import { useRouter } from 'next/router';
 import { useStore } from '../../../store/store';
 import { shallow } from 'zustand/shallow'
+import LocationSort from '@/components/LocationSort';
+import SubjectSort from '@/components/SubjectSort';
 
 function NewMaterial() {
     const router = useRouter();
@@ -22,6 +24,7 @@ function NewMaterial() {
     const thirtyDays = new Date(new Date().setDate(today.getDate() - 90)); 
 
     let fundDistribution = ''
+    
     switch(material){
         case 'fiction-nonfiction':
             fundDistribution = '*ce7b58c5-17dd-484d-925d-49d4829357f3*'
@@ -31,10 +34,11 @@ function NewMaterial() {
         break;
     }
 
-    const [setAn,setDbid, setRecordModal] = useStore(state => [
+    const [setAn,setDbid, setRecordModal,location] = useStore(state => [
         state.setAn,
         state.setDbid,
-        state.setRecordModal
+        state.setRecordModal,
+        state.location
     ], shallow)
 
     const handleRecord = (an) => {
@@ -51,6 +55,7 @@ function NewMaterial() {
             limit: limit,
             material: material,
             fundDistribution: fundDistribution,
+            acquisitionsUnit: location,
             start: moment(thirtyDays).format('YYYY-MM-DD'),
             end: moment(oneDay).format('YYYY-MM-DD')
         },
@@ -98,7 +103,19 @@ function NewMaterial() {
         <HomeLayout>
         <Fragment>
                 <Fragment>
-                    <p>Results: <strong>{totalRecords}</strong></p>
+                    <div className="d-flex mb-3">
+                        <div className="p-2">
+                            <p>Results: <strong>{totalRecords}</strong></p>
+                        </div>
+                        <div className="ms-auto p-2">
+                            <LocationSort />
+                        </div>
+                        {material == 'books' ?
+                        <div className="p-2">
+                            <SubjectSort />
+                        </div>
+                        : '' }
+                    </div>
                     {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {
                     return(
                         <div className="col" key={index} onClick={e => handleRecord(poLines[key].instanceId)}>

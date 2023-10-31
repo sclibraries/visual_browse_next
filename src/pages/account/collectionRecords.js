@@ -39,7 +39,14 @@ function CollectionRecords(){
           const data = await response.json();
       
           const promises = data.items.map(async (item) => {
-            if (item.record !== null && item.record.length <= 10) {
+            if(item.folio_id !== null){
+                const folioVariable = item.folio_id.replace(/\./g, '-');
+                console.log(item.folio_id)
+                const folioData = await folioIDSearch(folioVariable);
+                if (folioData.message === "success") {
+                    return { ...item, folioRecord: folioData.data.instances[0] };
+                }
+            } else if (item.record !== null && item.record.length <= 10) {
               const folioData = await alephToFolio(item.record);
               if (folioData.message === "success") {
                 return { ...item, folioRecord: folioData.data.instances[0] };
@@ -47,7 +54,7 @@ function CollectionRecords(){
             }
             return item;
           });
-      
+          
           const merged = await Promise.all(promises);
           setMergedRecords(merged);
         } catch (error) {
@@ -55,6 +62,13 @@ function CollectionRecords(){
         }
         setLoading(false);
       };
+
+    const folioIDSearch = async (folio_id) => {
+
+        const response = await fetch(`https://libtools2.smith.edu/folio/web/search/search-inventory?query=(id="${folio_id}")`)
+        const data = await response.json()
+        return data
+    }  
 
     const alephToFolio = async id => {
         const response = await fetch(`https://libtools2.smith.edu/folio/web/search/search-inventory?query=(identifiers.value="${id}")`)
@@ -89,6 +103,7 @@ function CollectionRecords(){
         setAn(params.an)
         setDbid(params.db)
         setRecordModal(true)
+        router.push(`${router.pathname}?an=${params.an}&dbid=${params.db}`, undefined, { shallow: true });
     }
 
     const handleDeleteRecord = async (recordId) => {
@@ -115,6 +130,7 @@ function CollectionRecords(){
                         <div className="col" key={index}>
                         <div className="card" style={{width: "14em"}}>
                             {item?.folioRecord?.id && item?.folioRecord?.id.length > 0 ? 
+                            <span onClick={() => handleRecord(item?.folioRecord.id)}>
                         <DisplayImage 
                             an={item?.folioRecord.id}
                             title={item?.folioRecord.title}
@@ -123,7 +139,9 @@ function CollectionRecords(){
                             oclc={oclc && oclc.length > 0 ? oclc[0].value.replace(/[^0-9]/g, '') : ''}
                             isbn={isbn && isbn.length > 0 ? isbn[0].value.replace(/[^0-9]/g, ''): ''}
                             data={item}
+                            
                         />
+                        </span>
                         : <svg 
                         className="bd-placeholder-img card-img-top" 
                         width="100%" 
@@ -140,7 +158,7 @@ function CollectionRecords(){
                     }
                         <div className="card-body">
                             <h5 className="card-title">
-                                {item?.folioRecord.indexTitle}
+                                {item?.folioRecord?.indexTitle}
                             </h5>
                         </div>
                         <div className="card-footer">

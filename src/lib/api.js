@@ -12,10 +12,29 @@ export const FOLIO_SEARCH = gql`
   }
 `
 
+export const FOLIO_FINANCE = gql`
+  query foliofinance($limit: Int, $offset: Int, $location: String) {
+    foliofinance(limit: $limit, offset: $offset, location: $location) {
+      expenseClasses {
+        id
+        code
+        name
+        metadata {
+          createdDate
+          createdByUserId
+          updatedDate
+          updatedByUserId
+        }
+      }
+    }
+  }
+`;
+
+
 
 export const GET_ORDERS = gql`
-  query folioorders($material: String, $start: String!, $end: String!, $fundDistribution: String, $locations: String, $limit: Int, $offset: Int) {
-    folioorders(material: $material, start: $start, end: $end, fundDistribution: $fundDistribution, locations: $locations, limit: $limit, offset: $offset) {
+  query folioorders($material: String, $start: String!, $end: String!, $fundDistribution: String, $acquisitionsUnit: String, $locations: String, $limit: Int, $offset: Int) {
+    folioorders(material: $material, start: $start, end: $end, fundDistribution: $fundDistribution, acquisitionsUnit: $acquisitionsUnit, locations: $locations, limit: $limit, offset: $offset) {
       totalRecords
       poLines {
         id

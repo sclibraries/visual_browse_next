@@ -8,6 +8,8 @@ import { DisplayImage } from '../components/DisplayImage';
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow'
+import LocationSort from '@/components/LocationSort';
+import SubjectSort from '@/components/SubjectSort';
 
 function Home() {
   const router = useRouter();
@@ -21,10 +23,12 @@ function Home() {
   const oneDay = new Date(new Date().setDate(today.getDate() - 1));
   const thirtyDays = new Date(new Date().setDate(today.getDate() - 90)); 
 
-  const [setAn,setDbid, setRecordModal] = useStore(state => [
+  const [setAn,setDbid, setRecordModal,location, subject] = useStore(state => [
       state.setAn,
       state.setDbid,
-      state.setRecordModal
+      state.setRecordModal,
+      state.location,
+      state.subject
   ], shallow)
 
   const handleRecord = (an) => {
@@ -39,6 +43,8 @@ function Home() {
       variables: {
           offset: 0,
           limit: limit,
+          acquisitionsUnit: location,
+          fundDistribution: subject,
           start: moment(thirtyDays).format('YYYY-MM-DD'),
           end: moment(oneDay).format('YYYY-MM-DD')
       },
@@ -84,7 +90,17 @@ function Home() {
       <HomeLayout>
       <Fragment>
               <Fragment>
-                  <p>Results: <strong>{totalRecords}</strong></p>
+                    <div className="d-flex mb-3">
+                        <div className="p-2">
+                            <p>Results: <strong>{totalRecords}</strong></p>
+                        </div>
+                        <div className="ms-auto p-2">
+                            <LocationSort />
+                        </div>
+                        <div className="p-2">
+                            <SubjectSort />
+                        </div>
+                    </div>
               {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {
                   return(
                       <div className="col" key={index} onClick={e => handleRecord(poLines[key].instanceId)}>

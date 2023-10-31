@@ -51,7 +51,7 @@ function Header() {
               {loggedIn ? (
                 <Link className="nav-link" href="/account/">Account</Link>
               ) : (
-                <Link className="nav-link" href={`https://libtools2.smith.edu:4000/login?redirectTo=${currentPath}`}>Login</Link>
+                <Link className="nav-link" href={`https://libtools2.smith.edu:4000/login`}>Login</Link>
               )}
             </NavItem>
           </Nav>
