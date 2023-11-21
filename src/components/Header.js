@@ -9,15 +9,19 @@ import { useRouter } from 'next/router';
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [loggedIn] = useStore((state) => [state.loggedIn], shallow);
+  const [setCurrentURL] = useStore((state) => [state.setCurrentURL], shallow);
   const router = useRouter();
   const currentPath = router.asPath;
   const currentQuery = router.query;
 
+  console.log('currentPath', currentPath);
+
   const toggle = () => setIsOpen(!isOpen);
 
   const args = {
-    color: 'light',
-    light: true,
+    color: '#2D3340',
+    light: false,
+    dark: true,
     expand: 'md',
     container: "fluid",
     fixed: "top",
@@ -28,10 +32,13 @@ function Header() {
     return `${path}${queryString ? `?${queryString}` : ''}`;
   };
 
+
   return (
     <div>
       <Navbar {...args}>
-        <NavbarBrand href="/">Visual Browse</NavbarBrand>
+      <NavbarBrand className="main-header" href="/">
+          <img style={{height: "40px"}} src="/image/visual_browse_logo.png" alt="Visual Browse Logo" className="logo" />
+        </NavbarBrand>
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="me-auto" navbar>
@@ -39,10 +46,10 @@ function Header() {
               <Link className="nav-link" href="/">New</Link>
             </NavItem>
             <NavItem>
-            <Link className="nav-link" href={generateLink('/movies/')}>Movies</Link>
+            <Link  className="nav-link" href={generateLink('/movies/')}>Movies</Link>
           </NavItem>
             <NavItem>
-            <Link className="nav-link" href={generateLink('/books/')}>Books</Link>
+            <Link  className="nav-link" href={generateLink('/books/')}>Books</Link>
           </NavItem>
             <NavItem>
               <Link className="nav-link" href="/collections/">Collections</Link>

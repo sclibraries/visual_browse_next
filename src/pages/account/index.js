@@ -3,45 +3,84 @@ import axios from 'axios';
 import UserInfo from './userInfo';
 import CollectionList from './collections';
 import NewCollectionForm from './newCollectionForm';
-import { Button, Col, Row, Container, Nav, NavItem } from 'reactstrap';
+import { Button, Col, Row, Container, Nav, NavItem, NavLink, TabContent, TabPane, Card, CardBody } from 'reactstrap';
 import { useRouter } from 'next/router';
 import { useStore } from '../../store/store';
 import { shallow } from 'zustand/shallow';
 import CollectionRecords from './collectionRecords';
+import { useFetchAccountData } from '@/hooks/useFetchAccountData';
+import Favorites from './favorites';
 
 function Account() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('userInfo');
+  const [activeTab, setActiveTab] = useState(router.query.tab || 'userInfo');
   const currentPath = router.asPath;
 
-  const [collections, setCollections, loggedIn, setLoggedIn, collectionRecordId, setCollectionRecordId, collectionRecordName, setCollectionRecordName] = useStore(
-    (state) => [state.collections, state.setCollections, state.loggedIn, state.setLoggedIn, state.collectionRecordId, state.setCollectionRecordId, state.collectionRecordName, state.setCollectionRecordName],
+  const [
+    collections, 
+    loggedIn, 
+    collectionRecordId, 
+    setCollectionRecordId, 
+    collectionRecordName, 
+    setCollectionRecordName, 
+    user
+  ] = useStore(
+    (state) => [state.collections, state.loggedIn, state.collectionRecordId, state.setCollectionRecordId, state.collectionRecordName, state.setCollectionRecordName, state.user],
     shallow
   );
 
-  useEffect(() => {
-    // Fetch user and collection data from the server
-    axios
-      .get('https://libtools2.smith.edu:4000/account/get-user-data', { withCredentials: true })
-      .then((response) => {
-        setUser(response.data);
-        return axios.get(`https://libtools2.smith.edu:4000/collection_name/read-all`, { withCredentials: true });
-      })
-      .then((response) => {
-        setCollections(response.data);
-        setLoggedIn(true);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
+  // Fetch user and collection data
+   useFetchAccountData();
+
+   useEffect(() => {
+    const { tab, collection } = router.query;
+  
+    // Potentially, here you could fetch the collection name using the collection ID
+    // For demonstration, I'm directly setting a default name based on ID being present
+    if (collection) {
+      setCollectionRecordId(collection);
+      // Replace 'Default Collection Name' with a function to fetch the actual name using the collection ID if necessary
+      setCollectionRecordName('Collection Records'); 
+    }
+  
+    // Use the tab query parameter to update the active tab state
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [router.query, setCollectionRecordId, setCollectionRecordName]);
+
+   useEffect(() => {
+    const handleRouteChange = (url) => {
+      const fullUrl = `${window.location.origin}${url}`;
+      const newTab = new URLSearchParams(new URL(fullUrl).search).get('tab');
+      if (newTab) {
+        setActiveTab(newTab);
+      }
+    };
+  
+    // Update the initial activeTab based on the current route
+    const initialTab = new URLSearchParams(window.location.search).get('tab');
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
   }, []);
 
   const toggle = (tab) => {
-    setActiveTab(tab);
-    setCollectionRecordId('');
-    setCollectionRecordName('');
+    if (activeTab !== tab) {
+      setActiveTab(tab);
+      setCollectionRecordId('');
+      setCollectionRecordName('');
+      router.push(`${router.pathname}?tab=${tab}`, undefined, { shallow: true });
+    }
   };
+
+
 
   return (
     <div className="dashboard">
@@ -52,57 +91,61 @@ function Account() {
       ) : (
         <Container fluid>
           <Row>
-            {/* Fixed sidebar */}
-            <Col md="3" className="fixed-left">
-             <h1>Account Dashboard</h1>
-             <Nav tabs vertical>
-              <NavItem>
-              <Button block color="primary" onClick={() => toggle('userInfo')}>
-                User Info
-              </Button>
-              </NavItem>
-              <br />
-              <NavItem>
-              <Button block color="primary" onClick={() => toggle('collections')}>
-                Collections
-              </Button>
-              </NavItem>
-              {collectionRecordName !== '' && (
-                <>
-                <br />
+            <Col md="12">
+              <h1>Account Dashboard</h1>
+              {/* Horizontal Tabs */}
+              <Nav tabs>
                 <NavItem>
-                <Button block color="primary" onClick={() => toggle('collectionRecords')}>
-                  {collectionRecordName}
-                </Button>
+                  <NavLink active={activeTab === 'userInfo'} onClick={() => toggle('userInfo')}>
+                    User Info
+                  </NavLink>
                 </NavItem>
-                </>
-              )}
-              </Nav>
-            </Col>
-
-            {/* Content area */}
-            <Col sm="12" md="9" className="scrollable-middle">
-              {activeTab === 'userInfo' && <UserInfo user={user} />}
-              {activeTab === 'collections' && (
-                <>
-                {collectionRecordId === '' ? (
-                <Row>
-                  <Col md="5">
-                    <NewCollectionForm />
-                  </Col>
-                  <Col md="7">
-                    <CollectionList collections={collections} />
-                  </Col>
-                </Row>
-                ) : (
-                  <Row>
-                    <Col md="12">
-                      <CollectionRecords />
-                    </Col>
-                  </Row>
+                <NavItem>
+                  <NavLink active={activeTab === 'favorites'} onClick={() => toggle('favorites')}>
+                    Favorites
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink active={activeTab === 'collections'} onClick={() => toggle('collections')}>
+                    Collections
+                  </NavLink>
+                </NavItem>
+                {collectionRecordName !== '' && (
+                  <NavItem>
+                    <NavLink active={activeTab === 'collectionRecords'} onClick={() => toggle('collectionRecords')}>
+                      {collectionRecordName}
+                    </NavLink>
+                  </NavItem>
                 )}
-                </>
-              )}
+              </Nav>
+
+              {/* Content area */}
+              <TabContent activeTab={activeTab}>
+                <TabPane tabId="userInfo">
+                      <UserInfo user={user} />
+                </TabPane>
+                <TabPane tabId="favorites">
+                    {activeTab === 'favorites' ? (
+                    <Favorites />
+                    ) : (
+                      ''
+                    )}
+                </TabPane>
+                <TabPane tabId="collections">
+                      {collectionRecordId === '' ?
+                            <CollectionList collections={collections} />
+                      : '' }
+                </TabPane>
+                {collectionRecordId !== '' && ( 
+                <TabPane tabId="collectionRecords">
+                        <Row>
+                          <Col md="12">
+                            <CollectionRecords />
+                          </Col>
+                        </Row>
+                </TabPane>
+                )}
+              </TabContent>
             </Col>
           </Row>
         </Container>

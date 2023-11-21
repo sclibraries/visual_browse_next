@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Container,
   Row,
@@ -9,45 +9,66 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Badge
+  Badge,
+  Input,
+  Modal,
+  ModalHeader,
+  ModalBody,
 } from 'reactstrap';
 import axios from 'axios';
 import { useStore } from '../../store/store';
 import { shallow } from 'zustand/shallow';
-import NotificationToast from '@/components/NotificationToast';
+import { useRouter } from 'next/router';
+import { toast } from 'react-toastify';
+import NewCollectionForm from './newCollectionForm';
+import Image from 'next/image'
 
 function CollectionList() {
-
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success'); 
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(null); 
+  const [editingValues, setEditingValues] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const [collections, setCollections, baseUrl, setCollectionRecordId, setCollectionRecordName] = useStore((state) => [
-    state.collections, state.setCollections, state.baseUrl, state.setCollectionRecordId, state.setCollectionRecordName
+  const [collections, setCollections, baseUrl, setCollectionRecordId, setCollectionRecordName, updateCollection, setCollectionCoverImage] = useStore((state) => [
+    state.collections, state.setCollections, state.baseUrl, state.setCollectionRecordId, state.setCollectionRecordName, state.updateCollection, state.setCollectionCoverImage
   ], shallow);
 
-
-  const toggleToast = () => {
-    setToastOpen(!toastOpen);
+  const handleEdit = (collectionId) => {
+    setIsEditing(collectionId);
   };
 
-  const handleSuccess = () => {
-    setToastMessage('Operation was successful.');
-    setToastType('success');
-    setToastOpen(true);
-  };
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+};
 
-  const handleError = (message) => {
-    setToastMessage(message);
-    setToastType('error');
-    setToastOpen(true);
+  const handleSave = async (collectionId, updatedFields) => {
+    try {
+      const response = await axios.put(
+        `${baseUrl}/collection_name/update/${collectionId}`,
+        editingValues,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        updateCollection(collectionId, response.data.updatedCollection);
+        setIsEditing(null);
+        toast.success('Collection updated successfully', {
+          autoClose: 2000,
+          position: "top-right"
+        });
+      } else {
+        handleError(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error updating collection:', error);
+      toast.error('An error occurred while updating the collection', {
+        autoClose: 2000,
+        position: "top-right"
+      });
+    }
   };
   
-  
-  const handleUpdate = (collection) => {
-    // Implement your update logic here
-    console.log('Updating collection:', collection);
-  };
 
   const handleDelete = async (collection) => {
     try {
@@ -57,44 +78,123 @@ function CollectionList() {
         // Remove the deleted collection from the state
         const updatedCollections = collections.filter(c => c.collection_id !== collection.collection_id);
         setCollections(updatedCollections); // Assume you have a function to update the state
-        handleSuccess();
+        toast.success('Collection deleted successfully', {
+          autoClose: 2000,
+          position: "top-right"
+        });
       } else {
-        // Show an error message from the server
-        handleError(response.data.message);
+        toast.error(`An error occurred while deleting the collection. Error message is ${response.data.message}`, {
+          autoClose: false,
+          position: "top-right"
+        });
       }
     } catch (error) {
-      console.error('Error deleting collection:', error);
-      handleError("An error occurred while deleting the collection");
+      console.log(error.response.data.message)
+        toast.error(`${error.response.data.message}`, {
+          autoClose: false,
+          position: "top-right"
+        });
 
     }
   };
 
-  const handleCollectionRecordId = (id, name) => {
+  const handleCollectionRecordId = (id, name, cover_image) => {
     setCollectionRecordId(id);
     setCollectionRecordName(name);
+    setCollectionCoverImage(cover_image);
+    router.push(`/account?tab=collectionRecords&collection=${id}`);
   }
   
-
+  const filteredCollections = useMemo(() => {
+    return collections.filter(collection => 
+      collection.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [collections, searchQuery]);
 
 
   return (
-    <Container>
+    <div className="container">
+      <div className="hide-scrollbar flex-1 h-100 container">
+      <br />  
       <Row>
-        <Col>
-          <h2>Your Collections</h2>
-          <ListGroup>
-            {collections.map((collection) => (
-              <ListGroupItem key={collection.collection_id}>
-                <Card>
+          <Col>
+            <Input
+              type="text"
+              placeholder="Search collections..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </Col>
+        </Row>
+        <div style={{marginTop: "20px"}}>
+          <button className="btn btn-primary" onClick={toggleModal}>Create New Collection</button>
+            <Modal isOpen={isModalOpen} toggle={toggleModal}>
+              <ModalHeader toggle={toggleModal}>Create New Collection</ModalHeader>
+                <ModalBody>
+                   <NewCollectionForm />
+                 </ModalBody>
+            </Modal>
+        </div>
+        <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
+            {collections && collections.length > 0 ? filteredCollections.map((collection) => (
+               <div className="col" key={collection.collection_id}>
+                <Card style={{width: "20em"}}>
                   <CardHeader>{collection.name}</CardHeader>
+                  {!collection.cover_image ?
+                    <svg 
+                      className="bd-placeholder-img card-img-top" 
+                      width="100%" 
+                      height="248" 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      role="img" 
+                      preserveAspectRatio="xMidYMid slice" 
+                      focusable="false"
+                    >
+                      <title>{collection.name}</title>
+                      <rect width="100%" height="100%" fill="#d6d6d6"></rect>
+                    </svg>
+                    :
+                  <Image 
+                    src={collection.cover_image} 
+                    alt={collection.name} 
+                    width={500}
+                    height={300}
+                    className="card-img-top"
+                    style={{objectFit: "cover"}}
+                    priority={true}
+                    />
+                  }
                   <CardBody>
+                  {isEditing === collection.collection_id ? (
+                      <>
+                        <label className="form-label">Collection Name</label>
+                        <Input type="text" defaultValue={collection.name} onChange={(e) => setEditingValues({ ...editingValues, name: e.target.value })} />
+                        <label className="form-label">Collection Description</label>
+                        <Input type="textarea" defaultValue={collection.description} onChange={(e) => setEditingValues({ ...editingValues, description: e.target.value })} />
+                        <label className="form-label">Public/Private</label>
+                        <Input type="select" defaultValue={collection.public} onChange={(e) => setEditingValues({ ...editingValues, public: e.target.value })}>
+                          <option value="Public">Public</option>
+                          <option value="Private">Private</option>
+                        </Input>
+                        <label className="form-label">Collection Cover Image</label>
+                        <Input type="text" defaultValue={collection.cover_image} onChange={(e) => setEditingValues({ ...editingValues, cover_image: e.target.value })} />
+                        <br />
+                        <Button color="primary" onClick={() => {
+                          handleSave(collection.collection_id, editingValues);
+                        }}>Save</Button>{' '}
+                        <Button color="danger" onClick={() => setIsEditing(null)}>Cancel</Button>{' '}
+
+                      </>
+                    ) : (
+                      <>
                     <p><strong>Description:</strong> {collection.description}</p>
-                    <p><strong>Public:</strong> {collection.public === 'yes' ? 'Yes' : 'No'}</p>
+                    <p><strong>Public:</strong> {collection.public === 'Public' ? 'Public' : 'Private'}</p>
                     <p><strong>Views:</strong> {collection.views}</p>
+                    <p><strong>Created:</strong>{collection.timestamp}</p>
+                    <p><strong>Collection cover image:</strong>{collection.cover_image}</p>
                     <p><Badge color="success">{collection.recordCount} Records</Badge></p>
-                    {/* Add more fields here */}
-                    <Button color="primary" onClick={() => handleCollectionRecordId(collection.collection_id, collection.name)}>View Records</Button>{' '}
-                    <Button color="primary" onClick={() => handleUpdate(collection)}>Update</Button>{' '}
+                    <Button color="primary" onClick={() => handleEdit(collection.collection_id)}>Edit</Button>{' '}
+                    <Button color="primary" onClick={() => handleCollectionRecordId(collection.collection_id, 'Collection Records', collection.cover_image)}>View Records</Button>{' '}
                     <Button
                       color="danger"
                       disabled={collection.records && collection.records.length > 0}
@@ -102,14 +202,15 @@ function CollectionList() {
                     >
                       Delete
                     </Button>
+                    </>
+                    )}
                   </CardBody>
                 </Card>
-              </ListGroupItem>
-            ))}
-          </ListGroup>
-        </Col>
-      </Row>
-    </Container>
+              </div>
+            )): '<p>No collections found :(</p>'}
+        </div>
+      </div>
+    </div>
   );
 }
 

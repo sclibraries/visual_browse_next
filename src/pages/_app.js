@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import client from '../lib/apollo';
 import 'bootstrap/dist/css/bootstrap.min.css'; 
+import 'react-toastify/dist/ReactToastify.css';
 import GlobalLayout from '../layouts/GlobalLayout';
 import '../css/local.css';
 import axios from 'axios';

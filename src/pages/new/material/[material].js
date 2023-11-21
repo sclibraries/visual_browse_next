@@ -10,6 +10,7 @@ import { useStore } from '../../../store/store';
 import { shallow } from 'zustand/shallow'
 import LocationSort from '@/components/LocationSort';
 import SubjectSort from '@/components/SubjectSort';
+import DateSort from '@/components/DateSort';
 
 function NewMaterial() {
     const router = useRouter();
@@ -19,9 +20,6 @@ function NewMaterial() {
     const [page, setPage] = useState(1);
     const [limit] = useState(50);
     const [loadMore, setLoadMore] = useState(false);
-    const today = new Date();
-    const oneDay = new Date(new Date().setDate(today.getDate() - 1));
-    const thirtyDays = new Date(new Date().setDate(today.getDate() - 90)); 
 
     let fundDistribution = ''
     
@@ -34,12 +32,18 @@ function NewMaterial() {
         break;
     }
 
-    const [setAn,setDbid, setRecordModal,location] = useStore(state => [
+    const [setAn,setDbid, setRecordModal,location, subject, date] = useStore(state => [
         state.setAn,
         state.setDbid,
         state.setRecordModal,
-        state.location
+        state.location,
+        state.subject,
+        state.date,
     ], shallow)
+
+    const today = new Date();
+    const oneDay = new Date(new Date().setDate(today.getDate() - 2));
+    const thirtyDays = new Date(new Date().setDate(today.getDate() - date)); 
 
     const handleRecord = (an) => {
         const params = { an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${an.replace(/-/g, ".")}` , db: 'cat09206a' }
@@ -54,7 +58,7 @@ function NewMaterial() {
             offset: 0,
             limit: limit,
             material: material,
-            fundDistribution: fundDistribution,
+            fundDistribution: material == 'books' || material == 'dvd' ? subject : fundDistribution,
             acquisitionsUnit: location,
             start: moment(thirtyDays).format('YYYY-MM-DD'),
             end: moment(oneDay).format('YYYY-MM-DD')
@@ -107,14 +111,19 @@ function NewMaterial() {
                         <div className="p-2">
                             <p>Results: <strong>{totalRecords}</strong></p>
                         </div>
+                        {material === 'books' || material == 'dvd' ?
                         <div className="ms-auto p-2">
                             <LocationSort />
                         </div>
+                        : ''}
                         {material == 'books' ?
                         <div className="p-2">
                             <SubjectSort />
                         </div>
                         : '' }
+                        <div className={material === 'books' || material === 'dvd' ? "p-2" : "ms-auto ps"}>
+                            <DateSort />
+                        </div>
                     </div>
                     {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {
                     return(

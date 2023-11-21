@@ -84,8 +84,7 @@ function Movies() {
         if (shouldRefetch) {
             executeSearch({
                 variables: {
-                    query: movieQueryString,
-                    // other variables...
+                    query: movieResultsQueryString !== '' ? movieResultsQueryString : movieQueryString,
                     action: movieFacetAction,
                     refine: 'y',
                     sort: sort
@@ -102,7 +101,7 @@ function Movies() {
         setMovieFacets(data?.search?.facets)
         setMovieAppliedFacets(data?.search?.facetFiltersWithAction)
         setMovieHits(data?.search?.statistics?.hits)
-        setMovieQueryString(data?.search?.queryString)
+        setMovieResultsQueryString(data?.search?.queryString)
         setMovieTotalPages(Math.ceil(data?.search?.statistics?.hits / 22))
     }
 

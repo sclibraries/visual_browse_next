@@ -6,7 +6,9 @@ const initialState = {
     location: '',
     subject: '',
     baseUrl: "https://libtools2.smith.edu:4000",
-    currentURL: ''
+    currentURL: '',
+    date: 30,
+    dateLimiter: ''
 }
 
 export const createMainStore = (set, get) => ({
@@ -17,5 +19,7 @@ export const createMainStore = (set, get) => ({
     setLoading: (loading) => set({ loading }),
     setLocation: (location) => set({ location }),
     setSubject: (subject) => set({ subject }),
-    setCurrentURL: (url) => set({ currentURL: url })
+    setCurrentURL: (url) => set({ currentURL: url }),
+    setDate: (date) => set({ date }),
+    setDateLimiter: (dateLimiter) => set({ dateLimiter }),
 })

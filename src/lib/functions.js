@@ -14,7 +14,7 @@ const commonTerms = [
     const subjects = results.subjectItem
       .map(items => decodeURIComponent(items.term[0]).replace(/"/g, ''))
       .filter(term => !commonTerms.includes(term))
-      .slice(0, 7); // Limit to the first 7 items
+      .slice(0, 5); // Limit to the first 7 items
     
     console.log(subjects);
     
@@ -32,7 +32,7 @@ const commonTerms = [
 
   export const getImage = (recordData, baseImage) => {
     const imageSize = ['medium'];
-    const image = recordData?.image?.find(item => imageSize.includes(item.Size))?.Target || baseImage;
+    const image = recordData?.image?.find(item => imageSize.includes(item.Size))?.Target || '';
     return image;
   };
 

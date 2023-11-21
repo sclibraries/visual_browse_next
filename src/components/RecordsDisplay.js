@@ -6,7 +6,6 @@ import { Accordion, AccordionItem, AccordionHeader,AccordionBody, Modal, ModalHe
 import RecordAvailability from './RecordAvailability'
 import FullCast from './FullCast'
 import RecommendationDisplay from './Recommendations'
-import axios from 'axios';
 import { useFavorite } from '@/hooks/useFavorite';
 import { useCollections } from '@/hooks/useCollections';
 import { useToggleFavorite } from '@/hooks/useToggleFavorite';
@@ -15,6 +14,8 @@ import { useAddToCollection } from '@/hooks/useAddToCollection'
 import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection'
 import { getImage, getTitleString  } from '../lib/functions';
 import NewCollectionForm from './NewCollectionForm'
+import Image from 'next/image'
+import CollectionList from '@/pages/account/collections'
 function RecordsDisplay(){
 
     const [recordData, baseImage, an, loggedIn, currentCollections, collections] = useStore(state => [
@@ -35,7 +36,6 @@ function RecordsDisplay(){
     const toggleFavorite = useToggleFavorite(an, isFavorite, setIsFavorite);
     const addToCollection = useAddToCollection(refreshCurrentCollections);
     const removeFromCollection = useRemoveFromCollection(refreshCurrentCollections);
-    const isInCollection = currentCollections && currentCollections.length > 0;
 
 
     // Update the removeFromCollection function call
@@ -79,17 +79,26 @@ function RecordsDisplay(){
         })
     }
 
+
     return(
         <div className="layout">
+                {image.length > 0 ?  
                 <aside >
                     <div className="d-flex flex-column h-100 position-relative">
                         <div className="hide-scrollbar">
-                            <div className="container py-8">
-                                <img style={{width: '100%', maxWidth: '300px', paddingTop: '20px'}}  src={image} /> 
+                            <div className="container py-8"> 
+                            <Image
+                                src={image}
+                                alt={titleStringDisplay}
+                                layout="responsive"
+                                width={500}
+                                height={500}
+                            />
                             </div>
                         </div>
                     </div>
                 </aside>
+                : ''}
                 <div className="main">
                     <div className="container-fluid h-100">
                         <div className="d-flex flex-column h-100 position-relative">
@@ -99,12 +108,12 @@ function RecordsDisplay(){
                                     <h1 className="display-6">{titleStringDisplay}</h1> 
                                         <div class="d-flex flex-nowrap" style={{marginTop: "20px"}}>
                                             <div className="order-1 p-2">
-                                                <a target="_blank" className="btn btn-primary btn-lg" href={recordData.pLink}>Place Hold</a>{ ' ' }
+                                                <a target="_blank" className="btn btn-primary" href={recordData.pLink}>Place Hold</a>{ ' ' }
                                             </div>
                                             {loggedIn && (
                                             <Fragment>
                                                 <div className="order-2 p-2">
-                                                <button className="btn btn-danger btn-lg" onClick={toggleFavorite}>
+                                                <button className="btn btn-danger" onClick={toggleFavorite}>
                                                     {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
                                                 </button>
                                                 </div>
@@ -124,7 +133,7 @@ function RecordsDisplay(){
                                                             </select>
                                                         </div>
                                                             <div className="p-2">
-                                                                <button className="btn btn-primary btn-lg" onClick={toggleModal}>Create New Collection</button>
+                                                                <button className="btn btn-primary" onClick={toggleModal}>Create New Collection</button>
                                                                 <Modal isOpen={isModalOpen} toggle={toggleModal}>
                                                                     <ModalHeader toggle={toggleModal}>Create New Collection</ModalHeader>
                                                                     <ModalBody>
@@ -137,10 +146,10 @@ function RecordsDisplay(){
                                             </Fragment>
                                             )}
                                         </div>
-                                        {loggedIn && isInCollection && (
+                                        {loggedIn && currentCollections.length > 0 && (
                                         <div className="d-flex flex-wrap mb-3">
                                                     {currentCollections.map((collection, index) => (
-                                                    <div className="btn btn-outline-secondary" key={index} onClick={() => handleRemoveFromCollection(collection.collection_records_id)}>
+                                                    <div style={{marginRight: "10px"}} className="btn btn-secondary" key={index} onClick={() => handleRemoveFromCollection(collection.collection_records_id)}>
                                                         {collection.collectionName.name}{' '}
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                                                             <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>

@@ -10,7 +10,11 @@ const initialState = {
     baseUrl: 'https://libtools2.smith.edu:4000',
     collectionRecordId: '',
     collectionRecordName: '',
+    user: [],
+    favorites: [],
+    collectionCoverImage: '',
 }
+
 
 export const createAccountStore = (set, get) => ({
     ...initialState,
@@ -26,15 +30,16 @@ export const createAccountStore = (set, get) => ({
         }))
     },
     updateCollection: (collectionId, updatedCollection) => {
+        console.log(collectionId, updatedCollection)
         set((state) => ({
-            collections: state.collections.map(collection => {
-                if (collection.id === collectionId) {
-                    return updatedCollection;
-                }
-                return collection;
-            }),
-        }))
-    },
+          collections: state.collections.map((collection) => {
+            if (collection.collection_id === collectionId) {
+              return { ...collection, ...updatedCollection };
+            }
+            return collection;
+          }),
+        }));
+      },
     updateNewCollection: (updatedCollection) => {
         set((state) => ({
             newCollection: {
@@ -61,5 +66,8 @@ export const createAccountStore = (set, get) => ({
     setLoggedIn: (loggedIn) => set(() => ({ loggedIn })),
     setCollectionRecordId: (collectionRecordId) => set(() => ({ collectionRecordId })),
     setCollectionRecordName: (collectionRecordName) => set(() => ({ collectionRecordName })),
+    setUser: (user) => set(() => ({ user })),
+    setFavorites: (favorites) => set(() => ({ favorites })),
+    setCollectionCoverImage: (collectionCoverImage) => set({ collectionCoverImage }),
     reset: () => set({ ...initialState })
 })

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useQuery } from "@apollo/client"
 import {GET_RECORD} from '../lib/api'
+import Image from 'next/image'
 
   export const DisplayImage = props => {
     const anVariable = props.an ? props.an.replace(/-/g, '.') : '';
@@ -53,25 +54,20 @@ import {GET_RECORD} from '../lib/api'
 
     return (
         image !== '' ? (
-          <img
+          <Image
             src={image}
-            className="rounded card-img-top"
             alt={titleStringDisplay}
-            style={{ margin: 0, padding: 0 }}
+            width={500}
+            height={300}
+            className="card-img-top"
+            style={{objectFit: "cover"}}
+            priority={true}
           />
         ) : (
-          <svg
-            className="bd-placeholder-img card-img-top"
-            width="100%"
-            height="100%"
-            xmlns="http://www.w3.org/2000/svg"
-            role="img"
-            preserveAspectRatio="xMidYMid slice"
-            focusable="false"
-          >
-            <title>{titleString}</title>
-            <rect width="100%" height="100%" fill="#d6d6d6" />
-          </svg>
+          <svg className="bd-placeholder-img card-img-top" width="100%" height="300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
+          <title>{titleString}</title>
+          <rect width="100%" height="100%" fill="#868e96"></rect>
+      </svg>
         )
       );
   }

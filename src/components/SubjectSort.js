@@ -3,6 +3,7 @@ import Select from 'react-select';
 import { useQuery } from '@apollo/client';
 import { useStore } from '../store/store';
 import { FOLIO_FINANCE } from '../lib/api';
+import { useRouter } from 'next/router';
 
 const customStyles = {
     control: (provided) => ({
@@ -21,7 +22,10 @@ const customStyles = {
 
 
 function SubjectSort() {
-  const [setSubject] = useStore(state => [state.setSubject]);
+
+  const router = useRouter();
+  const setSubject = useStore(state => state.setSubject);
+  const subject = useStore(state => state.subject);
   const [location ] = useStore(state => [state.location]);
 
   let locationFilter = ''
@@ -58,14 +62,30 @@ function SubjectSort() {
     label: item.name,
   }));
 
-  
+  const handleChange = (selectedOption) => {
+    // When the clear button is clicked, selectedOption will be null
+    if (selectedOption) {
+      setSubject(selectedOption.value);
+      const currentQuery = { ...router.query, subject: selectedOption.value };
+      router.push({ pathname: router.pathname, query: currentQuery }, undefined, { shallow: true });
+    } else {
+      setSubject(''); // Reset subject if the selection is cleared
+      const { subject, ...rest } = router.query; // Destructure subject out of the query params
+      router.push({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+    }
+  };
+
+    // Find the option that matches the subject value from the store
+    const selectedOption = options.find(option => option.value === subject) || null;
 
   return (
     <Select
-      placeholder="New books by subject"
-      styles={customStyles} // Apply custom styles
-      options={[{ value: '', label: 'All subject areas' }, ...options]}
-      onChange={(e) => setSubject(e.value)}
+        placeholder="Filter by subject"
+        styles={customStyles}
+        options={options}
+        onChange={handleChange}
+        value={selectedOption} // Set the value to the selected option
+        isClearable={true} // Allow the select to be cleared
     />
   );
 }

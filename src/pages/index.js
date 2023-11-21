@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react'
+import React, { useState, Fragment, useEffect, use } from 'react'
 import { GET_ORDERS } from '../lib/api'
 import { useQuery } from '@apollo/client'
 import { DashboardLoading } from '../components/Loading';
@@ -10,6 +10,7 @@ import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow'
 import LocationSort from '@/components/LocationSort';
 import SubjectSort from '@/components/SubjectSort';
+import DateSort from '@/components/DateSort';
 
 function Home() {
   const router = useRouter();
@@ -19,17 +20,22 @@ function Home() {
   const [page, setPage] = useState(1);
   const [limit] = useState(50);
   const [loadMore, setLoadMore] = useState(false);
-  const today = new Date();
-  const oneDay = new Date(new Date().setDate(today.getDate() - 1));
-  const thirtyDays = new Date(new Date().setDate(today.getDate() - 90)); 
 
-  const [setAn,setDbid, setRecordModal,location, subject] = useStore(state => [
+  const [setAn,setDbid, setRecordModal,location, subject, date, setDate, setLocation, setSubject] = useStore(state => [
       state.setAn,
       state.setDbid,
       state.setRecordModal,
       state.location,
-      state.subject
+      state.subject,
+      state.date,
+      state.setDate,
+      state.setLocation,
+      state.setSubject
   ], shallow)
+
+  const today = new Date();
+  const oneDay = new Date(new Date().setDate(today.getDate() - 2));
+  const thirtyDays = new Date(new Date().setDate(today.getDate() - date)); 
 
   const handleRecord = (an) => {
       const params = { an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${an.replace(/-/g, ".")}` , db: 'cat09206a' }
@@ -51,6 +57,22 @@ function Home() {
       onCompleted: setRecord
   })
 
+  useEffect(() => {
+    const urlDate = router.query.date
+    const urlLocation = router.query.location
+    const urlSubject = router.query.subject
+
+    if(urlLocation){
+        setLocation(urlLocation)
+    }
+    if(urlSubject){
+        setSubject(urlSubject)
+    }
+    if(urlDate){
+        setDate(urlDate)
+    }
+  }, [router.query.date, router.query.location, router.query.subject])
+
   const { folioorders } = records || [];
   const { poLines } = folioorders || [];
   const { totalRecords }  = folioorders || 0
@@ -67,6 +89,8 @@ function Home() {
         variables: {
             offset: offset + limit,
             limit: limit,
+            acquisitionsUnit: location,
+            fundDistribution: subject,
             start: moment(thirtyDays).format('YYYY-MM-DD'),
             end: moment(oneDay).format('YYYY-MM-DD')
           },
@@ -98,7 +122,7 @@ function Home() {
                             <LocationSort />
                         </div>
                         <div className="p-2">
-                            <SubjectSort />
+                            <DateSort />
                         </div>
                     </div>
               {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {

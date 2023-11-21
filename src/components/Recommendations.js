@@ -5,6 +5,7 @@ import { buildRecommendations } from '../lib/functions';
 import { RecomendationsLoading } from './Loading'
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
+import Image from 'next/image'
 
 function RecommendationDisplay(props){
 
@@ -50,7 +51,7 @@ function RecommendationDisplay(props){
 
         return(
             <div key={index} className="col">
-                <div className="card" style={{width: "14em", marginRight: "10px"}} onClick={e => handleRecord(records[key].an, records[key].dbid)}>
+                <div className="card" style={{width: "12em", marginRight: "10px"}} onClick={e => handleRecord(records[key].an, records[key].dbid)}>
                     
                 {image == '' ? 
                                 <svg 
@@ -66,9 +67,14 @@ function RecommendationDisplay(props){
                                   <rect width="100%" height="100%" fill="#d6d6d6"></rect>
                                 </svg>
                                 :
-                            <img src={image}
-                                className="card-img-top img-thumbnail rounded"
-                                alt={records[key]?.titles[0]?.TitleFull} 
+                            <Image
+                                src={image}
+                                alt={records[key]?.titles[0]?.TitleFull}
+                                layout="responsive"
+                                width={300}
+                                height={100}
+                                className="rounded card-img-top"
+                                objectFit="cover" // Cover instead of contain to fill the container
                             />
                     }
                     <div className="card-body">

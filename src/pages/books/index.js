@@ -35,7 +35,8 @@ function Books() {
         setBookPage,
         bookTotalPages,
         setBookTotalPages,
-        setLoading
+        setLoading,
+        dateLimiter
     ] = useStore(state => [
         state.query,
         state.setBookData,
@@ -63,7 +64,8 @@ function Books() {
         state.setBookPage,
         state.bookTotalPages,
         state.setBookTotalPages,
-        state.setLoading
+        state.setLoading,
+        state.dateLimiter
     ], shallow)
 
     useEffect(() => {
@@ -73,19 +75,18 @@ function Books() {
 
     useEffect(() => {
         if(shouldRefetch){
-            console.log(bookQueryString)
             executeSearch({
                 variables: {
-                    query: bookQueryString,
+                    query: bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString,
                     action: bookFacetAction,
                     refine: 'y',
                     sort: bookSort,
-                    dateLimiter: bookDateLimiter
+                    limiter: dateLimiter
                 }
             });
             setShouldRefetch(false)
         }
-    }, [bookQueryString, bookFacetAction, bookSort, bookLimiter, bookDateLimiter, shouldRefetch, setShouldRefetch])
+    }, [bookQueryString, bookFacetAction, bookSort, bookLimiter, bookDateLimiter, shouldRefetch, setShouldRefetch, dateLimiter])
 
     const handleOnComplete = data => {
         setBookData(data?.search?.records)

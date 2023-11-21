@@ -95,7 +95,7 @@ export const createBooksStore = (set, get) => ({
     setBookQueryString: (bookQueryString) => set({ bookQueryString }),
     setBookResultsQueryString: (bookResultsQueryString) => set({ bookResultsQueryString }),
     setBookExpanded: (bookExpanded) => set({ bookExpanded }),
-    setBookDateLimiter: (dateLimiter) => set({ dateLimiter }),
+    setBookDateLimiter: (bookDateLimiter) => set({ bookDateLimiter }),
     setBookLimiter: (limiter) => set({ limiter }),
     setBookAppliedFacets: (bookAppliedFacets) => set({ bookAppliedFacets }),
     setBookFacets: (bookFacets) => set({ bookFacets}),

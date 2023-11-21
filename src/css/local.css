@@ -6,6 +6,10 @@ body {
       Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   }
 
+  .navbar {
+    background-color: #2D3340;
+  }
+
   
   /* For the fixed left column */
   .fixed-left {
@@ -18,6 +22,24 @@ body {
     padding: 25px; /* Some padding for aesthetics */
    
   }
+
+  .bottom-aligned-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch; /* This makes sure all flex children (cols) are the same height */
+  }
+  
+  .bottom-aligned-row .col {
+    display: flex;
+    flex-direction: column; /* Stack the flex children (card) vertically */
+  }
+  
+  .card {
+    display: flex;
+    flex-direction: column; /* Allows you to control the positioning of card-body */
+  }
+  
+
 
   .toggle-sidebar-btn {
     display: none;

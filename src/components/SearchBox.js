@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
 import { Container, Form, Input, Button, InputGroup, FormGroup } from 'reactstrap';
@@ -7,6 +7,8 @@ import { shallow } from 'zustand/shallow';
 function SearchBox() {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
+    // useRef to store the previous search query value
+    const prevSearchQuery = useRef(router.query.search);
   // For Books and Movies
   const [query, setQuery] = useStore((state) => [state.query, state.setQuery]);
   const [
@@ -17,7 +19,16 @@ function SearchBox() {
     bookQueryString, 
     setBookQueryString,
     allQueryString,
-    setAllQueryString
+    setAllQueryString,
+    setMovieResultsQueryString,
+    setBookResultsQueryString,
+    movieResultsQueryString,
+    bookResultsQueryString,
+    allResultsQueryString,
+    setAllResultsQueryString,
+    setBookFacetAction,
+    setMovieFacetAction,
+    setAllFacetAction,
   ] = useStore((state) => [
     state.movieQueryString, 
     state.setMovieQueryString, 
@@ -26,30 +37,42 @@ function SearchBox() {
     state.bookQueryString, 
     state.setBookQueryString, 
     state.allQueryString,
-    state.setAllQueryString
+    state.setAllQueryString,
+    state.setMovieResultsQueryString,
+    state.setBookResultsQueryString,
+    state.movieResultsQueryString,
+    state.bookResultsQueryString,
+    state.allResultsQueryString,
+    state.setAllResultsQueryString,
+    state.setBookFacetAction,
+    state.setMovieFacetAction,
+    state.setAllFacetAction,
   ], shallow);
 
     // Function to update the query string
   
     useEffect(() => {
-      if (router.query.search) {
-        const unescapedSearch = decodeURIComponent(router.query.search);
-    
-        const newQuery = updateQueryTerm(movieQueryString, unescapedSearch);
-        const newBookQuery = updateQueryTerm(bookQueryString, unescapedSearch);
-        const newAllQuery = updateQueryTerm(allQueryString, unescapedSearch);
-    
-        console.log('New Movie Query:', newQuery);
-        console.log('New Book Query:', newBookQuery);
-        console.log('New All Query:', newAllQuery);
-    
-        setMovieQueryString(newQuery);
-        setBookQueryString(newBookQuery);
-        setAllQueryString(newAllQuery);
-    
-        setQuery(router.query.search);
-        setSearchValue(unescapedSearch);
-        setShouldRefetch(true);
+      if (prevSearchQuery.current !== router.query.search) {
+        if (router.query.search) {
+          const unescapedSearch = decodeURIComponent(router.query.search);
+      
+          const newQuery = updateQueryTerm(movieQueryString, unescapedSearch);
+          const newBookQuery = updateQueryTerm(bookQueryString, unescapedSearch);
+          const newAllQuery = updateQueryTerm(allQueryString, unescapedSearch);
+      
+          console.log('New Movie Query:', newQuery);
+          console.log('New Book Query:', newBookQuery);
+          console.log('New All Query:', newAllQuery);
+      
+          setMovieQueryString(newQuery);
+          setBookQueryString(newBookQuery);
+          setAllQueryString(newAllQuery);
+      
+          setQuery(router.query.search);
+          setSearchValue(unescapedSearch);
+          setShouldRefetch(true);
+          prevSearchQuery.current = router.query.search;
+        }
       }
     }, [router.query.search]);
     
@@ -61,14 +84,38 @@ function SearchBox() {
       handleClear(); // Clear the search if the input is empty
       return;
     }
+
+    const movieString = movieResultsQueryString !== '' ? movieResultsQueryString : movieQueryString;
+    const bookString = bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString;
+    const allString = allResultsQueryString !== '' ? allResultsQueryString : allQueryString;
   
-    const newQuery = searchValue.trim() !== '' ? updateQueryTerm(movieQueryString, searchValue) : '*';
-    const newBookQuery = searchValue.trim() !== '' ? updateQueryTerm(bookQueryString, searchValue) : '*';
-    const newAllQuery = searchValue.trim() !== '' ? updateQueryTerm(allQueryString, searchValue) : '*'; // For "All" search
-  
-    setMovieQueryString(newQuery);
-    setBookQueryString(newBookQuery);
-    setAllQueryString(newAllQuery); // Update "All" search query
+    const newQuery = searchValue.trim() !== '' ? updateQueryTerm(movieString, searchValue) : '*';
+    const newBookQuery = searchValue.trim() !== '' ? updateQueryTerm(bookString, searchValue) : '*';
+    const newAllQuery = searchValue.trim() !== '' ? updateQueryTerm(allString, searchValue) : '*'; // For "All" search
+    
+    if(movieResultsQueryString !== '') {
+      setMovieFacetAction('')
+      setMovieResultsQueryString(newQuery);
+    } else {
+      setMovieFacetAction('')
+      setMovieQueryString(newQuery);
+    }
+
+    if(bookResultsQueryString !== '') {
+      setBookFacetAction('')
+      setBookResultsQueryString(newBookQuery);
+    } else {
+      setBookFacetAction('')
+      setBookQueryString(newBookQuery);
+    }
+
+    if(allResultsQueryString !== '') {
+      setAllFacetAction('')
+      setAllResultsQueryString(newAllQuery);
+    } else {
+      setAllFacetAction('')
+      setAllQueryString(newAllQuery); 
+    }
   
     const escapedSearch = encodeURIComponent(searchValue);
   
@@ -94,12 +141,32 @@ function SearchBox() {
   const handleClear = () => {
     setSearchValue('');
     setQuery('*');
-    const newQuery = updateQueryTerm(movieQueryString, '*')
-    const newBookQuery = updateQueryTerm(bookQueryString, '*')
+    const movieString = movieResultsQueryString !== '' ? movieResultsQueryString : movieQueryString;
+    const bookString = bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString;
+    const allString = allResultsQueryString !== '' ? allResultsQueryString : allQueryString;
+    
+    const newQuery = updateQueryTerm(movieString, '*')
+    const newBookQuery = updateQueryTerm(bookString, '*')
+    const newAllQuery = updateQueryTerm(allString, '*')
   
-    // Update the moviesStore with the new query string
-    setMovieQueryString(newQuery);
-    setBookQueryString(newBookQuery);
+    if(movieResultsQueryString !== '') {
+      setMovieResultsQueryString(newQuery);
+    } else {
+      setMovieQueryString(newQuery);
+    }
+
+    if(bookResultsQueryString !== '') {
+      setBookResultsQueryString(newBookQuery);
+    } else {
+      setBookQueryString(newBookQuery);
+    }
+
+    if(allResultsQueryString !== '') {
+      setAllResultsQueryString(newAllQuery);
+    } else {
+      setAllQueryString(newAllQuery);
+    }
+
     const { search, ...restOfQuery } = router.query;
     setShouldRefetch(true)
     router.replace({ pathname: router.pathname, query: restOfQuery }, undefined, { shallow: true });
@@ -108,7 +175,7 @@ function SearchBox() {
   
 
   return (
-<div className="searchbox bg-white fixed z-100 p-3 shadow">
+<div className="searchbox bg-white fixed z-100 p-8 shadow">
   <Form onSubmit={handleSearch} className="d-flex align-items-center">
     <Input 
       id="search"

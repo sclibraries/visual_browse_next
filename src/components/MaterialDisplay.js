@@ -7,6 +7,7 @@ import { useStore } from '../store/store'
 import { useRouter } from 'next/router'
 import CampusLocation from './CampusLocation'
 import { DisplayLoadingSkeleton } from './Loading'
+import DateSlider from './DateSlider'
 
 function MaterialDisplay(props) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -76,9 +77,9 @@ function MaterialDisplay(props) {
 
     return (
         <Container fluid>
-          <Row>
+          {/* <Row> */}
             {/* Sidebar */}
-            <Collapse isOpen={!isCollapsed}>
+            {/* <Collapse isOpen={!isCollapsed}>
             <Col md="3" className="fixed-left">
               <Facets
                 activatedFacets={props.activatedFacet}
@@ -92,12 +93,33 @@ function MaterialDisplay(props) {
                 materialType={props.materialType}
               />
             </Col>
-            </Collapse>
+            </Collapse> */}
       
             {/* Main Content */}
-            <Col sm="12" md="9" className="scrollable-middle">
-              <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
-              <Row>
+            {/* <Col sm="12" md="9" className="scrollable-middle"> */}
+              <div className="container">
+              <Facets
+                activatedFacets={props.activatedFacet}
+                facetDisplay={props.facetDisplay}
+                handleFacetAction={props.handleFacetAction}
+                handleRemoveFacetAction={props.handleRemoveFacetAction}
+                genre={props.genre}
+                subjectHeadings={props.subjectHeadings}
+                onSelect={props.onSelect}
+                appliedFacets={props.appliedFacets}
+                materialType={props.materialType}
+              />
+        <div className="hide-scrollbar flex-1 h-100 container">
+        <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
+        <div className="d-flex justify-content-between">
+          <div className="d-flex">
+            <div className="d-flex align-items-center me-3">
+              <span className="text-muted me-2">Date</span>
+              <DateSlider />
+            </div>
+          </div>
+        </div>
+        <div className="row row-cols-1 row-cols-md-5 g-4" style={{marginTop: "30px"}}>
                {loading ? <DisplayLoadingSkeleton /> : records && records.length > 0  ? Object.keys(records).map((key,index) => {
                     let image = ''
                     if(records[key].imageItem){
@@ -123,7 +145,7 @@ function MaterialDisplay(props) {
                           titleStringDisplay = records[key].titles[0]?.TitleFull
                       }
                   return(
-                  <Col key={index} sm="12" md="6" lg="4" xl="3" className="p-4">
+                    <div className="col" key={index}>
                     <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "13em"}} id={'eds-' + index} onClick={e => handleRecord(records[key].an, records[key].dbid, e)}>
                         {image == '' ? 
                             <svg 
@@ -157,10 +179,10 @@ function MaterialDisplay(props) {
                                     <p className="card-text">{records[key].abstractItem}</p>
                                 </div>
                     </div>
-                  </Col>
-
+                </div>
                 )}) : ''}
-                                    {props.page <= props.totalPages ?
+                  </div>
+                  {props.page <= props.totalPages ?
                     <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}>
                     <button
                           className={props.loadMore ? "btn btn-info disabled" : "btn btn-primary"}
@@ -174,15 +196,9 @@ function MaterialDisplay(props) {
                       </button>
                       </div>
                     : <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}><button className="btn btn-primary" disabled>End of results</button></div>}
-              </Row>
-            </Col>
-            {/* {sidebarOpen && <div className="backdrop show" onClick={toggleSidebar}></div>}
-            <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-              <button onClick={toggleSidebar}>Close</button>
-              <Records />
-            </div> */}
-          </Row>
-        </Container>
+                </div>
+              </div>
+            </Container>
     )
 }
 

@@ -7,7 +7,7 @@ const initialState = {
     movieQueryString: 'query-1=AND,*&facetfilter=1,SourceType:Videos&facetfilter=2,ContentProvider:Five+Colleges+Catalog',
     movieResultsQueryString: '',
     expanded: [],
-    dateLimiter: '',
+    movieDateLimiter: '',
     smith: [
         'LB:Five Colleges Catalog-Smith College Annex',
         'LB:Five Colleges Catalog-Smith College Hillyer Art Library',
@@ -65,7 +65,7 @@ export const createMoviesStore = (set, get) => ({
     setMovieData: (movieData) => set({ movieData }),
     setMovieQueryString: (movieQueryString) => set({ movieQueryString }),
     setExpanded: (expanded) => set({ expanded }),
-    setDateLimiter: (dateLimiter) => set({ dateLimiter }),
+    setMovieDateLimiter: (movieDateLimiter) => set({ movieDateLimiter }),
     setLimiter: (limiter) => set({ limiter }),
     setAppliedFacets: (appliedFacets) => set({ appliedFacets }),
     setLocalOnly: (localOnly) => set({ localOnly }),

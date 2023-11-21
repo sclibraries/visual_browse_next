@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/store';
+import { toast } from 'react-toastify';
 
 // Create a custom hook for toggling favorites
 export const useToggleFavorite = (an, isFavorite, setIsFavorite) => {
@@ -26,6 +27,7 @@ export const useToggleFavorite = (an, isFavorite, setIsFavorite) => {
       })
       .then(response => {
         setIsFavorite(false);
+        toast.success('Removed from favorites');
       })
       .catch(error => {
         console.error('Error removing favorite:', error);
@@ -40,6 +42,7 @@ export const useToggleFavorite = (an, isFavorite, setIsFavorite) => {
       })
       .then(response => {
         setIsFavorite(true);
+        toast.success('Added to favorites');
       })
       .catch(error => {
         console.error('Error adding favorite:', error);

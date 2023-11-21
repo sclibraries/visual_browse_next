@@ -6,6 +6,7 @@ import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { useRouter } from 'next/router'
 import Breadcrumb from '@/components/Breadcrumb';
+import { ToastContainer } from 'react-toastify';
 
 export default function GlobalLayout({ children }) {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function GlobalLayout({ children }) {
   return (
    <div> 
     <Header />
+    <ToastContainer />
     <div>
       <Modal isOpen={recordModal} toggle={toggleModal} {...modalParams}>
         <Records />
