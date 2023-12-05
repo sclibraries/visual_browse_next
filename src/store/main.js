@@ -1,5 +1,7 @@
 const initialState = {
     query: '*',
+    fieldCode: '',
+    searchValue: '',
     shouldRefetch: false,
     recordModal: false,
     loading: false,
@@ -8,7 +10,9 @@ const initialState = {
     baseUrl: "https://libtools2.smith.edu:4000",
     currentURL: '',
     date: 30,
-    dateLimiter: ''
+    dateLimiter: '',
+    isStreaming: false,
+    isStreamingImageUrl: ''
 }
 
 export const createMainStore = (set, get) => ({
@@ -22,4 +26,8 @@ export const createMainStore = (set, get) => ({
     setCurrentURL: (url) => set({ currentURL: url }),
     setDate: (date) => set({ date }),
     setDateLimiter: (dateLimiter) => set({ dateLimiter }),
+    setIsStreaming: (isStreaming) => set({ isStreaming }),
+    setIsStreamingImageUrl: (isStreamingImageUrl) => set({ isStreamingImageUrl }),
+    setSearchValue: (searchValue) => set({ searchValue }),
+    setFieldCode: (fieldCode) => set({ fieldCode }),
 })

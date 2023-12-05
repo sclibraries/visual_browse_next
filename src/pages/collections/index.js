@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link';
-import axios from 'axios';
 import Image from 'next/image'
 import { useFetchPublicCollectionName} from '../../hooks/useFetchPublicCollectionName';
+import { DisplayLoadingSkeleton } from '../../components/Loading';
 
 const LIMIT = 25;
 
 function Collections(props) {
+
+    const [sortOption, setSortOption] = useState('newest_desc');
+    const [sortOptionChanged, setSortOptionChanged] = useState(false);
 
     const {
         loading,
@@ -14,7 +17,13 @@ function Collections(props) {
         hasMore,
         loadMore,
         collections
-    } = useFetchPublicCollectionName(LIMIT);
+    } = useFetchPublicCollectionName(LIMIT, '', '', sortOption, sortOptionChanged);
+
+    useEffect(() => {
+        if (!loading && sortOptionChanged) {
+            setSortOptionChanged(false);
+        }
+    }, [loading, sortOptionChanged]);
 
     const [isFetchingMore, setIsFetchingMore] = useState(false);
 
@@ -29,12 +38,23 @@ function Collections(props) {
         }
     }, [loading]);
 
+    const handleSortChange = (e) => {
+        setSortOption(e.target.value);
+        setSortOptionChanged(true); // Set this to true whenever sort option changes
+    }
+
 
     return (
         <div className="hide-scrollbar flex-1 h-100 container">
-            <h1 className="display-4">Collections</h1>
+            <h1 className="display-4">Shared Collections</h1>
+            <select value={sortOption} onChange={handleSortChange}>
+                <option value="newest_desc">Newest (Desc)</option>
+                <option value="newest_asc">Newest (Asc)</option>
+                <option value="updated_desc">Recently Updated (Desc)</option>
+                <option value="updated_asc">Recently Updated (Asc)</option>
+            </select>
         <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
-            {collections.map((collection, index) => (
+            {loading ? <DisplayLoadingSkeleton /> : collections.map((collection, index) => (
                 <div className="col" key={index}>
                     <div className="card" style={{width: "18em"}}>                                 
                         {!collection.cover_image ? 

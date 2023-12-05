@@ -4,6 +4,7 @@ import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
 import { shallow } from 'zustand/shallow'
 import MaterialDisplay from '../../components/MaterialDisplay'
+import useUpdateQueryString from '@/hooks/useUpdateQueryString'
 
 function Books() {
     const [loadMore, setLoadMore] = useState(false);
@@ -20,7 +21,6 @@ function Books() {
         bookData,
         setBookFacetAction,
         removeBookFacetAction,
-        bookSort,
         bookQueryString,
         setBookQueryString,
         bookSubjectHeadings,
@@ -36,7 +36,12 @@ function Books() {
         bookTotalPages,
         setBookTotalPages,
         setLoading,
-        dateLimiter
+        dateLimiter,
+        bookRefine,
+        bookSort,
+        bookAction,
+        setBookRefine,
+        fieldCode
     ] = useStore(state => [
         state.query,
         state.setBookData,
@@ -49,7 +54,6 @@ function Books() {
         state.bookData,
         state.setBookFacetAction,
         state.removeBookFacetAction,
-        state.bookSort,
         state.bookQueryString,
         state.setBookQueryString,
         state.bookSubjectHeadings,
@@ -65,7 +69,12 @@ function Books() {
         state.bookTotalPages,
         state.setBookTotalPages,
         state.setLoading,
-        state.dateLimiter
+        state.dateLimiter,
+        state.bookRefine,
+        state.bookSort,
+        state.bookAction,
+        state.setBookRefine,
+        state.fieldCode
     ], shallow)
 
     useEffect(() => {
@@ -74,19 +83,44 @@ function Books() {
 
 
     useEffect(() => {
-        if(shouldRefetch){
-            executeSearch({
-                variables: {
-                    query: bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString,
-                    action: bookFacetAction,
-                    refine: 'y',
-                    sort: bookSort,
-                    limiter: dateLimiter
-                }
-            });
-            setShouldRefetch(false)
+        if (shouldRefetch) {
+          let variables = {}
+          
+          if(bookRefine === 'y'){
+            variables = {
+                query: bookResultsQueryString,
+                refine: 'y',
+                sort: bookSort,
+                ...(bookFacetAction && { action: bookFacetAction }),
+              };
+          } else {
+            variables = {
+                query: query,
+                refine: 'n',
+                fieldcode: fieldCode,
+                sort: bookSort,
+                action: bookAction
+            }
+          }
+        //   const variables = {
+        //     query: bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString,
+        //     refine: 'y',
+        //     // Include limiter and sort if they have values
+        //     ...(dateLimiter && { limiter: dateLimiter }),
+        //     ...(bookSort && { sort: bookSort }),
+        //   };
+      
+        //   // Only include action if it's set and then reset it
+        //   if (bookFacetAction) {
+        //     variables.action = bookFacetAction;
+        //     // Resetting bookFacetAction immediately after it's used
+        //     setBookFacetAction('');
+        //   }
+      
+          executeSearch({ variables });
+          setShouldRefetch(false);
         }
-    }, [bookQueryString, bookFacetAction, bookSort, bookLimiter, bookDateLimiter, shouldRefetch, setShouldRefetch, dateLimiter])
+      }, [bookQueryString, bookResultsQueryString, bookFacetAction, bookSort, dateLimiter, shouldRefetch, setShouldRefetch, setBookFacetAction]);
 
     const handleOnComplete = data => {
         setBookData(data?.search?.records)
@@ -95,6 +129,7 @@ function Books() {
         setBookHits(data?.search?.statistics?.hits)
         setBookResultsQueryString(data?.search?.queryString)
         setBookTotalPages(data?.search?.statistics?.hits / 22)
+        setBookRefine('y')
     }
 
     const [executeSearch, { loading, data, error, fetchMore }] = useLazyQuery(GET_BROWSE, {

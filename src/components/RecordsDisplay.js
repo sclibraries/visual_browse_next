@@ -1,4 +1,4 @@
-import React, {Fragment, useState} from 'react'
+import React, {Fragment, useState, useRef, useEffect} from 'react'
 import { useStore } from '../store/store'
 import { shallow } from 'zustand/shallow'
 import { decode } from 'html-entities'
@@ -15,17 +15,38 @@ import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection'
 import { getImage, getTitleString  } from '../lib/functions';
 import NewCollectionForm from './NewCollectionForm'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import CollectionList from '@/pages/account/collections'
 function RecordsDisplay(){
+    const containerRef = useRef(null);
+    const router = useRouter();
 
-    const [recordData, baseImage, an, loggedIn, currentCollections, collections] = useStore(state => [
+    const [
+        recordData, 
+        baseImage, 
+        an, 
+        loggedIn,
+        currentCollections, 
+        collections, 
+        isStreaming, 
+        isStreamingImageUrl,
+        setQuery,
+        setFieldCode,
+        setSearchValue,
+    ] = useStore(state => [
         state.recordData,
         state.baseImage,
         state.an,
         state.loggedIn,
         state.currentCollections,
-        state.collections
+        state.collections,
+        state.isStreaming,
+        state.isStreamingImageUrl,
+        state.setQuery,
+        state.setFieldCode,
+        state.setSearchValue
     ], shallow)
+
 
     const [open, setOpen] = useState("1");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,6 +100,48 @@ function RecordsDisplay(){
         })
     }
 
+    const handleClick = event => {
+       
+        const target = event.target;
+        if (target.matches('.itemData')) {
+            event.preventDefault(); // Prevent the default anchor behavior
+            const fieldCode = target.getAttribute('data-fieldcode');
+            const term = target.getAttribute('term');
+            setQuery(term); // Update your store
+            setSearchValue(decodeURI(term));
+            setFieldCode(fieldCode);
+    
+            // Determine the material type and set the routing path
+            let routingPath = '/all';
+            if (recordData.pubType === 'Book') {
+                routingPath = '/books';
+            } else if (recordData.pubType === 'Video Recording') {
+                routingPath = '/movies';
+            }
+    
+            // Perform the routing
+            router.push(`${routingPath}?search=${term}&fieldcode=${fieldCode}`, undefined, { shallow: true });
+        }
+    };
+    
+    
+
+    useEffect(() => {
+        console.log(containerRef.current); // Debugging line
+        const container = containerRef.current;
+        if (container) {
+            container.addEventListener('click', handleClick);
+    
+            // Cleanup to remove event listener
+            return () => {
+                container.removeEventListener('click', handleClick);
+            };
+        }
+    }, [recordData]);
+    
+
+    console.log(recordData)
+
 
     return(
         <div className="layout">
@@ -90,9 +153,8 @@ function RecordsDisplay(){
                             <Image
                                 src={image}
                                 alt={titleStringDisplay}
-                                layout="responsive"
-                                width={500}
-                                height={500}
+                                width={300}
+                                height={450}
                             />
                             </div>
                         </div>
@@ -103,9 +165,18 @@ function RecordsDisplay(){
                     <div className="container-fluid h-100">
                         <div className="d-flex flex-column h-100 position-relative">
                             {recordData && Object.keys(recordData).map(items => items).length > 0 ? 
-                                <div className="hide-scrollbar flex-1 h-100">
+                                <div className="hide-scrollbar flex-1 h-100" ref={containerRef}>
                                     <div className="container-fluid">
-                                    <h1 className="display-6">{titleStringDisplay}</h1> 
+                                    <h1 className="display-6">{recordData && recordData.titles && recordData.titles[0] ? recordData.titles[0].TitleFull : titleStringDisplay}</h1> 
+                                    {recordData && recordData.pubType && recordData.pubType === 'Book' ?
+                                            <div> {/* Attach the ref here if it's not already covering this area */}
+                                                {recordData.itemsRaw.map((items, index) => (
+                                                    items.label === 'Authors' ? 
+                                                    <div key={index} dangerouslySetInnerHTML={{ __html: decode(items.data, { level: 'html5' }) }} /> 
+                                                    : ''
+                                                ))}
+                                            </div>
+                                        : ''}
                                         <div class="d-flex flex-nowrap" style={{marginTop: "20px"}}>
                                             <div className="order-1 p-2">
                                                 <a target="_blank" className="btn btn-primary" href={recordData.pLink}>Place Hold</a>{ ' ' }
@@ -176,64 +247,44 @@ function RecordsDisplay(){
                                 id={an}
                             />
                         </div>
-                        {/* {currentCollection.length > 0 ?
-                        <div style={{padding: "10px"}}>
-                            <div className="h4 pb-2 mb-4 text-danger border-bottom border-danger">Found in the following collections</div>
-                            <div className="border-bottom border-danger">
-                                <div className="d-flex" style={{margin: "10px 5px 10px 0"}}>    
-                                    {currentCollection.map(items => (
-                                        <UncontrolledDropdown className="me-2">
-                                            <DropdownToggle caret size="lg" color="light">{items.name}</DropdownToggle>
-                                            <DropdownMenu>
-                                                <DropdownItem onClick={e => handleCollection(items.collection_records_id)}>View Collection</DropdownItem>
-                                                <DropdownItem onClick={e => removeFromCollection(items.collection_records_id)}>Remove from Collection</DropdownItem>
-                                            </DropdownMenu>
-                                        </UncontrolledDropdown>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        : ''} */}
                         <br />
                         <div className="container-fluid" style={{height: "100vh"}}>
                           <Accordion open={open} toggle={toggle}>
-                           {recordData.pubTypeItem && recordData.pubTypeItem[0] === 'Video' ?
+                           {recordData.pubType && recordData.pubType === 'Video Recording' ?
                           <AccordionItem>
                             <AccordionHeader targetId="1">Cast</AccordionHeader>
                             <AccordionBody accordionId="1">
                                 <FullCast 
                                     imdb={imdb} 
-                                    title={titleStringDisplay}
+                                    title={recordData && recordData.titles && recordData.titles[0] ? recordData.titles[0].TitleFull : titleStringDisplay}
                                 />
                             </AccordionBody>
                             </AccordionItem>
                             : ''}
                           <AccordionItem>
-                            <AccordionHeader targetId={recordData.pubTypeItem && recordData.pubTypeItem[0] === 'Video' ? "2" : "1"}>Recommendations</AccordionHeader>
-                            <AccordionBody accordionId={recordData.pubTypeItem && recordData.pubTypeItem[0] === 'Video' ? "2" : "1"}>
+                            <AccordionHeader targetId={recordData.pubType && recordData.pubType === 'Video Recording' ? "2" : "1"}>Recommendations</AccordionHeader>
+                            <AccordionBody accordionId={recordData.pubType && recordData.pubType === 'Video Recording' ? "2" : "1"}>
                                 <RecommendationDisplay 
                                     data={recordData} 
-                                    type={recordData.pubTypeItem && recordData.pubTypeItem[0] === 'Video' ? "Video" : "Book"}
+                                    type={recordData.pubType && recordData.pubType === 'Video Recording' ? "Video" : "Book"}
                                 />
                             </AccordionBody>
                             </AccordionItem>
                             <AccordionItem>
                                 <AccordionHeader targetId="3">Full Record</AccordionHeader>
                                 <AccordionBody accordionId="3">
-                                <div style={{paddingBottom: '200px'}}>
-                                    <dl className="row">   
-                                    {recordData.itemsRaw.map((items,index) => {
-                                            return(
+                                    <div style={{ paddingBottom: '200px' }}> {/* Attach the ref here */}
+                                        <dl className="row">
+                                            {recordData.itemsRaw.map((items, index) => (
                                                 <Fragment key={index}>
-                                                <dt className="col-sm-3">{items.label}</dt>
+                                                    <dt className="col-sm-3">{items.label}</dt>
                                                     <dd className="col-sm-9">
-                                                    <div dangerouslySetInnerHTML={{__html: decode(items.data, {level: 'html5'})}} />
+                                                        <div dangerouslySetInnerHTML={{ __html: decode(items.data, { level: 'html5' }) }} />
                                                     </dd>
                                                 </Fragment>
-                                            )
-                                    })}
-                                </dl>
-                                </div>
+                                            ))}
+                                        </dl>
+                                    </div>
                                 </AccordionBody>
                             </AccordionItem>
                         </Accordion>

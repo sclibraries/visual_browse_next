@@ -7,6 +7,7 @@ export const FOLIO_SEARCH = gql`
       instances{
         id
         title
+        uriImage
       }
     }
   }

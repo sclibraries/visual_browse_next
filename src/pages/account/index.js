@@ -13,7 +13,7 @@ import Favorites from './favorites';
 
 function Account() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(router.query.tab || 'userInfo');
+  const [activeTab, setActiveTab] = useState(router.query.tab || 'favorites');
   const currentPath = router.asPath;
 
   const [
@@ -95,11 +95,6 @@ function Account() {
               <h1>Account Dashboard</h1>
               {/* Horizontal Tabs */}
               <Nav tabs>
-                <NavItem>
-                  <NavLink active={activeTab === 'userInfo'} onClick={() => toggle('userInfo')}>
-                    User Info
-                  </NavLink>
-                </NavItem>
                 <NavItem>
                   <NavLink active={activeTab === 'favorites'} onClick={() => toggle('favorites')}>
                     Favorites

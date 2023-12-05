@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react'
-import { Container, Row, Col, Collapse, Modal} from 'reactstrap'
+import { Container, Collapse} from 'reactstrap'
 import Facets from './Facets'
 import Image from 'next/image'
 import { shallow } from 'zustand/shallow'
@@ -15,6 +15,7 @@ function MaterialDisplay(props) {
     const [setButtonRef] = useState(null);
     const [modal, setModal] = useState(false);
     const router = useRouter();
+    const [isDateSliderOpen, setIsDateSliderOpen] = useState(false);
 
     const [setAn,setDbid, setMaterial, recordModal, setRecordModal, loading] = useStore(state => [
       state.setAn,
@@ -53,15 +54,6 @@ function MaterialDisplay(props) {
         window.removeEventListener('resize', handleResize);
     };
     }, []);
-
-    const toggleSidebar = () => {
-      if (!sidebarOpen) {
-        document.body.classList.add('no-scroll');
-      } else {
-        document.body.classList.remove('no-scroll');
-      }
-      setSidebarOpen(!sidebarOpen);
-    };
     
 
     const handleRecord = (an, dbid, e) => {
@@ -73,7 +65,15 @@ function MaterialDisplay(props) {
       router.push(`${router.pathname}?an=${an}&dbid=${dbid}`, undefined, { shallow: true });
     }
 
+
+    const toggleDateSlider = () => {
+      setIsDateSliderOpen(!isDateSliderOpen);
+    };
+
     const records = props.records
+
+    console.log(records)
+    console.log(props.page, props.totalPages)
 
     return (
         <Container fluid>
@@ -110,16 +110,20 @@ function MaterialDisplay(props) {
                 materialType={props.materialType}
               />
         <div className="hide-scrollbar flex-1 h-100 container">
-        <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
-        <div className="d-flex justify-content-between">
-          <div className="d-flex">
-            <div className="d-flex align-items-center me-3">
-              <span className="text-muted me-2">Date</span>
-              <DateSlider />
+          <div className="d-flex mb-3">
+            <div className="p-2">
+              <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
             </div>
+            <div className="ms-auto p-2">
+            <button className="btn btn-secondary" onClick={toggleDateSlider}>
+              {isDateSliderOpen ? 'Hide Publication Date Filter' : 'Show Publication Date Filter'}
+             </button>
+            </div>  
           </div>
-        </div>
-        <div className="row row-cols-1 row-cols-md-5 g-4" style={{marginTop: "30px"}}>
+          <Collapse isOpen={isDateSliderOpen}>
+            <DateSlider />
+          </Collapse>
+        <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
                {loading ? <DisplayLoadingSkeleton /> : records && records.length > 0  ? Object.keys(records).map((key,index) => {
                     let image = ''
                     if(records[key].imageItem){
@@ -176,13 +180,13 @@ function MaterialDisplay(props) {
                                     {/* <CampusLocation 
                                       id={records[key].an}
                                     /> */}
-                                    <p className="card-text">{records[key].abstractItem}</p>
+                                    {/* <p className="card-text">{records[key].abstractItem}</p> */}
                                 </div>
                     </div>
                 </div>
                 )}) : ''}
                   </div>
-                  {props.page <= props.totalPages ?
+                  {props.page < props.totalPages ?
                     <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}>
                     <button
                           className={props.loadMore ? "btn btn-info disabled" : "btn btn-primary"}

@@ -14,17 +14,28 @@ function RecommendationDisplay(props){
         state.setAn,
         state.setDbid,
     ])
-    
-    let query = buildRecommendations(props.data) + '&facetfilter=1,SourceType:Books&facetfilter=2,ContentProvider:Five Colleges Catalog'
-    if(props.data.pubTypeItem && props.data.pubTypeItem[0] === 'Video'){
-        query = buildRecommendations(props.data) + '&facetfilter=1,SourceType:Videos&facetfilter=2,ContentProvider:Five Colleges Catalog'
+
+    let action = ''
+    if(props.data.pubType === 'Video Recording'){
+        action = 'addfacetfilter(SourceType:Videos,ContentProvider:Five Colleges Catalog)'
+    } else {
+        action = 'addfacetfilter(SourceType:Books,ContentProvider:Five Colleges Catalog)'
     }
+
+
+    
+    // let query = buildRecommendations(props.data) + '&facetfilter=1,SourceType:Books&facetfilter=2,ContentProvider:Five Colleges Catalog'
+    // if(props.data.pubTypeItem && props.data.pubTypeItem[0] === 'Video'){
+    //     query = buildRecommendations(props.data) + '&facetfilter=1,SourceType:Videos&facetfilter=2,ContentProvider:Five Colleges Catalog'
+    // }
 
     const { loading, error, data } = useQuery(GET_BROWSE, {
         variables: {
-            query: query,
-            refine: 'y',
-            sort: 'relevance'
+            query: buildRecommendations(props.data.itemsRaw),
+            refine: 'n',
+            sort: 'relevance',
+            fieldcode: 'DE',
+            action: action
         }
     });
 
@@ -71,8 +82,8 @@ function RecommendationDisplay(props){
                                 src={image}
                                 alt={records[key]?.titles[0]?.TitleFull}
                                 layout="responsive"
-                                width={300}
-                                height={100}
+                                width={500}
+                                height={300}
                                 className="rounded card-img-top"
                                 objectFit="cover" // Cover instead of contain to fill the container
                             />

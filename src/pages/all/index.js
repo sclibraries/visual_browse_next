@@ -35,7 +35,11 @@ function All() {
         setAllPage,
         allTotalPages,
         setAllTotalPages,
-        setLoading
+        setLoading,
+        allRefine,
+        allAction,
+        setAllRefine,
+        fieldCode
     ] = useStore(state => [
         state.query,
         state.setAllData,
@@ -63,7 +67,11 @@ function All() {
         state.setAllPage,
         state.allTotalPages,
         state.setAllTotalPages,
-        state.setLoading
+        state.setLoading,
+        state.allRefine,
+        state.allAction,
+        state.setAllRefine,
+        state.fieldCode
     ], shallow)
 
   useEffect(() => {
@@ -71,19 +79,35 @@ function All() {
 },[])
 
 useEffect(() => {
-    if(shouldRefetch){
-        executeSearch({
-            variables: {
-                query: allQueryString,
-                action: allFacetAction,
+    if (shouldRefetch) {
+        let variables = {}
+        if(allRefine === 'y') {
+            variables = {
+                query: allResultsQueryString,
                 refine: 'y',
                 sort: allSort,
-                dateLimiter: allDateLimiter
+                ...(allFacetAction && { action: allFacetAction }),
+            };
+        } else {
+            variables = {
+                query: query,
+                fieldcode: fieldCode,
+                refine: 'n',
+                sort: allSort,
+                action: allAction
             }
-        });
-        setShouldRefetch(false)
+        }
+
+        executeSearch({ variables });
+        setShouldRefetch(false);
+
+        // Reset allFacetAction if it was used
+        if (allFacetAction) {
+            setAllFacetAction('');
+        }
     }
-}, [allQueryString, allFacetAction, allSort, allLimiter, allDateLimiter, shouldRefetch])
+}, [allQueryString, allFacetAction, allSort, allDateLimiter, shouldRefetch, setAllFacetAction]);
+
 
     const handleOnComplete = data => {
         setAllData(data?.search?.records)
@@ -92,6 +116,7 @@ useEffect(() => {
         setAllHits(data?.search?.statistics?.hits)
         setAllResultsQueryString(data?.search?.queryString)
         setAllTotalPages(data?.search?.statistics?.hits / 22)
+        setAllRefine('y')
     }
 
     const [executeSearch, { loading, data, error, fetchMore }] = useLazyQuery(GET_BROWSE, {

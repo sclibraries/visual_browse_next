@@ -1,31 +1,30 @@
 const initialState = {
+    //These are core to the movies store and work in conjunction with main > query. Initial searches should always be *
+    movieRefine: 'n',
+    movieSort: 'date',
+    movieFieldCode: '',
+    movieAction: 'addfacetfilter(SourceType:Videos,ContentProvider:Five Colleges Catalog)',
+    movieFieldCode: '',
+    //
+
+
+    //Results after a search
     movieHits: 0,
     moviePage: 1,
     movieTotalPages: 0,
-    movieAction: [],
+    // movieAction: [],
     movieData: [],
-    movieQueryString: 'query-1=AND,*&facetfilter=1,SourceType:Videos&facetfilter=2,ContentProvider:Five+Colleges+Catalog',
+    movieQuery: '',
     movieResultsQueryString: '',
     expanded: [],
     movieDateLimiter: '',
-    smith: [
-        'LB:Five Colleges Catalog-Smith College Annex',
-        'LB:Five Colleges Catalog-Smith College Hillyer Art Library',
-        'LB:Five Colleges Catalog-Smith College Josten Library',
-        'LB:Five Colleges Catalog-Smith College Neilson Library',
-        'LB:Five Colleges Catalog-Smith College Online',
-        'LB:Five Colleges Catalog-Smith College Special Collections',
-        'LB:Five Colleges Catalog-Smith College Storage',
-        'LB:Smith College Online Resources',
-        'LB:Smith College Online Resources-Smith College Online'
-    ],
     dateLimiter: '',
     limiter: [],
     movieAppliedFacets: [],
     movieLocalOnly: false,
     movieFacets: [],
     movieFacetAction: '',
-    sort: 'date',
+    // sort: 'date',
     movieSubjectHeadings: [
         "Adventure films",
         "Animated films",
@@ -86,4 +85,7 @@ export const createMoviesStore = (set, get) => ({
     setMovieResultsQueryString: (movieResultsQueryString) => set({ movieResultsQueryString }),
     setMoviePage: (page) => set({ moviePage: page }),
     setMovieTotalPages: (totalPages) => set({ movieTotalPages: totalPages }),
+    setMovieRefine: (refine) => set({ movieRefine: refine }),
+    setMovieFieldCode: (fieldCode) => set({ movieFieldCode: fieldCode }),
+    setMovieSort: (sort) => set({ movieSort: sort }),
 })

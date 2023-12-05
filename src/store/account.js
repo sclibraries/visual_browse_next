@@ -30,7 +30,6 @@ export const createAccountStore = (set, get) => ({
         }))
     },
     updateCollection: (collectionId, updatedCollection) => {
-        console.log(collectionId, updatedCollection)
         set((state) => ({
           collections: state.collections.map((collection) => {
             if (collection.collection_id === collectionId) {
@@ -69,5 +68,5 @@ export const createAccountStore = (set, get) => ({
     setUser: (user) => set(() => ({ user })),
     setFavorites: (favorites) => set(() => ({ favorites })),
     setCollectionCoverImage: (collectionCoverImage) => set({ collectionCoverImage }),
-    reset: () => set({ ...initialState })
+    accountReset: () => set({ ...initialState })
 })

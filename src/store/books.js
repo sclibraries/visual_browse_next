@@ -1,10 +1,16 @@
 const initialState = {
+
+    //These are core to the books store and work in conjunction conjunction with main > query. Initial searches should always be *
+    bookRefine: 'n',
+    bookSort: 'relevance',
+    bookFieldCode: '',
+    bookAction: 'addfacetfilter(SourceType:Books,ContentProvider:Five Colleges Catalog)',
+    //
+
     bookHits: 0,
     bookPage: 1,
     bookTotalPages: 0,
-    bookAction: [],
     bookData: [],
-    bookQueryString: 'query-1=AND,*&facetfilter=1,SourceType:Books&facetfilter=2,ContentProvider:Five+Colleges+Catalog',
     bookResultsQueryString: '',
     bookExpanded: [],
     bookDateLimiter: '',
@@ -12,6 +18,7 @@ const initialState = {
     bookAppliedFacets: [],
     bookFacets: [],
     bookSort: 'relevance',
+    bookFacetAction: '',
     bookSubjectHeadings: [
         "Action and adventure fiction",
         "Alternative histories (Fiction)",
@@ -112,4 +119,6 @@ export const createBooksStore = (set, get) => ({
     setBookResultsQueryString: (bookResultsQueryString) => set({ bookResultsQueryString }),
     setBookPage: (bookPage) => set({ bookPage }),
     setBookTotalPages: (bookTotalPages) => set({ bookTotalPages }),
+    setBookFieldCode: (bookFieldCode) => set({ bookFieldCode }),
+    setBookRefine: (bookRefine) => set({ bookRefine }),
 })

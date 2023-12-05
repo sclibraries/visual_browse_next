@@ -10,7 +10,8 @@ const nextConfig = {
             'libtools2.smith.edu:4000', 
             'libtools2.smith.edu:4000',
             'image.tmdb.org',
-            'placehold.it'
+            'placehold.it',
+            'media1-swank-com.azureedge.net',
         ],
     },
 }

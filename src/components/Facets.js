@@ -1,5 +1,6 @@
 import Select from 'react-select';
 import { Button } from 'reactstrap'
+import { useRouter } from 'next/router';
 
 function Facets({
   genre, 
@@ -10,6 +11,8 @@ function Facets({
   handleRemoveFacetAction,
   appliedFacets  
 }) {
+
+  const router = useRouter();
 
   const genreOptions = genre ? genre.map(subject => ({
     label: subject,
@@ -49,7 +52,8 @@ function Facets({
     <div className="container">
     
       <div className="row bg-light border" style={{padding: "15px"}}>
-      
+
+        {router && router.pathname !== '/all' && (
         <div className="col">
           <div style={{paddingTop: "20px"}}>
           <Select 
@@ -59,6 +63,7 @@ function Facets({
           />
           </div>
         </div>
+        )}
 
         {options
         .filter(option => option.label && option.options.length > 0 && option.label !== 'Source Type' && option.label !== 'Publisher')

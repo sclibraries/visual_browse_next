@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Navbar, NavbarBrand, Nav, NavItem, NavLink, Button, NavbarToggler, Collapse } from 'reactstrap';
+import React, { useState, useEffect, Fragment } from 'react';
+import { 
+  Navbar, 
+  NavbarBrand, 
+  Nav, 
+  NavItem, 
+  NavbarToggler, 
+  Collapse,
+  UncontrolledDropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+} from 'reactstrap';
 import Link from 'next/link';
 import SearchBox from './SearchBox';
 import { useStore } from '../store/store';
@@ -10,11 +21,10 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [loggedIn] = useStore((state) => [state.loggedIn], shallow);
   const [setCurrentURL] = useStore((state) => [state.setCurrentURL], shallow);
+  const [accountReset] = useStore((state) => [state.accountReset], shallow);
   const router = useRouter();
   const currentPath = router.asPath;
   const currentQuery = router.query;
-
-  console.log('currentPath', currentPath);
 
   const toggle = () => setIsOpen(!isOpen);
 
@@ -30,6 +40,15 @@ function Header() {
   const generateLink = (path) => {
     const queryString = new URLSearchParams(currentQuery).toString();
     return `${path}${queryString ? `?${queryString}` : ''}`;
+  };
+
+  const handleLogout = () => {
+    // Clear the JWT token from cookies
+    accountReset()
+    document.cookie = 'token=; Max-Age=-99999999;';
+  
+    // Redirect to server logout endpoint
+    window.location.href = "https://libtools2.smith.edu:4000/logout";
   };
 
 
@@ -52,16 +71,32 @@ function Header() {
             <Link  className="nav-link" href={generateLink('/books/')}>Books</Link>
           </NavItem>
             <NavItem>
-              <Link className="nav-link" href="/collections/">Collections</Link>
+              <Link className="nav-link" href="/collections/">Shared Collections</Link>
             </NavItem>
-            <NavItem>
+            <UncontrolledDropdown nav inNavbar>
+              <DropdownToggle nav caret>
+                Local Collections
+              </DropdownToggle>
+              <DropdownMenu right>
+                <DropdownItem>
+                  <Link href="/local-collections/collections/fiction-nonfiction/">Fiction Non-Fiction</Link>
+                </DropdownItem>
+                <DropdownItem>
+                <Link href="/local-collections/collections/swank/">Swank Streaming Videos</Link>
+                </DropdownItem>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          </Nav>
+          <Nav>
               {loggedIn ? (
+                <Fragment>
+                <a className="nav-link" href="#" onClick={handleLogout}>Log out</a>
                 <Link className="nav-link" href="/account/">Account</Link>
+              </Fragment>
               ) : (
                 <Link className="nav-link" href={`https://libtools2.smith.edu:4000/login`}>Login</Link>
               )}
-            </NavItem>
-          </Nav>
+            </Nav>
         </Collapse>
       </Navbar>
       <SearchBox />

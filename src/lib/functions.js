@@ -4,29 +4,33 @@ const commonTerms = [
     // add more common terms here
   ];
   
-  export function buildRecommendations(results) {
-    // Check if 'results' and 'results.subjectItem' exist
-    if (!results || !results.subjectItem) {
-      return '';
-    }
-    
-    // Decode terms, remove quotes, and filter out common terms
-    const subjects = results.subjectItem
-      .map(items => decodeURIComponent(items.term[0]).replace(/"/g, ''))
-      .filter(term => !commonTerms.includes(term))
-      .slice(0, 5); // Limit to the first 7 items
-    
+  export function buildRecommendations(itemsRaw) {
+    // Function to decode HTML entities
+    const decodeHtml = (html) => {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = html;
+      return txt.value;
+    };
+  
+    // Function to extract terms from the provided HTML string
+    const extractTerms = (dataString) => {
+      const decodedString = decodeHtml(dataString);
+      const termMatches = decodedString.match(/term="([^"]+)"/g);
+      return termMatches ? termMatches.map(match => decodeURIComponent(match.split('=')[1].replace(/"/g, ''))) : [];
+    };
+  
+    // Filter 'itemsRaw' for 'Subject', extract terms, and flatten the array of terms
+    const subjects = itemsRaw
+      .filter(item => item.name === 'Subject')
+      .flatMap(item => extractTerms(item.data))
+      .filter((term, index, self) => self.indexOf(term) === index) // Remove duplicates
+      .slice(0, 5); // Limit to the first 5 items
+  
     console.log(subjects);
-    
-    // Build recommendations query
-    const recommendations = subjects
-      .map((subject, index) => {
-        const key = `query-${index + 1}`;
-        const encodedSubject = subject;
-        return `${key}=OR,DE:${encodedSubject}`;
-      })
-      .join('&');
-    
+  
+    // Join terms with 'OR' and format for recommendation query
+    const recommendations = subjects.join(' OR ');
+  
     return recommendations;
   }
 
@@ -54,4 +58,16 @@ const commonTerms = [
     }
     return titleString;
   };
+
+  export const extractTitle = (fullTitle) => {
+     // Example regex pattern to extract title before the first '/' or ';'
+     const pattern = /^(.*?)\s*\/|;/;
+     const match = fullTitle.match(pattern);
+ 
+     if (match && match[1]) {
+         return match[1].trim();
+     }
+     
+     return fullTitle; // Return the original title if no match is found
+ }   
   

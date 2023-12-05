@@ -1,10 +1,13 @@
 const initialState = {
+
+    allRefine: 'n',
+    allSort: 'relevance',
+    allFieldCode: '',
+    allAction: 'addlimiter(FC:Y)',
     allHits: 0,
     allPage: 1,
     allTotalPages: 0,
-    allAction: [],
     allData: [],
-    allQueryString: 'query-1=AND,*&facetfilter=1,ContentProvider:Five+Colleges+Catalog',
     allResultsQueryString: '',
     allExpanded: [],
     allDateLimiter: '',
@@ -39,4 +42,6 @@ export const createAllStore = (set, get) => ({
     setAllResultsQueryString: (allResultsQueryString) => set({ allResultsQueryString }),
     setAllPage: (allPage) => set({ allPage }),
     setAllTotalPages: (allTotalPages) => set({ allTotalPages }),
+    setAllFieldCode: (allFieldCode) => set({ allFieldCode }),
+    setAllRefine: (allRefine) => set({ allRefine }),
 })

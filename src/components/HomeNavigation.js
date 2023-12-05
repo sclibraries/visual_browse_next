@@ -59,10 +59,10 @@ export const HomeNavigation = props => {
                     className={`nav-link ${router.pathname === "/new/public-collections" ? "active" : ""}`}
                     onClick = {() => updateFilters()}
                 >
-                    New Collections
+                    New Shared Collections
                 </Link>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
                 <Link
                     disabled
                     href="/other-collections"
@@ -71,7 +71,7 @@ export const HomeNavigation = props => {
                 >
                     Other Collections
                 </Link>
-            </li>
+            </li> */}
         </ul>
     )
 }

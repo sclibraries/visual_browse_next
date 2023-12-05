@@ -42,7 +42,12 @@ function Movies() {
         setMovieTotalPages,
         moviePage,
         setMoviePage,
-        setLoading
+        setLoading,
+        movieRefine,
+        movieSort,
+        movieAction,
+        setMovieRefine,
+        fieldCode
     ] = useStore(state => [
         state.query,
         state.setMovieData,
@@ -72,7 +77,12 @@ function Movies() {
         state.setMovieTotalPages,
         state.moviePage,
         state.setMoviePage,
-        state.setLoading
+        state.setLoading,
+        state.movieRefine,
+        state.movieSort,
+        state.movieAction,
+        state.setMovieRefine,
+        state.fieldCode
     ], shallow)
 
     useEffect(() => {
@@ -82,18 +92,43 @@ function Movies() {
 
     useEffect(() => {
         if (shouldRefetch) {
-            executeSearch({
-                variables: {
-                    query: movieResultsQueryString !== '' ? movieResultsQueryString : movieQueryString,
-                    action: movieFacetAction,
+
+            let variables = {}
+
+            if(movieRefine === 'y'){
+                variables = {
+                    query: movieResultsQueryString,
                     refine: 'y',
-                    sort: sort
+                    sort: movieSort, // Assuming 'sort' is defined and holds the sorting parameter
+                    ...(movieFacetAction && { action: movieFacetAction }),
+                };
+            } else {
+                variables = {
+                    query: query,
+                    fieldcode: fieldCode,
+                    refine: 'n',
+                    sort: movieSort,
+                    action: movieAction
                 }
-            });
-            // Reset the refetch flag
+            }
+
+            // const variables = {
+            //     query: movieResultsQueryString !== '' ? movieResultsQueryString : movieQueryString,
+            //     refine: 'y',
+            //     sort: sort, // Assuming 'sort' is defined and holds the sorting parameter
+            //     ...(movieFacetAction && { action: movieFacetAction }),
+            // };
+    
+            executeSearch({ variables });
             setShouldRefetch(false);
+    
+            // Reset movieFacetAction if it was used
+            if (movieFacetAction) {
+                setMovieFacetAction('');
+            }
         }
-    }, [movieQueryString, movieFacetAction, query, shouldRefetch]);
+    }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, shouldRefetch, setMovieFacetAction]);
+    
 
 
     const handleOnComplete = data => {
@@ -103,11 +138,11 @@ function Movies() {
         setMovieHits(data?.search?.statistics?.hits)
         setMovieResultsQueryString(data?.search?.queryString)
         setMovieTotalPages(Math.ceil(data?.search?.statistics?.hits / 22))
+        setMovieRefine('y')
     }
 
     const [executeSearch, { data, loading, error, fetchMore }] = useLazyQuery(GET_BROWSE, {
         fetchPolicy: 'network-only',
-        nextFetchPolicy: 'cache-first',
         onCompleted: data => { handleOnComplete(data) }
     });
     
@@ -146,7 +181,7 @@ function Movies() {
     const handleFetchMore = () => {
         return fetchMore({
           variables: {
-              query: movieQueryString, 
+              query: movieResultsQueryString, 
               action: `gotopage(${moviePage + 1})`, 
               refine: 'y'
             },
