@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, Fragment} from 'react'
 import { Container, Collapse} from 'reactstrap'
 import Facets from './Facets'
 import Image from 'next/image'
@@ -8,29 +8,69 @@ import { useRouter } from 'next/router'
 import CampusLocation from './CampusLocation'
 import { DisplayLoadingSkeleton } from './Loading'
 import DateSlider from './DateSlider'
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart, faPlusSquare, faEye } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios'
+import { toast } from 'react-toastify';
+import CollectionsModal from './CollectionsModal'
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import Sort from './Sort'
 function MaterialDisplay(props) {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [collectionModal, setCollectionModal] = useState(false);
+   const [favorites, setFavorites] = useState({});
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [setButtonRef] = useState(null);
     const [modal, setModal] = useState(false);
     const router = useRouter();
     const [isDateSliderOpen, setIsDateSliderOpen] = useState(false);
 
-    const [setAn,setDbid, setMaterial, recordModal, setRecordModal, loading] = useStore(state => [
+    const [setAn,setDbid, setMaterial, recordModal, setRecordModal, loading, loggedIn, baseUrl, setCollectionAn] = useStore(state => [
       state.setAn,
       state.setDbid,
       state.setMaterial,
       state.recordModal,
       state.setRecordModal,
-      state.loading
+      state.loading,
+      state.loggedIn,
+      state.baseUrl,
+      state.setCollectionAn
     ], shallow)
 
     const toggleModal = () => setModal(!modal);
 
+    const toggleCollectionModal = (an) => {
+      if(an && an !== '') {
+        setCollectionAn(an); 
+      }// Update the store with the `an` value
+      setCollectionModal(!collectionModal); // Toggle the modal state
+  };
+  
     const toggleNavbar = () => {
       setIsCollapsed(!isCollapsed);
     };
+    
+
+    useEffect(() => {
+      const fetchFavorites = async () => {
+        const baseUrl = useStore.getState().baseUrl; // Or however you get baseUrl
+        const newFavorites = {};
+    
+        for (const record of props.records) {
+          try {
+            const response = await axios.get(`${baseUrl}/records/read/${record.an}`, { withCredentials: true });
+            newFavorites[record.an] = response.data && response.data.record_id ? true : false;
+          } catch (error) {
+            console.error('Error checking favorite:', error);
+          }
+        }
+       
+          setFavorites(newFavorites);
+      };
+    
+      if (props.records && props.records.length > 0 && loggedIn) {
+        fetchFavorites();
+      }
+    }, [props.records, loggedIn]);
   
     useEffect(() => {
     const handleResize = () => {
@@ -42,6 +82,8 @@ function MaterialDisplay(props) {
         setIsCollapsed(false);
         }
     };
+
+    
 
     // Attach the event listener
     window.addEventListener('resize', handleResize);
@@ -72,11 +114,48 @@ function MaterialDisplay(props) {
 
     const records = props.records
 
-    console.log(records)
-    console.log(props.page, props.totalPages)
+    const toggleFavorite = async (record) => {
+      const eds_id = record.an;
+      const folio_id = eds_id.split('fs00001006.')[1]; // Adjust as needed
+      const isCurrentlyFavorite = favorites[eds_id] || false;
+
+      try {
+          if (isCurrentlyFavorite) {
+              // DELETE request to remove from favorites
+              await axios.delete(`${baseUrl}/records/delete`, {
+                  data: { eds_id, folio_id },
+                  withCredentials: true
+              });
+              setFavorites(prev => ({ ...prev, [eds_id]: false }));
+              toast.success('Removed from favorites');
+          } else {
+              // POST request to add to favorites
+              await axios.post(`${baseUrl}/records/create`, {
+                  eds_id, folio_id
+              }, { withCredentials: true });
+              setFavorites(prev => ({ ...prev, [eds_id]: true }));
+              toast.success('Added to favorites');
+          }
+      } catch (error) {
+          console.error('Error toggling favorite:', error);
+      }
+  };
+    
 
     return (
         <Container fluid>
+
+<         Modal size='xl' isOpen={collectionModal} toggle={toggleCollectionModal} className="modal-dialog modal-dialog-centered">
+                      <ModalHeader toggle={toggleCollectionModal}>Add to Collection</ModalHeader>
+                      <ModalBody>
+                      <CollectionsModal
+                          toggleCollectionModal={toggleCollectionModal}
+                      />
+                      </ModalBody>
+                      <ModalFooter>
+                      <button className="btn btn-secondary" onClick={toggleCollectionModal}>Cancel</button>
+                      </ModalFooter>
+                  </Modal>
           {/* <Row> */}
             {/* Sidebar */}
             {/* <Collapse isOpen={!isCollapsed}>
@@ -119,12 +198,16 @@ function MaterialDisplay(props) {
               {isDateSliderOpen ? 'Hide Publication Date Filter' : 'Show Publication Date Filter'}
              </button>
             </div>  
+            <div className="p-2">
+            <Sort />
+          </div>
           </div>
           <Collapse isOpen={isDateSliderOpen}>
             <DateSlider />
           </Collapse>
         <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
                {loading ? <DisplayLoadingSkeleton /> : records && records.length > 0  ? Object.keys(records).map((key,index) => {
+                    const isFavorite = favorites[records[key].an] || false;
                     let image = ''
                     if(records[key].imageItem){
                         image = records[key].imageItem
@@ -133,6 +216,7 @@ function MaterialDisplay(props) {
                     } else if (records[key].googleImages && records[key].googleImages.thumbnail_url && records[key].googleImages.thumbnail_url.length > 0){
                         image = records[key].googleImages.thumbnail_url
                     }
+                    
 
                   const titleString = records[key].titleItem?.toString() || records[key].items?.map(items => ( items.label === "Title" ? items.data : '' )) || ''
                       let titleStringDisplay = titleString || ''
@@ -150,7 +234,7 @@ function MaterialDisplay(props) {
                       }
                   return(
                     <div className="col" key={index}>
-                    <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "13em"}} id={'eds-' + index} onClick={e => handleRecord(records[key].an, records[key].dbid, e)}>
+                    <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "13em"}} id={'eds-' + index}>
                         {image == '' ? 
                             <svg 
                                   className="rounded card-img-top"
@@ -173,10 +257,36 @@ function MaterialDisplay(props) {
                           height={300}
                           className="rounded card-img-top"
                           objectFit="cover" // Cover instead of contain to fill the container
+                          onClick={e => handleRecord(records[key].an, records[key].dbid, e)}
+                          style={{cursor: "pointer"}}
                         />
                       }
                        <div className="card-body">
                                     <h5 className="product-title fs-sm mb-2">{titleStringDisplay}</h5>
+                                    <hr />
+                                      {/* Icons for favorites and adding to a collection */}
+                                      <ul class="list-group list-group-flush">
+                                      {loggedIn ? (
+                                        <Fragment>
+                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={() => toggleFavorite(records[key])}>
+                                        <FontAwesomeIcon 
+                                            size="1x"
+                                            icon={faHeart} 
+                                            className={isFavorite ? "heart-icon favorite" : "heart-icon"}
+                                        /> {isFavorite ? "Favorite" : "Save to Favorites"}
+                                        </li>
+                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={() => toggleCollectionModal(records[key].an)}>
+                                          <FontAwesomeIcon size="1x" icon={faPlusSquare} /> Add to Collection
+                                        </li>
+                                        </Fragment>
+                                      ) : ''}
+                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={e => handleRecord(records[key].an, records[key].dbid, e)}>
+                                        <FontAwesomeIcon 
+                                          icon={faEye} 
+                                          size='1x'
+                                        /> See more details
+                                        </li>
+                                      </ul>
                                     {/* <CampusLocation 
                                       id={records[key].an}
                                     /> */}

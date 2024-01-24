@@ -29,7 +29,6 @@ function Header() {
   const toggle = () => setIsOpen(!isOpen);
 
   const args = {
-    color: '#2D3340',
     light: false,
     dark: true,
     expand: 'md',
@@ -54,9 +53,9 @@ function Header() {
 
   return (
     <div>
-      <Navbar {...args}>
+      <Navbar style={{backgroundColor: "#2D3340"}} {...args}>
       <NavbarBrand className="main-header" href="/">
-          <img style={{height: "40px"}} src="/image/visual_browse_logo.png" alt="Visual Browse Logo" className="logo" />
+          <img style={{height: "40px"}} src="/visual_browse/image/visual_browse_logo.png" alt="Visual Browse Logo" className="logo" />
         </NavbarBrand>
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>

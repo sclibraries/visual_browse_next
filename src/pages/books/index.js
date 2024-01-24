@@ -168,7 +168,7 @@ function Books() {
     const handleFetchMore = () => {
         return fetchMore({
           variables: {
-              query: bookQueryString, 
+              query: bookResultsQueryString, 
               action: `gotopage(${bookPage + 1})`, 
               refine: 'y'
             },

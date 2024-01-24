@@ -24,7 +24,6 @@ function Favorites() {
   }
 
   const handleDeleteRecord = (eds_id, folio_id) => {
-    if (window.confirm('Are you sure you want to remove this favorite?')) {
         axios({
             method: 'delete',
             url: `${baseUrl}/records/delete`,
@@ -41,7 +40,6 @@ function Favorites() {
           .catch((error) => {
             toast.error(`Error removing item from favorites: ${error.message}`);
         });
-    }
   };
 
 
@@ -60,8 +58,8 @@ function Favorites() {
 return (
   <div className="container">
     <div className="hide-scrollbar flex-1 h-100 container">
-        <div className="row row-cols-1 row-cols-md-4 g-4" style={{marginTop: "30px"}}>
-            {recordsToDisplay.map((record, index) => (
+        <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
+            {recordsToDisplay && recordsToDisplay.length > 0 ? recordsToDisplay.map((record, index) => (
             <RecordDisplay
                 key={`${record.record_id}-${index}`} 
                 an={record.eds_id} 
@@ -71,7 +69,7 @@ return (
                 id={record.record_id}
                 handleDeleteRecord={handleDeleteRecord}
             />
-            ))}
+            )): <p>No favorites found :(</p>}
         </div>
         <div>
             {!isFetchingMore && hasMore && (

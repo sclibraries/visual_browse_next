@@ -73,6 +73,9 @@ function CollectionRecords(props){
 
     return(
         <div className="container">
+            <div className="jumbotron">
+            
+            </div>
             <div className="hide-scrollbar flex-1 h-100 container">
                 <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
                     {loading ? <DisplayLoadingSkeleton /> : folioRecords.length > 0 ? folioRecords.map((item, index) => {

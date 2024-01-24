@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    basePath: '/visual_browse',
     images: {
         domains: [
             'contentcafe2.btol.com', 

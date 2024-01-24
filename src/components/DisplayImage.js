@@ -12,10 +12,14 @@ import Image from 'next/image'
       },
     });
   
-    if (error) {
-      console.error('Apollo error:', error);
-      return <div>Error loading image.</div>;
-    }
+    // if (error) {
+    //   console.error('Apollo error:', error);
+    //   return (
+    //   <svg className="bd-placeholder-img card-img-top" width="100%" height="300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
+    //   <rect width="100%" height="100%" fill="#868e96"></rect>
+    //   </svg>
+    //   )
+    // }
 
     const records = data?.record?.records || []
 

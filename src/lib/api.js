@@ -418,3 +418,21 @@ query tmdbExternalId($query: String!){
           }
     } 
 `
+
+export const GET_SHELF_BROWSE = gql`
+    query foliocallnumberbrowse($query: String!, $type: String!) {
+        foliocallnumberbrowse(query: $query, type: $type) {
+            items{
+                fullCallNumber
+                shelfKey
+                instance{
+                  id
+                  title
+                  googleImages{
+                    thumbnail_url
+                  }
+                }
+              }
+            }
+    }
+`

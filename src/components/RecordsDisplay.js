@@ -14,6 +14,7 @@ import { useAddToCollection } from '@/hooks/useAddToCollection'
 import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection'
 import { getImage, getTitleString  } from '../lib/functions';
 import NewCollectionForm from './NewCollectionForm'
+import CallNumberBrowse  from './CallNumberBrowse'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import CollectionList from '@/pages/account/collections'
@@ -271,8 +272,16 @@ function RecordsDisplay(){
                             </AccordionBody>
                             </AccordionItem>
                             <AccordionItem>
-                                <AccordionHeader targetId="3">Full Record</AccordionHeader>
+                                <AccordionHeader targetId="3">Shelf Browse</AccordionHeader>
                                 <AccordionBody accordionId="3">
+                                    <CallNumberBrowse
+                                        initialQuery={an}
+                                    />
+                                </AccordionBody>
+                            </AccordionItem>
+                            <AccordionItem>
+                                <AccordionHeader targetId="4">Full Record</AccordionHeader>
+                                <AccordionBody accordionId="4">
                                     <div style={{ paddingBottom: '200px' }}> {/* Attach the ref here */}
                                         <dl className="row">
                                             {recordData.itemsRaw.map((items, index) => (

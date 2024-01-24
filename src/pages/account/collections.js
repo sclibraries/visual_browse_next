@@ -101,7 +101,7 @@ function CollectionList() {
   const handleCollectionRecordId = (id, name, cover_image) => {
     setCollectionRecordId(id);
     setCollectionRecordName(name);
-    setCollectionCoverImage(cover_image);
+    setCollectionCoverImage(cover_image || '');
     router.push(`/account?tab=collectionRecords&collection=${id}`);
   }
   
@@ -110,6 +110,34 @@ function CollectionList() {
       collection.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [collections, searchQuery]);
+
+  const handleEmptyCollection = async (collection) => {
+    if (window.confirm('Are you sure you want to empty this collection? It will not be recoverable.')) {
+      try {
+        const response = await axios.delete(`${baseUrl}/collection_name/clear-collection/${collection.collection_id}`, { withCredentials: true });
+        if (response.data.success && response.data.success === true) {
+          //update zustand store with new collection data from result
+          updateCollection(collection.collection_id, response.data.data);
+          toast.success(response.data.message, {
+            autoClose: 2000,
+            position: "top-right"
+          });
+        } else {
+          toast.error(`An error occurred while emptying the collection. Error message is ${response.data.message}`, {
+            autoClose: false,
+            position: "top-right"
+          });
+        }
+      } catch (error) {
+
+        toast.error(`${error}`, {
+          autoClose: false,
+          position: "top-right"
+        });
+
+      }
+    }
+  }
 
 
   return (
@@ -193,21 +221,31 @@ function CollectionList() {
                     <p><strong>Created:</strong>{collection.timestamp}</p>
                     <p><strong>Collection cover image:</strong>{collection.cover_image}</p>
                     <p><Badge color="success">{collection.recordCount} Records</Badge></p>
-                    <Button color="primary" onClick={() => handleEdit(collection.collection_id)}>Edit</Button>{' '}
-                    <Button color="primary" onClick={() => handleCollectionRecordId(collection.collection_id, 'Collection Records', collection.cover_image)}>View Records</Button>{' '}
+                    <Button size="sm" color="primary" onClick={() => handleEdit(collection.collection_id)}>Edit</Button>{' '}
+                    <Button size="sm" color="primary" onClick={() => handleCollectionRecordId(collection.collection_id, 'Collection Records', collection.cover_image)}>View Records</Button>{' '}
                     <Button
+                      size="sm"
                       color="danger"
                       disabled={collection.records && collection.records.length > 0}
                       onClick={() => handleDelete(collection)}
                     >
                       Delete
                     </Button>
+                    <div style={{paddingTop: "10px"}}>
+                    <Button 
+                      size="sm"
+                      color="danger"
+                      onClick={() => handleEmptyCollection(collection)}
+                      >
+                        Empty Collection
+                      </Button>
+                    </div>
                     </>
                     )}
                   </CardBody>
                 </Card>
               </div>
-            )): '<p>No collections found :(</p>'}
+            )): 'No collections found :('}
         </div>
       </div>
     </div>

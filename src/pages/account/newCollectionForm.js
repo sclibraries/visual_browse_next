@@ -8,7 +8,8 @@ function NewCollectionForm() {
   const [newCollection, setNewCollection] = useState({
     name: '',
     description: '',
-    public: 'no',
+    public: 'Private',
+    cover_image: '',
   });
 
   const addCollection = useStore((state) => state.addCollection);

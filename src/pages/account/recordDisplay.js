@@ -36,13 +36,16 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
 
       if (response.status === 200) {
         updateCollection(collection_id, response.data.updatedCollection);
-        setCollectionCoverImage(response.data.updatedCollection.cover_image)
+        setCollectionCoverImage(updatedFields)
         toast.success('Collection updated successfully', {
           autoClose: 2000,
           position: "top-right"
         });
       } else {
-        handleError(response.data.message);
+        toast.error('An error occurred while updating the collection', {
+          autoClose: 2000,
+          position: "top-right"
+        });
       }
     } catch (error) {
       console.error('Error updating collection:', error);
@@ -84,7 +87,7 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
   let image =  results.imageItem || ''
   return (
     <div className="col">
-        <div className="card" style={{width: "16em"}}>
+        <div className="card" style={{width: "13em"}}>
             <span onClick={() => handleRecord(an, dbid)}>
                 {image !== '' ? (
                     <Image
@@ -93,7 +96,7 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
                        width={500}
                        height={300}
                        className="card-img-top"
-                       style={{objectFit: "cover"}}
+
                        priority={true}
                     />
                 ) : (

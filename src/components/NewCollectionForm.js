@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/store';
 import {  Form, FormGroup, Label, Input, Button, Container, Col, Row } from 'reactstrap';
+import {toast} from 'react-toastify';
 
 function NewCollectionForm() {
   const [newCollection, setNewCollection] = useState({
     name: '',
     description: '',
-    public: 'no',
+    public: 'Private',
+    cover_image: '',
   });
 
   const addCollection = useStore((state) => state.addCollection);
@@ -16,6 +18,8 @@ function NewCollectionForm() {
   const handleChange = (e) => {
     setNewCollection({ ...newCollection, [e.target.name]: e.target.value });
   };
+
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,14 +30,22 @@ function NewCollectionForm() {
         if (response.data && typeof response.data === 'object') {
           // Update Zustand store with new collection
           addCollection(response.data);
+          toast.success('Collection created successfully', {
+            autoClose: 2000,
+            position: "top-right"
+          });
         } else {
           console.error('Unexpected response data:', response.data);
+          toast.error(`An error occurred while creating the collection. Error message: ${response.data}`, {
+            autoClose: 2000,
+            position: "top-right"
+          });
         }
         // Reset form
         setNewCollection({
           name: '',
           description: '',
-          public: 'no',
+          public: 'Private',
         });
       })
       .catch((error) => {
@@ -41,6 +53,10 @@ function NewCollectionForm() {
         if (error.response && error.response.data) {
           // Handle error response
           console.error('Error details:', error.response.data);
+          toast.error(`An error occurred while creating the collection. Error message: ${error.response.data}`, {
+            autoClose: false,
+            position: "top-right"
+          });
         }
       });
   };
@@ -62,8 +78,8 @@ function NewCollectionForm() {
             <FormGroup>
               <Label for="public">Public</Label>
               <Input type="select" name="public" id="public" value={newCollection.public} onChange={handleChange}>
-                <option value="Private">No</option>
-                <option value="Public">Yes</option>
+                <option value="Private">Private</option>
+                <option value="Public">Public</option>
               </Input>
             </FormGroup>
             <Button type="submit">Create</Button>

@@ -6,9 +6,29 @@ body {
       Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   }
 
-  .navbar {
-    background-color: #2D3340;
+  .card-icons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
+  
+  .card-icons svg {
+    cursor: pointer;
+    color: #333; /* Default color */
+  }
+  
+  .card-icons svg:hover {
+    color: #007bff; /* Color on hover */
+  }
+
+  .heart-icon {
+  cursor: pointer;
+  color: #333; /* Default color */
+}
+
+.heart-icon.favorite {
+  color: red; /* Color when a record is a favorite */
+}
 
   
   /* For the fixed left column */

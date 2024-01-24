@@ -6,7 +6,7 @@ import { useStore } from '../store/store';
 export const useFetchAccountData = () => {
   const [baseUrl] = useStore((state) => [state.baseUrl]);
   const [user, setUser] = useStore((state) => [state.user, state.setUser]);
-  const [collections, setCollections] = useStore((state) => [state.collections, state.setCollections]);
+  const [collections, setCollections, setCollectionCoverImage] = useStore((state) => [state.collections, state.setCollections, state.setCollectionCoverImage]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,7 +19,9 @@ export const useFetchAccountData = () => {
 
         const collectionResponse = await axios.get(`${baseUrl}/collection_name/read-all`, { withCredentials: true });
         setCollections(collectionResponse.data);
-
+        if(collectionResponse.data.length > 0){
+          setCollectionCoverImage(collectionResponse.data[0].cover_image)
+        }
         setLoading(false);
       } catch (err) {
         setError(err);

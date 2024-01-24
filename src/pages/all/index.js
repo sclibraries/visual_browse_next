@@ -158,7 +158,7 @@ useEffect(() => {
     const handleFetchMore = () => {
         return fetchMore({
           variables: {
-              query: allQueryString, 
+              query: allResultsQueryString, 
               action: `gotopage(${allPage + 1})`, 
               refine: 'y'
             },

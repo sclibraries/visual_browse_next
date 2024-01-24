@@ -135,7 +135,9 @@ function Account() {
                 <TabPane tabId="collectionRecords">
                         <Row>
                           <Col md="12">
-                            <CollectionRecords />
+                            <CollectionRecords 
+                              collections={collections}
+                            />
                           </Col>
                         </Row>
                 </TabPane>

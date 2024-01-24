@@ -18,11 +18,20 @@ export const useFetchFavoriteData = (limit) => {
                 withCredentials: true,
                 params: { limit: limit, offset: offset }
             });
-            if (response.data.currentPage >= response.data.totalPages) {
+            if(response.status === 204){
+                toast.warn('No favorites found');
                 setHasMore(false);
-            } else {
-                setFavorites(prevFavorites => [...prevFavorites, ...response.data.records]);
-                setOffset(prevOffset => prevOffset + limit);
+                setLoading(false)
+            } else if (response.status === 200) {
+                if (response.data.currentPage >= response.data.totalPages) {
+                    setFavorites(prevFavorites => [...prevFavorites, ...response.data.records]);
+                    setHasMore(false);
+                } else {
+                    if(response.data.records.length > 0) {
+                        setFavorites(prevFavorites => [...prevFavorites, ...response.data.records]);
+                        setOffset(prevOffset => prevOffset + limit);
+                    }
+                }
             }
         } catch (error) {
             toast.error('Error fetching favorites');

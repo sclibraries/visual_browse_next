@@ -35,6 +35,7 @@ export const createAccountStore = (set, get) => ({
             if (collection.collection_id === collectionId) {
               return { ...collection, ...updatedCollection };
             }
+            console.log(collection)
             return collection;
           }),
         }));
