@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
 import { useStore } from '../../store/store';
 import {  Form, FormGroup, Label, Input, Button, Container, Col, Row } from 'reactstrap';
 import {toast} from 'react-toastify';
+import { useAdminApi } from '../../lib/adminApi';
 
 function NewCollectionForm() {
   const [newCollection, setNewCollection] = useState({
@@ -18,20 +18,21 @@ function NewCollectionForm() {
     setNewCollection({ ...newCollection, [e.target.name]: e.target.value });
   };
 
+  const { createCollection } = useAdminApi();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post('https://libtools2.smith.edu:4000/collection_name/create', newCollection, { withCredentials: true })
+    createCollection(newCollection)
       .then((response) => {
-        if (response.data && typeof response.data === 'object') {
+        if (response && typeof response === 'object') {
           // Update Zustand store with new collection
-          addCollection(response.data);
+          addCollection(response);
           toast.success('Collection created successfully', {
             autoClose: 2000,
             position: "top-right"
           });
         } else {
-          toast.error(`An error occurred while creating the collection. Error message: ${response.data}`, {
+          toast.error(`An error occurred while creating the collection.`, {
             autoClose: 2000,
             position: "top-right"
           });
@@ -40,7 +41,7 @@ function NewCollectionForm() {
         setNewCollection({
           name: '',
           description: '',
-          public: 'no',
+          public: 'Private',
         });
       })
       .catch((error) => {

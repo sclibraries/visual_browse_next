@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, Fragment, useCallback } from 'react';
 import { 
   Navbar, 
   NavbarBrand, 
@@ -19,12 +19,17 @@ import { useRouter } from 'next/router';
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [loggedIn] = useStore((state) => [state.loggedIn], shallow);
-  const [setCurrentURL] = useStore((state) => [state.setCurrentURL], shallow);
-  const [accountReset] = useStore((state) => [state.accountReset], shallow);
+  const [loggedIn, accountReset, setLoggedIn, setAuthChecked, setUser] = useStore((state) => [
+    state.loggedIn, 
+    state.accountReset, 
+    state.setLoggedIn, 
+    state.setAuthChecked, 
+    state.setUser
+  ], shallow);
   const router = useRouter();
-  const currentPath = router.asPath;
   const currentQuery = router.query;
+  const [returnParam, setReturnParam] = useState('');
+  const [isDevEnvironment, setIsDevEnvironment] = useState(false);
 
   const toggle = () => setIsOpen(!isOpen);
 
@@ -41,21 +46,57 @@ function Header() {
     return `${path}${queryString ? `?${queryString}` : ''}`;
   };
 
-  const handleLogout = () => {
-    // Clear the JWT token from cookies
-    accountReset()
-    document.cookie = 'token=; Max-Age=-99999999;';
-  
-    // Redirect to server logout endpoint
-    window.location.href = "https://libtools2.smith.edu:4000/logout";
-  };
+  // Build return URL for SSO links based on the current page and detect dev environment
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Check if we're in development environment
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      setIsDevEnvironment(isDev);
+      
+      // href includes basePath (e.g., /visual-browse)
+      setReturnParam(encodeURIComponent(window.location.href));
+    } else {
+      const origin = '';
+      const currentUrl = `${origin}${(router.basePath || '')}${router.asPath || '/'}`;
+      setReturnParam(encodeURIComponent(currentUrl));
+    }
+  }, [router.asPath, router.basePath]);
+
+  const handleLogout = useCallback(async () => {
+    console.log('handleLogout called - starting logout process');
+    
+    // Clear local storage first
+    console.log('Clearing local storage and cookies...');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('refreshToken');
+    
+    console.log('Resetting Zustand store...');
+    // Reset Zustand store state
+    setLoggedIn(false);
+    setUser(null);
+    setAuthChecked(false);
+    accountReset();
+    
+    // Build the return URL - where to come back after SSO logout
+    const returnUrl = typeof window !== 'undefined' 
+      ? window.location.origin + (router.basePath || '') + '/'
+      : 'https://libtools2.smith.edu/visual-browse/';
+    
+    console.log('Redirecting to SSO logout with return URL:', returnUrl);
+    
+    // Redirect to PHP SSO logout endpoint
+    // This will clear the token cookie and redirect to Shibboleth logout
+    window.location.href = `https://libtools2.smith.edu/sso/logout.php?return=${encodeURIComponent(returnUrl)}`;
+  }, [router, setLoggedIn, setUser, setAuthChecked, accountReset]);
 
 
   return (
     <div>
       <Navbar style={{backgroundColor: "#2D3340"}} {...args}>
-      <NavbarBrand className="main-header" href="/">
-          <img style={{height: "40px"}} src="/visual_browse/image/visual_browse_logo.png" alt="Visual Browse Logo" className="logo" />
+      <NavbarBrand className="main-header" href="/visual-browse">
+          <img style={{height: "40px"}} src="/visual-browse/image/visual_browse_logo.png" alt="Visual Browse Logo" className="logo" />
         </NavbarBrand>
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
@@ -76,25 +117,35 @@ function Header() {
               <DropdownToggle nav caret>
                 Local Collections
               </DropdownToggle>
-              <DropdownMenu right>
+              <DropdownMenu end>
                 <DropdownItem>
                   <Link href="/local-collections/collections/fiction-nonfiction/">Fiction Non-Fiction</Link>
                 </DropdownItem>
                 <DropdownItem>
-                <Link href="/local-collections/collections/swank/">Swank Streaming Videos</Link>
+                  <Link href="/local-collections/collections/swank/">Swank Streaming Videos</Link>
                 </DropdownItem>
               </DropdownMenu>
             </UncontrolledDropdown>
           </Nav>
-          <Nav>
+          <Nav navbar>
               {loggedIn ? (
                 <Fragment>
-                <a className="nav-link" href="#" onClick={handleLogout}>Log out</a>
+                <button className="nav-link btn btn-link p-0 border-0" onClick={handleLogout}>Log out</button>
                 <Link className="nav-link" href="/account/">Account</Link>
               </Fragment>
               ) : (
-                <Link className="nav-link" href={`https://libtools2.smith.edu:4000/login`}>Login</Link>
+                // Use dev login for localhost, regular SSO for production
+                <a
+                  className="nav-link"
+                  href={isDevEnvironment 
+                    ? `https://libtools2.smith.edu/sso/login.php?dev=1&return=${returnParam || encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + (router.asPath || '/'))}`
+                    : `https://libtools2.smith.edu/sso/login.php?return=${returnParam || encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + (router.asPath || '/'))}`
+                  }
+                >
+                  Login {isDevEnvironment && '(Dev)'}
+                </a>
               )}
+              <Link className="nav-link" href="https://libraries.smith.edu/ask-us">Ask Us</Link>
             </Nav>
         </Collapse>
       </Navbar>

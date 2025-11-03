@@ -18,6 +18,8 @@
 # misc
 .DS_Store
 *.pem
+cert.pem
+key.pem
 
 # debug
 npm-debug.log*
@@ -26,6 +28,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.development
+.env.production
 
 # vercel
 .vercel
@@ -33,3 +37,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.qodo

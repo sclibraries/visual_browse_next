@@ -7,16 +7,27 @@ const initialState = {
     },
     collectionRecords: [],
     loggedIn: false,
+    authChecked: false,
     baseUrl: 'https://libtools2.smith.edu:4000',
     collectionRecordId: '',
     collectionRecordName: '',
     user: [],
     favorites: [],
     collectionCoverImage: '',
+    // Admin customization state: maps college identifier -> array of collection_ids for home page display
+    collegeHomeSelections: {},
+    // List of colleges (ids/names) the admin can manage
+    colleges: [],
+    selectedCollegeId: '',
+    // Analytics state
+    analyticsData: null,
+    analyticsLoading: false,
+    analyticsError: null,
+    collectionAnalytics: {},
 }
 
 
-export const createAccountStore = (set, get) => ({
+export const createAccountStore = (set) => ({
     ...initialState,
     setCollections: (collections) => set(() => ({ collections })),
     setNewCollection: (newCollection) => set(() => ({ newCollection })),
@@ -49,7 +60,7 @@ export const createAccountStore = (set, get) => ({
         }))
     },
     updateCollectionRecords: (collectionRecords) => {
-        set((state) => ({
+        set(() => ({
             collectionRecords: collectionRecords
         }))
     },
@@ -64,10 +75,66 @@ export const createAccountStore = (set, get) => ({
         }))
     },
     setLoggedIn: (loggedIn) => set(() => ({ loggedIn })),
+    setAuthChecked: (authChecked) => set(() => ({ authChecked })),
     setCollectionRecordId: (collectionRecordId) => set(() => ({ collectionRecordId })),
     setCollectionRecordName: (collectionRecordName) => set(() => ({ collectionRecordName })),
     setUser: (user) => set(() => ({ user })),
     setFavorites: (favorites) => set(() => ({ favorites })),
     setCollectionCoverImage: (collectionCoverImage) => set({ collectionCoverImage }),
+    // Admin customization actions
+    setColleges: (colleges) => set(() => ({ colleges })),
+    setSelectedCollegeId: (selectedCollegeId) => set(() => ({ selectedCollegeId })),
+    setCollegeHomeSelections: (collegeId, collectionIds) => set((state) => ({
+        collegeHomeSelections: {
+            ...state.collegeHomeSelections,
+            [collegeId]: collectionIds
+        }
+    })),
+    addCollectionToCollegeSelection: (collegeId, collectionId) => set((state) => {
+        const current = state.collegeHomeSelections[collegeId] || [];
+        if (current.includes(collectionId)) return {};
+        return {
+            collegeHomeSelections: {
+                ...state.collegeHomeSelections,
+                [collegeId]: [...current, collectionId]
+            }
+        };
+    }),
+    removeCollectionFromCollegeSelection: (collegeId, collectionId) => set((state) => {
+        const current = state.collegeHomeSelections[collegeId] || [];
+        return {
+            collegeHomeSelections: {
+                ...state.collegeHomeSelections,
+                [collegeId]: current.filter(id => id !== collectionId)
+            }
+        };
+    }),
+    reorderCollegeSelection: (collegeId, fromIndex, toIndex) => set((state) => {
+        const current = [...(state.collegeHomeSelections[collegeId] || [])];
+        if (fromIndex < 0 || fromIndex >= current.length || toIndex < 0 || toIndex >= current.length) return {};
+        const [moved] = current.splice(fromIndex, 1);
+        current.splice(toIndex, 0, moved);
+        return {
+            collegeHomeSelections: {
+                ...state.collegeHomeSelections,
+                [collegeId]: current
+            }
+        };
+    }),
+    // Analytics actions
+    setAnalyticsData: (analyticsData) => set(() => ({ analyticsData })),
+    setAnalyticsLoading: (analyticsLoading) => set(() => ({ analyticsLoading })),
+    setAnalyticsError: (analyticsError) => set(() => ({ analyticsError })),
+    setCollectionAnalytics: (collectionId, analytics) => set((state) => ({
+        collectionAnalytics: {
+            ...state.collectionAnalytics,
+            [collectionId]: analytics
+        }
+    })),
+    clearAnalytics: () => set(() => ({ 
+        analyticsData: null, 
+        analyticsError: null,
+        collectionAnalytics: {}
+    })),
     accountReset: () => set({ ...initialState })
 })

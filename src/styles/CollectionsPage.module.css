@@ -1,0 +1,1048 @@
+.collectionsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.backButton {
+  color: #007bff;
+  padding: 0;
+  font-weight: 500;
+}
+
+.collectionsContainer {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 30px;
+  user-select: none; /* Prevent text selection during resize */
+}
+
+.collectionsContainer.resizing {
+  cursor: col-resize !important;
+}
+
+.collectionsContainer.resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.sidebarCol {
+  border-right: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Resize handle */
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
+}
+
+.resizeHandle:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.resizeHandle:hover .resizeHandleInner,
+.resizeHandle:active .resizeHandleInner {
+  background-color: #007bff;
+  width: 4px;
+}
+
+.resizeHandleInner {
+  width: 2px;
+  height: 40px;
+  background-color: #dee2e6;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.resizeHandle:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.collectionsListCard {
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  height: auto;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.collectionContentCard {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  height: auto;
+  min-height: 400px;
+}
+
+/* Sticky table header */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: top 0.2s ease;
+}
+
+/* When selection bar is active, push table header down */
+.tableContainer:has(~ .selectionBarActive) .stickyHeader,
+.stickyHeaderWithSelection {
+  top: 80px; /* Approximate height of selection bar */
+}
+
+.stickyHeader th {
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  white-space: nowrap;
+}
+
+/* Selection bar styling - sticky at top when scrolling */
+.selectionBar {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
+  border: 1px solid #b6d7ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.selectionBadge {
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+/* Sorting controls styling */
+.sortingControls {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.changesBadge {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Sticky table header - positioned below selection bar when both are visible */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 50;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: top 0.2s ease;
+}
+
+.stickyHeader th {
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.applyButton {
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+  transition: all 0.2s ease;
+}
+
+.applyButton:hover {
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  transform: translateY(-1px);
+}
+
+.collectionTabs {
+  display: flex;
+  overflow-x: auto;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0 10px;
+}
+
+.collectionTab {
+  padding: 15px 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 500;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.collectionTab:hover {
+  background-color: #e9ecef;
+}
+
+.activeTab {
+  border-bottom-color: #007bff;
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.tabActions {
+  display: flex;
+  gap: 5px;
+  opacity: 0.6;
+}
+
+.collectionTab:hover .tabActions {
+  opacity: 1;
+}
+
+.tabAction {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 0.875rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.tabAction:hover {
+  color: #343a40;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.collectionsList {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 350px);
+}
+
+.collectionsScroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.collectionItem {
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.collectionItem:hover {
+  background-color: #f8f9fa;
+}
+
+.collectionItem.active {
+  background-color: #e9ecef;
+  font-weight: 600;
+  border-color: #ced4da;
+}
+
+.activeItem {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+  font-weight: 500;
+}
+
+.collectionItemContent {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
+}
+
+.collectionName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0; /* Allow text to be truncated */
+}
+
+.collectionMenuWrapper {
+  flex-shrink: 0; /* Prevent menu from being squeezed */
+  margin-left: 8px;
+}
+
+.collectionMenu {
+  color: #6c757d;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.collectionMenu:hover {
+  background-color: #e9ecef;
+}
+
+.collectionActions {
+  display: flex;
+  opacity: 0.6;
+}
+
+.collectionItem:hover .collectionActions {
+  opacity: 1;
+}
+
+.actionButton {
+  color: #6c757d;
+  padding: 0 5px;
+  font-size: 14px;
+}
+
+.actionButton:hover {
+  color: #343a40;
+}
+
+.collectionCard {
+  height: 100%;
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.collectionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.collectionCard.selected {
+  border: 2px solid #007bff;
+}
+
+.collectionMeta {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.collectionFooter {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eee;
+  padding: 10px 15px;
+}
+
+.collectionContent {
+  padding: 20px;
+  min-height: 400px;
+}
+
+.collectionTitle {
+  margin-bottom: 0;
+  font-weight: 600;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordsList {
+  margin-top: 20px;
+}
+
+.recordsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.recordCard {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin-bottom: 10px;
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  border: 1px solid #f0f0f0;
+}
+
+.recordCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #dee2e6;
+}
+
+.draggableWrapper {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: grab;
+}
+
+.draggableWrapper:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dragHandleContainer {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  z-index: 5;
+  cursor: grab;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  cursor: grab;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.dragHandle:hover {
+  color: #007bff;
+  background-color: #e7f3ff;
+  transform: scale(1.15);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  color: #0056b3;
+  background-color: #cfe2ff;
+}
+
+.recordImage {
+  margin-right: 15px;
+  width: 80px;
+  height: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 12px;
+  background-color: #e9ecef;
+  text-align: center;
+}
+
+.recordInfo {
+  flex: 1;
+}
+
+.recordInfo h5 {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.recordInfo p {
+  margin-bottom: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.pubYear {
+  color: #28a745 !important;
+  font-weight: 500 !important;
+}
+
+.removeButton {
+  margin-left: 10px;
+}
+
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #6c757d;
+  gap: 10px;
+}
+
+.emptyCollection, .noCollectionSelected, .noCollections, .noSearchResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6c757d;
+  text-align: center;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.emptyState h3 {
+  margin-bottom: 15px;
+}
+
+.emptyState p {
+  color: #6c757d;
+  margin-bottom: 25px;
+}
+
+.collectionDetailView {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+}
+
+.loadingState p {
+  margin-top: 15px;
+  color: #6c757d;
+}
+
+.mobileCollectionSelector {
+  display: none;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.collectionTitleGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.collectionStats {
+  display: flex;
+  gap: 10px;
+}
+
+.tableContainer {
+  margin-top: 0;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  background-color: white;
+  max-height: none;
+}
+
+.recordsTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.recordsTable th {
+  padding: 12px 8px !important;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.recordsTable td {
+  padding: 10px 8px !important;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.recordsTable tbody tr {
+  transition: all 0.15s ease;
+}
+
+.recordsTable tbody tr:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.recordsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tableRow {
+  transition: all 0.15s ease;
+  cursor: default;
+  position: relative;
+}
+
+.tableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.tableRow.selected {
+  background-color: #e7f3ff !important;
+  border-left: 3px solid #007bff;
+}
+
+.tableRow.dragging {
+  opacity: 0.5;
+  background-color: #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+.tableRow.dragTarget {
+  border: 2px dashed #007bff !important;
+  background-color: rgba(0, 123, 255, 0.08) !important;
+  position: relative;
+  animation: dragPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes dragPulse {
+  from {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-color: #007bff;
+  }
+  to {
+    background-color: rgba(0, 123, 255, 0.12);
+    border-color: #0056b3;
+  }
+}
+
+.dragHandleCell {
+  width: 30px;
+  vertical-align: middle;
+  padding: 0.25rem !important;
+  text-align: center;
+}
+
+.precisionArrowsCell {
+  width: 60px;
+  vertical-align: middle;
+  padding: 0.25rem !important;
+  text-align: center;
+}
+
+.precisionArrows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.precisionButton {
+  padding: 1px 4px !important;
+  border: 1px solid #dee2e6 !important;
+  background: white !important;
+  color: #6c757d !important;
+  font-size: 10px !important;
+  min-width: 20px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.precisionButton:hover:not(:disabled) {
+  background: #f8f9fa !important;
+  border-color: #adb5bd !important;
+  color: #495057 !important;
+}
+
+.precisionButton:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+.precisionButton:focus {
+  outline: 2px solid #007bff !important;
+  outline-offset: 1px !important;
+}
+
+
+
+.imageCell {
+  width: 50px;
+  padding: 0.25rem !important;
+}
+
+.thumbnailContainer {
+  width: 35px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.noImageIcon {
+  width: 35px;
+  height: 50px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #adb5bd;
+  cursor: pointer;
+}
+
+.errorImage {
+  width: 35px;
+  height: 50px;
+  background-color: #f8d7da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #842029;
+}
+
+.imagePlaceholder {
+  width: 35px;
+  height: 50px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.titleCell {
+  font-weight: 500;
+  cursor: pointer;
+  max-width: 200px;
+}
+
+.authorCell {
+  color: #6c757d;
+  cursor: pointer;
+  max-width: 150px;
+}
+
+.typeCell {
+  width: 80px;
+  padding: 0.25rem !important;
+}
+
+.yearCell {
+  width: 60px;
+  padding: 0.25rem !important;
+  text-align: center;
+}
+
+.actionsCell {
+  white-space: nowrap;
+  text-align: center;
+  width: 110px;
+  padding: 0.25rem !important;
+}
+
+.setCoverCell {
+  width: 90px;
+  padding: 0.25rem !important;
+  text-align: center;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+
+@media (max-width: 767px) {
+  .collectionTabs {
+    flex-direction: column;
+    overflow-x: visible;
+    overflow-y: auto;
+    margin-bottom: 15px;
+  }
+  
+  .recordCard {
+    flex-direction: column;
+  }
+  
+  .recordImage {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  
+  .recordInfo {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .removeButton {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .recordsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .collectionsListCard {
+    margin-bottom: 20px;
+    height: auto;
+  }
+  
+  .collectionContentCard {
+    height: auto;
+  }
+  
+  .collectionsList {
+    max-height: 300px;
+  }
+  
+  .mobileCollectionSelector {
+    display: block;
+    margin-bottom: 15px;
+  }
+  
+  .tableHeader {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .collectionTitleGroup {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 1px;
+  }
+  
+  .recordsTable {
+    font-size: 0.8rem;
+  }
+  
+  .recordsTable th {
+    padding: 0.3rem 0.15rem !important;
+    font-size: 0.75rem;
+  }
+  
+  .recordsTable td {
+    padding: 0.3rem 0.15rem !important;
+  }
+  
+  .thumbnailContainer {
+    width: 30px;
+    height: 40px;
+  }
+  
+  .noImageIcon {
+    width: 30px;
+    height: 40px;
+  }
+  
+  .errorImage {
+    width: 30px;
+    height: 40px;
+  }
+  
+  .imagePlaceholder {
+    width: 30px;
+    height: 40px;
+  }
+  
+  /* Mobile-optimized precision arrows */
+  .precisionArrowsCell {
+    width: 50px;
+  }
+  
+  .precisionButton {
+    min-width: 24px !important;
+    height: 22px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    touch-action: manipulation; /* Improve touch performance */
+  }
+  
+  .precisionArrows {
+    gap: 3px;
+  }
+  
+  /* Enhanced touch targets for mobile */
+  .dragHandle {
+    padding: 8px 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Enhanced sorting styles */
+.sortingControls {
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.checkboxCell {
+  width: 40px;
+  text-align: center;
+}
+
+.checkboxCell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+
+/* Improve mobile sidebar */
+@media (max-width: 768px) {
+  .sidebarCol {
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .collectionsListCard,
+  .collectionContentCard {
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .selectionBar {
+    padding: 12px;
+  }
+  
+  .sortingControls {
+    padding: 10px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .dragHandleCell,
+  .precisionArrowsCell,
+  .checkboxCell,
+  .selectionBar,
+  .sortingControls {
+    display: none !important;
+  }
+}
+
+.selectedRow {
+  background-color: #e3f2fd !important;
+}
+
+.dropZone {
+  background-color: #f8f9fa;
+}
+
+.dropZoneCell {
+  padding: 0;
+}
+
+.dropZoneIndicator {
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed #007bff;
+  background-color: #f8f9fa;
+  color: #007bff;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.dropZoneIndicator:hover {
+  background-color: #e3f2fd;
+}

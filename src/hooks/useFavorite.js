@@ -4,18 +4,23 @@ import { useStore } from '../store/store';
 
 export const useFavorite = (an) => {
   const [isFavorite, setIsFavorite] = useState(false);
-    const [baseUrl] = useStore((state) => [state.baseUrl]);
+  const [baseUrl] = useStore((state) => [state.baseUrl]);
   
   useEffect(() => {
+    let cancelled = false;
     const checkFavoriteEndpoint = `${baseUrl}/records/read/${an}`;
-    
     axios.get(checkFavoriteEndpoint, { withCredentials: true })
       .then(response => {
-        if (response.data && response.data.record_id) setIsFavorite(true);
-        else setIsFavorite(false);
+        if (!cancelled) {
+          if (response.data && response.data.record_id) setIsFavorite(true);
+          else setIsFavorite(false);
+        }
       })
-      .catch(error => console.error('Error checking favorite:', error));
-  }, [an]);
+      .catch(error => {
+        if (!cancelled) console.error('Error checking favorite:', error);
+      });
+    return () => { cancelled = true; };
+  }, [an, baseUrl]);
 
   return [isFavorite, setIsFavorite];
 };

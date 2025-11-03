@@ -15,7 +15,7 @@ const initialState = {
     isStreamingImageUrl: ''
 }
 
-export const createMainStore = (set, get) => ({
+export const createMainStore = (set) => ({
     ...initialState,
     setQuery: (query) => set({ query }),
     setShouldRefetch: (shouldRefetch) => set({ shouldRefetch }),

@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Slider from '@mui/material/Slider';
 import moment from 'moment';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow';
-import { useRouter } from 'next/router';
 
 function DateSlider() {
   const currentYear = moment().year();

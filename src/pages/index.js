@@ -1,37 +1,33 @@
-import React, { useState, Fragment, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { GET_ORDERS } from '../lib/api'
 import { useQuery } from '@apollo/client'
-import { DashboardLoading } from '../components/Loading';
 import moment from 'moment';
-import HomeLayout from '../layouts/HomeLayout';
-import { DisplayImage } from '../components/DisplayImage';
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow'
-import LocationSort from '@/components/LocationSort';
-import SubjectSort from '@/components/SubjectSort';
-import DateSort from '@/components/DateSort';
+import NewMaterialDisplay from '../components/NewMaterialDisplay';
+
 
 function Home() {
-  const router = useRouter();
-  const { material } = router.query;
-  const [records, setRecord] = useState([]);
-  const [offset, setOffset] = useState(0);
-  const [page, setPage] = useState(1);
-  const [limit] = useState(50);
-  const [loadMore, setLoadMore] = useState(false);
+    const router = useRouter();
+    const { material } = router.query;
+    const [records, setRecord] = useState([]);
+    const [offset, setOffset] = useState(0);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(50);
+    const [loadMore, setLoadMore] = useState(false);
 
-  const [setAn,setDbid, setRecordModal,location, subject, date, setDate, setLocation, setSubject] = useStore(state => [
-      state.setAn,
-      state.setDbid,
-      state.setRecordModal,
-      state.location,
-      state.subject,
-      state.date,
-      state.setDate,
-      state.setLocation,
-      state.setSubject
-  ], shallow)
+    const [setAn,setDbid, setRecordModal,location, subject, date, setLocation, setSubject, setDate] = useStore(state => [
+        state.setAn,
+        state.setDbid,
+        state.setRecordModal,
+        state.location,
+        state.subject,
+        state.date,
+        state.setLocation,
+        state.setSubject,
+        state.setDate,
+    ], shallow)
 
   const today = new Date();
   const oneDay = new Date(new Date().setDate(today.getDate() - 2));
@@ -44,18 +40,32 @@ function Home() {
       setRecordModal(true)
       router.push(`/?an=${params.an}&dbid=${params.db}`, undefined, { shallow: true });
   }
-
-  const { loading, error,fetchMore, networkStatus } = useQuery(GET_ORDERS, {
-      variables: {
-          offset: 0,
-          limit: limit,
-          acquisitionsUnit: location,
-          fundDistribution: subject,
-          start: moment(thirtyDays).format('YYYY-MM-DD'),
-          end: moment(oneDay).format('YYYY-MM-DD')
-      },
-      onCompleted: setRecord
-  })
+  const { loading, fetchMore, refetch } = useQuery(GET_ORDERS, {
+    variables: {
+        offset: 0,
+        limit: limit,
+        acquisitionsUnit: location,
+        fundDistribution: subject,
+        start: moment(thirtyDays).format('YYYY-MM-DD'),
+        end: moment(oneDay).format('YYYY-MM-DD')
+    },
+    onCompleted: setRecord,
+    fetchPolicy: "network-only", // Ensures data is always fetched from the server
+  });
+  
+  useEffect(() => {
+    if (router.isReady) {
+      refetch({
+        offset: 0,
+        limit: limit,
+        acquisitionsUnit: location,
+        fundDistribution: subject,
+        start: moment(thirtyDays).format('YYYY-MM-DD'),
+        end: moment(oneDay).format('YYYY-MM-DD')
+      });
+    }
+  }, [material, location, subject, date, refetch, router.isReady]);
+  
 
   useEffect(() => {
     const urlDate = router.query.date
@@ -84,77 +94,50 @@ function Home() {
       handleFetchMore()
   }
 
-  const handleFetchMore = () => {
-      return fetchMore({
-        variables: {
-            offset: offset + limit,
-            limit: limit,
-            acquisitionsUnit: location,
-            fundDistribution: subject,
-            start: moment(thirtyDays).format('YYYY-MM-DD'),
-            end: moment(oneDay).format('YYYY-MM-DD')
-          },
-        updateQuery: (previousResult, {fetchMoreResult}) => {
-          setLoadMore(false)
-          const newCollections = fetchMoreResult?.folioorders?.poLines
-          return newCollections.length
-            ? {
-              folioorders: {
-                  poLines : [...previousResult.folioorders.poLines, ...newCollections],
-                  totalRecords: fetchMoreResult.folioorders.totalRecords,
-                  _typename: previousResult.folioorders._typename
-              },
-              }
-            : previousResult;
-        },
-      })
+  const handleFetchMore = async () => {
+    const newOffset = offset + limit;
+    setLoadMore(true);
+    try {
+        const { data } = await fetchMore({
+            variables: {
+                offset: newOffset,
+                limit: limit,
+                acquisitionsUnit: location,
+                fundDistribution: subject, // Ensure this variable is correctly interpreted for your query
+                start: moment(thirtyDays).format('YYYY-MM-DD'),
+                end: moment(oneDay).format('YYYY-MM-DD'),
+            },
+        });
+
+        setLoadMore(false);
+        if (data.folioorders && data.folioorders.poLines) {
+            setRecord(prevState => ({
+                folioorders: {
+                    ...prevState.folioorders,
+                    poLines: [...prevState.folioorders.poLines, ...data.folioorders.poLines],
+                    totalRecords: data.folioorders.totalRecords,
+                },
+            }));
+        }
+    } catch (error) {
+        console.error('Error fetching more data:', error);
+        setLoadMore(false);
     }
+};
+
 
   return(
-      <HomeLayout>
-      <Fragment>
-              <Fragment>
-                    <div className="d-flex mb-3">
-                        <div className="p-2">
-                            <p>Results: <strong>{totalRecords}</strong></p>
-                        </div>
-                        <div className="ms-auto p-2">
-                            <LocationSort />
-                        </div>
-                        <div className="p-2">
-                            <DateSort />
-                        </div>
-                    </div>
-              {loading ? <DashboardLoading /> : poLines && poLines.length > 0 ? Object.keys(poLines).map((key, index) => {
-                  return(
-                      <div className="col" key={index} onClick={e => handleRecord(poLines[key].instanceId)}>
-                          <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "14em"}}>
-                          <DisplayImage
-                              an={poLines[key].instanceId}
-                           />
-                              <div className="card-body">
-                                  <h5 className="product-title fs-sm mb-2">{poLines[key].titleOrPackage.split('/')[0]}</h5>
-                              </div>
-                          </div>
-                      </div>
-                  )
-              }): ''}
-              {page <= Math.ceil(totalRecords/limit) ?
-              <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}>
-                  <button
-                      className={loadMore ? "btn btn-info disabled" : "btn btn-primary"}
-                      id="buttonLoadMore"
-                      onClick={() =>
-                          handleLazyLoad()
-                        }
-                  >
-                  {loadMore ? "Loading..." : "Load more"}
-                  </button>
-              </div>
-              : <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}><button className="btn btn-primary" disabled>End of results</button></div>}
-              </Fragment> 
-      </Fragment>
-      </HomeLayout>
+    <NewMaterialDisplay
+        poLines={poLines}
+        totalRecords={totalRecords}
+        material={material}
+        loading={loading}
+        page={page}
+        limit={limit}
+        handleRecord={handleRecord}
+        handleLazyLoad={handleLazyLoad}
+        loadMore={loadMore}
+    />
   )
 }
 

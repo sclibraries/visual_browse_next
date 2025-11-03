@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="185" height="278" viewBox="0 0 185 278" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default actor image">
+  <rect width="185" height="278" rx="8" fill="#F1F5F9"/>
+  <g transform="translate(32,40)" fill="#94A3B8">
+    <circle cx="60.5" cy="48" r="34" />
+    <path d="M2 164c0-36.393 29.607-66 66-66s66 29.607 66 66v8H2v-8z"/>
+  </g>
+  <text x="50%" y="92%" text-anchor="middle" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14">No Image</text>
+</svg>

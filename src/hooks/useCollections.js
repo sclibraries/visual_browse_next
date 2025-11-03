@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/store';
 
-export const useCollections = () => {
+const useCollections = () => {
   const [baseUrl] = useStore((state) => [state.baseUrl]);
   const setCollections = useStore((state) => state.setCollections);
   const loggedIn = useStore((state) => state.loggedIn);
@@ -15,3 +15,5 @@ export const useCollections = () => {
   }, [loggedIn]);
 
 };
+
+export default useCollections;

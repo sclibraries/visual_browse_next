@@ -1,77 +1,97 @@
-import React from 'react'
-import { useQuery } from "@apollo/client"
-import {GET_RECORD} from '../lib/api'
-import Image from 'next/image'
+import { useQuery } from '@apollo/client';
+import { GET_RECORD } from '../lib/api';
+import Image from 'next/image';
+import { useRecordImage } from '../hooks/useRecordImage';
+import PlaceholderCover from './PlaceholderCover';
+import { getMaterialType } from '../utils/materialTypeUtils';
+import { useEffect } from 'react';
 
-  export const DisplayImage = props => {
-    const anVariable = props.an ? props.an.replace(/-/g, '.') : '';
-    const { data, error } = useQuery(GET_RECORD, {
-      variables: {
-        an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${anVariable}`,
-        dbid: 'cat09206a',
-      },
-    });
-  
-    // if (error) {
-    //   console.error('Apollo error:', error);
-    //   return (
-    //   <svg className="bd-placeholder-img card-img-top" width="100%" height="300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
-    //   <rect width="100%" height="100%" fill="#868e96"></rect>
-    //   </svg>
-    //   )
-    // }
+export const DisplayImage = ({ an, refresh }) => {
+  const anVariable = an ? an.replace(/-/g, '.') : '';
+  const { data, error, loading, refetch } = useQuery(GET_RECORD, {
+    variables: {
+      an: `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${anVariable}`,
+      dbid: 'cat09206a',
+    },
+  });
 
-    const records = data?.record?.records || []
-
-    const { titles } = records || []
-
-    const title = titles ? titles.map(items => (
-        items.TitleFull
-    )) : ''
-
-    const titleString = data?.titleItem?.toString() || data?.items?.map(items => ( items.label === "Title" ? items.data : '' )) || ''
-    let titleStringDisplay = titleString || ''
-    if(titleString !== '' && titleString.includes('/')){
-        const titleClean = titleString.split('/')
-        if(titleClean[0].includes('[')){
-            titleStringDisplay = titleClean[0].split('[')[0]
-        } else {
-            titleStringDisplay = titleClean[0]
-        }
-    } else if(titleString !== '' && titleString.includes('[')){
-            titleStringDisplay = titleString.split('[')[0]
-    } else {
-        titleStringDisplay = title
+  useEffect(() => {
+    if (refresh) {
+      console.log('Refreshing image');
+      refetch();
     }
-    
-    const baseImage = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2ODApLCBkZWZhdWx0IHF1YWxpdHkK/9sAQwAIBgYHBgUIBwcHCQkICgwUDQwLCwwZEhMPFB0aHx4dGhwcICQuJyAiLCMcHCg3KSwwMTQ0NB8nOT04MjwuMzQy/9sAQwEJCQkMCwwYDQ0YMiEcITIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy/8AAEQgBMADLAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8ArUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAf/2Q=="
-    let image =  ''
-    if(records.image){
-        records.image.map(items => {
-            if(items.Size === "medium"){
-                image = items.Target
-            } else if(items.Size === "thumb"){
-                image = items.Target
-            }
-        })
-    }
+  }, [refresh, refetch]);
 
+  // Extract record data
+  const record = data?.record?.records || null;
+
+  // Use the custom hook to get the image URL
+  const imageUrl = useRecordImage(record);
+
+  // Get the title for alt text
+  const title =
+    record?.titles?.[0]?.TitleFull ||
+    data?.titleItem?.toString() ||
+    'No Title';
+
+  // Handle loading state
+  if (loading) {
     return (
-        image !== '' ? (
-          <Image
-            src={image}
-            alt={titleStringDisplay}
-            width={500}
-            height={300}
-            className="card-img-top"
-            style={{objectFit: "cover"}}
-            priority={true}
-          />
-        ) : (
-          <svg className="bd-placeholder-img card-img-top" width="100%" height="300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
-          <title>{titleString}</title>
-          <rect width="100%" height="100%" fill="#868e96"></rect>
+      <svg
+        className="bd-placeholder-img card-img-top"
+        width="100%"
+        height="300"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Placeholder: Loading image"
+        preserveAspectRatio="xMidYMid slice"
+        focusable="false"
+      >
+        <rect width="100%" height="100%" fill="#868e96"></rect>
       </svg>
-        )
-      );
+    );
   }
+
+  // Handle error state
+  if (error) {
+    return (
+      <svg
+        className="bd-placeholder-img card-img-top"
+        width="100%"
+        height="300"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Placeholder: Error loading image"
+        preserveAspectRatio="xMidYMid slice"
+        focusable="false"
+      >
+        <rect width="100%" height="100%" fill="#868e96"></rect>
+      </svg>
+    );
+  }
+
+  // Render image or placeholder
+  const materialType = record ? getMaterialType(record) : null;
+
+  return imageUrl && imageUrl !== '' ? (
+    <Image
+      src={imageUrl}
+      alt={title}
+      fill
+      className="rounded card-img-top"
+      style={{ objectFit: 'contain' }}
+      unoptimized={true}
+      onError={() => {
+        // Intentionally no-op; hook will not change. Fallback handled when no URL.
+      }}
+    />
+  ) : (
+    <PlaceholderCover 
+      ariaLabel={`No cover for ${title}`}
+      icon={(() => {
+        const label = materialType?.label?.toLowerCase() || '';
+        return (label.includes('video') || label.includes('movie') || label.includes('dvd') || label.includes('film')) ? '🎬' : '📚';
+      })()}
+    />
+  );
+};

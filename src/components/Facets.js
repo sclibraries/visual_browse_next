@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import Select from 'react-select';
 import { Button } from 'reactstrap'
 import { useRouter } from 'next/router';
+import { useStore } from '../store/store';
 
 function Facets({
   genre, 
@@ -13,12 +15,27 @@ function Facets({
 }) {
 
   const router = useRouter();
+  const [selectedGenre, setSelectedGenre] = useState('')
+
+  const [bookSubjectHeadings, comicSubjectHeadings] = useStore(state => [
+    state.bookSubjectHeadings,
+    state.comicSubjectHeadings
+  ]);
 
   const genreOptions = genre ? genre.map(subject => ({
     label: subject,
     value: subject 
   })) : [];
 
+  const comicOptions = comicSubjectHeadings.map(subject => ({
+    label: subject,
+    value: subject
+  }));
+
+  const expandedSubjectOptions = bookSubjectHeadings.map(subject => ({
+    label: subject,
+    value: subject
+  }));
 
   const options = facetDisplay ? Object.values(facetDisplay).map(facet => {
     const options = facet && facet.values ? facet.values.map(value => ({
@@ -43,8 +60,22 @@ function Facets({
      handleFacetAction(selected.value);
   }   
 
+  const handleSubGenreSelectChange = (selected) => {
+    // Handle the action for selecting a sub-genre option
+    onSelect(selected.value.replace(/(?=[()])/g, '\\'));
+  };
+
   const handleGenereSelectChange = (selected) => {
-    onSelect(selected.value);
+    onSelect(selected.value.replace(/(?=[()])/g, '\\'));
+
+    // Check if the selected genre is "Comics" or "Fiction" to set selectedGenre
+    // Otherwise, clear selectedGenre to hide the additional dropdown
+    if (selected.label === 'Comics (Graphic works)' || selected.label === 'Fiction') {
+      setSelectedGenre(selected.label);
+    } else {
+      setSelectedGenre(null); // Reset only if a main genre other than "Comics" or "Fiction" is selected
+    }
+    
 }
 
 
@@ -61,6 +92,22 @@ function Facets({
             placeholder={`${materialType} Genres`}
             onChange={handleGenereSelectChange} 
           />
+          </div>
+          <div style={{marginTop: "10px"}}>
+          {selectedGenre === 'Comics (Graphic works)' && (
+              <Select 
+              options={comicOptions}
+              placeholder="Comic Subjects"
+              onChange={handleSubGenreSelectChange} // Use the new handler for sub-dropdown
+            />
+            )}
+            {selectedGenre === 'Fiction' && (
+            <Select 
+              options={expandedSubjectOptions}
+              placeholder="Fiction Subjects"
+              onChange={handleSubGenreSelectChange} // Use the new handler for sub-dropdown
+            />
+            )}
           </div>
         </div>
         )}
@@ -89,7 +136,7 @@ function Facets({
         appliedFacets && appliedFacets.length > 0 &&
         <div className="d-grid gap-2 d-md-block">
             {appliedFacets.map((facet, index) => (
-            facet.FacetValuesWithAction.map(value => {
+            facet.FacetValuesWithAction.filter(value => value.FacetValue.Value !== 'Smith College Finding Aids').map(value => {
                 // Determine if the current value should be disabled
                 const isDisabled = ['Videos', 'Books', 'Five Colleges Catalog'].includes(value.FacetValue.Value);
                 return (

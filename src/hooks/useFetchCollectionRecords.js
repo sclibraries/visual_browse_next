@@ -11,59 +11,85 @@ export const useFetchCollectionRecords = (limit, collection_id) => {
     const [offset, setOffset] = useState(0);
     const baseUrl = useStore((state) => state.baseUrl);
 
+    // Reset state when collection changes - this is crucial
+    useEffect(() => {
+        setCollectionRecords([]);
+        setOffset(0);
+        setHasMore(true);
+        setError(null);
+    }, [collection_id]);
+
     const fetchCollectionRecords = useCallback(async () => {
+        if (!collection_id) return;
+        
         try {
             setLoading(true);
             const response = await axios.get(`${baseUrl}/collection_records/read-all`, {
                 withCredentials: true,
-                params: { limit: limit, offset: offset, collection_id: collection_id }
+                params: { limit, offset, collection_id }
             });
 
             if(response.status === 204){
-                toast.warn('No records found');
                 setHasMore(false);
-                setLoading(false)
+                setLoading(false);
             } else if (response.status === 200) {
                 if (response.data.currentPage >= response.data.totalPages) {
-                    setCollectionRecords(prevCollectionRecords => [...prevCollectionRecords, ...response.data.records]);
+                    setCollectionRecords(prevRecords => [...prevRecords, ...response.data.records]);
                     setHasMore(false);
                 } else {
                     if(response.data.records.length > 0) {
-                        setCollectionRecords(prevCollectionRecords => [...prevCollectionRecords, ...response.data.records]);
+                        setCollectionRecords(prevRecords => [...prevRecords, ...response.data.records]);
                         setOffset(prevOffset => prevOffset + limit);
+                    } else {
+                        setHasMore(false);
                     }
                 }
             }
         } catch (error) {
-            console.log(error)
-            toast.error('Error fetching collection records');
+            console.error('Error fetching collection records:', error);
             setError(error);
+            toast.error('Error fetching collection records');
         } finally {
             setLoading(false);
         }
-    }, [baseUrl, limit, offset, setCollectionRecords, collection_id]);
+    }, [baseUrl, limit, offset, collection_id]);
 
     const removeCollectionRecords = useCallback((folioIdToRemove) => {
-        setCollectionRecords((currentCollectionRecords) => 
-          currentCollectionRecords.filter(records => records.folio_id !== folioIdToRemove)
+        setCollectionRecords(currentRecords => 
+            currentRecords.filter(record => record.folio_id !== folioIdToRemove)
         );
-      }, []);
+    }, []);
 
-    // Initial fetch
+    // Function to manually reset collection data
+    const resetCollectionData = useCallback(() => {
+        setCollectionRecords([]);
+        setOffset(0);
+        setHasMore(true);
+        setError(null);
+    }, []);
+
+    // Initial fetch when collection_id changes or offset is 0
     useEffect(() => {
-        // Load initial data
-        if (offset === 0 && collection_id) {
-          fetchCollectionRecords();
-        }
-      }, [fetchCollectionRecords, offset, collection_id]);
-
-    // This function will be called when we need to fetch more data
-    const loadMore = () => {
-        if (hasMore && !loading && collection_id) { // Make sure to check that collection_id is not null here
+        if (collection_id && offset === 0) {
             fetchCollectionRecords();
         }
+    }, [fetchCollectionRecords, offset, collection_id]);
+
+    // Function to load more records
+    const loadMore = useCallback(() => {
+        if (hasMore && !loading && collection_id) {
+            fetchCollectionRecords();
+        }
+    }, [hasMore, loading, collection_id, fetchCollectionRecords]);
+
+    return { 
+        collectionRecords, 
+        setCollectionRecords,
+        loading, 
+        error, 
+        hasMore, 
+        loadMore, 
+        removeCollectionRecords,
+        resetCollectionData
     };
-
-
-    return { loading, error, hasMore, collectionRecords, loadMore, removeCollectionRecords, setLoading };
 };

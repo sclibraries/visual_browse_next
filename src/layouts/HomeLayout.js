@@ -1,13 +1,15 @@
 // components/Layout.js
-import React from 'react';
 import { HomeNavigation } from '../components/HomeNavigation';
+
 
 function HomeLayout({ children }) {
   return (
     <div>
-      <HomeNavigation />
-      <div className="container">
-            <div className="row row-cols-* g-4" style={{marginTop: "70px"}}>
+      <div style={{marginBottom: "20px"}}>
+        <HomeNavigation />
+      </div>
+      <div>
+            <div style={{marginTop: "70px"}}>
                 {children}
             </div>
         </div>

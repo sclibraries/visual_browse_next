@@ -12,7 +12,7 @@ export const useRemoveFromCollection = (onSuccess) => {
         axios.delete(endpoint, {
             withCredentials: true
         })
-        .then(response => {
+        .then(() => {
             toast.success('Successfully removed from collection');
             if (onSuccess) {
                 onSuccess(collection_records_id); // Pass the deleted ID to the success handler
@@ -26,3 +26,6 @@ export const useRemoveFromCollection = (onSuccess) => {
     
     return removeFromCollection;
 };
+
+// Make sure it exports as default
+export default useRemoveFromCollection;

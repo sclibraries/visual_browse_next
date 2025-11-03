@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from '../components/Header';
 import Records from '../components/Records';
 import { Modal } from 'reactstrap';
 import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { useRouter } from 'next/router'
-import Breadcrumb from '@/components/Breadcrumb';
 import { ToastContainer } from 'react-toastify';
 
 export default function GlobalLayout({ children }) {

@@ -7,15 +7,25 @@ import { toast } from 'react-toastify';
 export const useAddToCollection = (onSuccess) => {
   const [baseUrl] = useStore((state) => [state.baseUrl]);
 
-  const addToCollection = useCallback((collection_id, an) => {
+  const addToCollection = useCallback((collection_id, an, dbid) => {
     const eds_id = an;
-    const folio_id = an.split('fs00001006.')[1];
-    const endpoint = `${baseUrl}/collection_records/create`; // Update this to your actual endpoint
+    let folio_id;
+
+    if (eds_id.includes("fs00001006.")) {
+        // If 'fs00001006.' is found, split the eds_id accordingly
+        folio_id = eds_id.split("fs00001006.")[1];
+    } else {
+        // Otherwise, just use the full eds_id
+        folio_id = eds_id;
+    }
+
+    const endpoint = `${baseUrl}/collection_records/create`; 
 
     axios.post(endpoint, {
       collection_id,
       eds_id,
       folio_id,
+      dbid
     }, {
       withCredentials: true
     })
@@ -34,3 +44,6 @@ export const useAddToCollection = (onSuccess) => {
 
   return addToCollection;
 };
+
+// Make sure it exports as default
+export default useAddToCollection;

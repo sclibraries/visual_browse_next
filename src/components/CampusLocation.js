@@ -1,4 +1,3 @@
-import React from 'react'
 import { useQuery } from '@apollo/client';
 import { FOLIORTAC } from '../lib/api';
 
@@ -6,7 +5,7 @@ function CampusLocation(props){
 
     const cleanId = props.id.split('fs00001006.')[1]
 
-    const { loading, error, data } = useQuery(FOLIORTAC, {
+    const { data } = useQuery(FOLIORTAC, {
         variables: {
             id: cleanId.replace(/\./g,'-')
             }

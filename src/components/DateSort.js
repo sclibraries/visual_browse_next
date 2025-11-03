@@ -1,4 +1,3 @@
-import React from 'react';
 import Select from 'react-select';
 import { useStore } from '../store/store';
 import { useRouter } from 'next/router';

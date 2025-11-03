@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Prevent overflow in record details */
+.record-detail-content * {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.record-detail-content a {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.record-detail-content img {
+  max-width: 100%;
+  height: auto;
+}

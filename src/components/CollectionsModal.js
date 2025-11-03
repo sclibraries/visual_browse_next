@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store/store';
-import { useCollections } from '@/hooks/useCollections';
-import { useAddToCollection } from '@/hooks/useAddToCollection';
-import { useCurrentCollections } from '@/hooks/useCurrentCollections';
-import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection';
+import useCollections from '../hooks/useCollections';
+import useAddToCollection from '../hooks/useAddToCollection';
+import useCurrentCollections from '../hooks/useCurrentCollections';
+import useRemoveFromCollection from '../hooks/useRemoveFromCollection';
 import NewCollectionForm from './NewCollectionForm';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 
-function CollectionsModal(props) {
+function CollectionsModal() {
 const [modal, setModal] = useState(false);
-const [collections, collectionAn, currentCollections] = useStore((state) => [state.collections, state.collectionAn, state.currentCollections]);
+const [collections, collectionAn, currentCollections, collectionDbid] = useStore((state) => [state.collections, state.collectionAn, state.currentCollections, state.collectionDbid]);
 useCollections()   
 useCurrentCollections(collectionAn);
-const refreshCollections = useCollections(collectionAn);
-const refreshCurrentCollections = useCurrentCollections(collectionAn);
+const refreshCollections = useCollections(collectionAn, collectionDbid);
+const refreshCurrentCollections = useCurrentCollections(collectionAn, collectionDbid);
 const addToCollection = useAddToCollection(refreshCurrentCollections, refreshCollections);
 const removeFromCollection = useRemoveFromCollection(refreshCurrentCollections, refreshCollections);
 
@@ -60,9 +60,9 @@ const getCollectionRecordsId = (collectionId) => {
                             <td>{collection.views}</td>
                             <td>
                             {collectionRecordsId ? (
-                                <button className="btn btn-danger" onClick={e => handleRemoveFromCollection(collectionRecordsId)}>Remove</button>
+                                <button className="btn btn-danger" onClick={() => handleRemoveFromCollection(collectionRecordsId)}>Remove</button>
                             ) : (
-                                <button className="btn btn-primary" onClick={e => addToCollection(collection.collection_id, collectionAn)}>Add</button>
+                                <button className="btn btn-primary" onClick={() => addToCollection(collection.collection_id, collectionAn, collectionDbid)}>Add</button>
                             )}
                             </td>
                             </tr>

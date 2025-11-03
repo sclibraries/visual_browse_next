@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client';
 import { GET_RECORD } from '../../lib/api';
 import { useStore } from '../../store/store';
@@ -6,8 +6,12 @@ import { shallow } from 'zustand/shallow'
 import Image from 'next/image'
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useRecordImage } from '../../hooks/useRecordImage';
+import ImageUploadModal from '../../components/ImageUploadModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook, faUpload } from '@fortawesome/free-solid-svg-icons';
 
-function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, collection_id }){
+function RecordDisplay({ an, dbid, folio_id, router, id, handleDeleteRecord, collection_id, isDraggable = false }){
     const [setAn, setDbid, setRecordModal, collectionCoverImage, baseUrl, updateCollection, setCollectionCoverImage] = useStore(state => [
         state.setAn,
         state.setDbid,
@@ -25,6 +29,24 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
     },
   });
 
+  const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Initialize `record` before any Hooks
+  const record = data?.record?.records || {};
+
+  // Call `useRecordImage` before any returns
+  const image = useRecordImage(record);
+
+  // Handle image loading errors
+  useEffect(() => {
+    setImageError(false); // Reset error state when record changes
+  }, [record]);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   const handleSave = async (updatedFields) => {
     try {
@@ -63,10 +85,16 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
     router.push(`${router.pathname}?an=${an}&dbid=${dbid}`, undefined, { shallow: true });
  }
 
+ const toggleImageUploadModal = (record) => {
+  setSelectedRecord(record);
+  setImageUploadModalOpen(!imageUploadModalOpen);
+};
+
+
   if (loading) return (
     <div className="col">
-        <div className="card" style={{width: "14em"}}>
-        <svg className="bd-placeholder-img card-img-top" width="100%" height="180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#868e96"></rect></svg>                  {/* <img src='https://via.placeholder.com/240x348' className="card-img-top img-thumbnail rounded" alt="Loading..." /> */}
+        <div className="card" style={{width: isDraggable ? "100%" : "14em"}}>
+        <svg className="bd-placeholder-img card-img-top" width="100%" height="180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#868e96"></rect></svg>
         <div className="card-body">
             <h5 className="card-title placeholder-glow">
                 <span className="placeholder col-6"></span>
@@ -83,46 +111,131 @@ function RecordDisplay({ an, dbid, folio_id, router,id, handleDeleteRecord, coll
   </div>
   )
   if (error) return <p>Error loading record</p>;
-  const results = data?.record?.records || []
-  let image =  results.imageItem || ''
-  return (
-    <div className="col">
-        <div className="card" style={{width: "13em"}}>
-            <span onClick={() => handleRecord(an, dbid)}>
-                {image !== '' ? (
-                    <Image
-                       src={image}
-                       alt={results.titles.map(items => items.TitleFull)}
-                       width={500}
-                       height={300}
-                       className="card-img-top"
+  const titleFull = record.titles?.[0]?.TitleFull || 'No Title';
 
-                       priority={true}
-                    />
+  return (
+    <div className={isDraggable ? "" : "col"}>
+          {imageUploadModalOpen && (
+            <ImageUploadModal
+              isOpen={imageUploadModalOpen}
+              toggle={toggleImageUploadModal}
+              record={selectedRecord}
+            />
+          )}
+        <div className="card" style={{width: isDraggable ? "100%" : "13em"}}>
+          <div className="image-container" aria-hidden="true">
+            {/* Replace div with button for proper accessibility */}
+            <button 
+              onClick={() => handleRecord(an, dbid)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleRecord(an, dbid);
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                display: 'block'
+              }}
+            >
+              {image !== '' && !imageError ? (
+                  <Image
+                    src={image}
+                    alt={titleFull}
+                    layout="responsive"
+                    width={500}
+                    height={300}
+                    className="rounded card-img-top"
+                    objectFit="cover"
+                    unoptimized={true}
+                    onError={handleImageError}
+                  />
                 ) : (
-                    <svg className="bd-placeholder-img card-img-top" width="100%" height="180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
-                        <title>{results.titles.map(items => items.TitleFull)}</title>
-                        <rect width="100%" height="100%" fill="#868e96"></rect>
-                    </svg>
+                  <div className="d-flex align-items-center justify-content-center bg-light" style={{ height: "180px" }}>
+                    <FontAwesomeIcon icon={faBook} size="3x" style={{ color: "#adb5bd" }} />
+                  </div>
                 )}
-            </span>
-            <div className="card-body">
-                <h5 className="card-title">
-                    {results.titles.map(items => items.TitleFull)}
-                </h5>
-            </div>
-            <div className="card-footer">
-                <div className="d-grid gap-2 d-md-block">
-                    {collection_id && (
-                        image === collectionCoverImage ?  <p className="text-success">This is your collection cover image</p> :
-                        <button style={{marginRight: "10px"}} className="btn btn-primary" onClick={() => handleSave(image)}>Cover image</button>
-                    )}
-                    <button className="btn btn-danger" onClick={() => handleDeleteRecord(an, folio_id, id)}>Remove</button>
-                </div>
-            </div>
+            </button>
+            <button 
+              className="upload-button"
+              onClick={() => toggleImageUploadModal({
+                an: an,
+                dbid: dbid,
+              })}
+              style={{
+                width: '100%',
+                padding: '8px',
+                background: 'rgba(240,240,240,0.9)',
+                border: 'none',
+                borderTop: '1px solid rgba(0,0,0,0.1)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
+                color: '#555'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220,220,220,0.9)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(240,240,240,0.9)'}
+              onFocus={(e) => e.currentTarget.style.background = 'rgba(220,220,220,0.9)'}
+              onBlur={(e) => e.currentTarget.style.background = 'rgba(240,240,240,0.9)'}
+            >
+              <FontAwesomeIcon icon={faUpload} /> Upload Image
+            </button>
+          </div>
+          <div className="card-body">
+              <h5 className="card-title">
+                  {titleFull}
+              </h5>
+          </div>
+          <div className="card-footer" style={{ padding: '10px', background: 'transparent', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  {collection_id && (
+                      image === collectionCoverImage ? 
+                      <span className="text-success" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>Cover image</span> :
+                      <button 
+                        style={{
+                          padding: '5px 10px',
+                          background: '#f8f9fa', 
+                          color: '#212529',
+                          border: '1px solid #dee2e6',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          transition: 'all 0.2s'
+                        }} 
+                        onClick={() => handleSave(image)}
+                      >
+                        Set as cover
+                      </button>
+                  )}
+                  <button 
+                    style={{
+                      padding: '5px 10px',
+                      background: '#f8f9fa',
+                      color: '#dc3545',
+                      border: '1px solid #dee2e6',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      transition: 'all 0.2s',
+                      marginLeft: 'auto'
+                    }} 
+                    onClick={() => handleDeleteRecord(an, folio_id, id)}
+                  >
+                    Remove
+                  </button>
+              </div>
+          </div>
         </div>    
     </div>
   );
 }
 
-export default RecordDisplay
+export default RecordDisplay;

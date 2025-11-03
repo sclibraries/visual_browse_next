@@ -4,7 +4,6 @@ const initialState = {
     movieSort: 'date',
     movieFieldCode: '',
     movieAction: 'addfacetfilter(SourceType:Videos,ContentProvider:Five Colleges Catalog)',
-    movieFieldCode: '',
     //
 
 
@@ -53,12 +52,9 @@ const initialState = {
         "Western films"
     ]
 }
-const processFacetAction = (facetAction) => {
-    return facetAction.replace("addfacetfilter(", "").replace(")", "");
-}
 
 
-export const createMoviesStore = (set, get) => ({
+export const createMoviesStore = (set) => ({
     ...initialState,
     setMovieAction: (action) => set({ action }),
     setMovieData: (movieData) => set({ movieData }),

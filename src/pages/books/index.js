@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
 import { shallow } from 'zustand/shallow'
 import MaterialDisplay from '../../components/MaterialDisplay'
-import useUpdateQueryString from '@/hooks/useUpdateQueryString'
 
 function Books() {
     const [loadMore, setLoadMore] = useState(false);
@@ -16,14 +15,10 @@ function Books() {
         setBookAppliedFacets,
         bookAppliedFacets,
         bookFacetAction,
-        bookLimiter,
-        bookDateLimiter,
         bookData,
         setBookFacetAction,
-        removeBookFacetAction,
         bookQueryString,
-        setBookQueryString,
-        bookSubjectHeadings,
+        bookGenres,
         bookHits,
         setBookHits,
         bookFacets,
@@ -49,14 +44,10 @@ function Books() {
         state.setBookAppliedFacets,
         state.bookAppliedFacets,
         state.bookFacetAction,
-        state.bookLimiter,
-        state.bookDateLimiter,
         state.bookData,
         state.setBookFacetAction,
-        state.removeBookFacetAction,
         state.bookQueryString,
-        state.setBookQueryString,
-        state.bookSubjectHeadings,
+        state.bookGenres,
         state.bookHits,
         state.setBookHits,
         state.bookFacets,
@@ -81,6 +72,7 @@ function Books() {
         setShouldRefetch(true)
     }, [])
 
+    console.log(bookGenres)
 
     useEffect(() => {
         if (shouldRefetch) {
@@ -102,20 +94,6 @@ function Books() {
                 action: bookAction
             }
           }
-        //   const variables = {
-        //     query: bookResultsQueryString !== '' ? bookResultsQueryString : bookQueryString,
-        //     refine: 'y',
-        //     // Include limiter and sort if they have values
-        //     ...(dateLimiter && { limiter: dateLimiter }),
-        //     ...(bookSort && { sort: bookSort }),
-        //   };
-      
-        //   // Only include action if it's set and then reset it
-        //   if (bookFacetAction) {
-        //     variables.action = bookFacetAction;
-        //     // Resetting bookFacetAction immediately after it's used
-        //     setBookFacetAction('');
-        //   }
       
           executeSearch({ variables });
           setShouldRefetch(false);
@@ -134,9 +112,22 @@ function Books() {
 
     const [executeSearch, { loading, data, error, fetchMore }] = useLazyQuery(GET_BROWSE, {
         fetchPolicy: 'network-only',
-        nextFetchPolicy: 'cache-first',
         onCompleted: data => { handleOnComplete(data) }
     })
+
+    useEffect(() => {
+      // Assuming 'data' is the state that gets updated with the query result
+      if (data?.search) {
+        setBookData(data?.search?.records)
+        setBookFacets(data?.search?.facets)
+        setBookAppliedFacets(data?.search?.facetFiltersWithAction)
+        setBookHits(data?.search?.statistics?.hits)
+        setBookResultsQueryString(data?.search?.queryString)
+        setBookTotalPages(data?.search?.statistics?.hits / 22)
+        setBookRefine('y')
+      }
+    }, [data, setBookData, setBookFacets, setBookAppliedFacets, setBookHits, setBookResultsQueryString, setBookTotalPages, setBookRefine]);
+
     setLoading(loading)
 
     if (error) return <div>Error loading books.</div>
@@ -202,8 +193,7 @@ function Books() {
             facetDisplay={bookFacets}
             handleFacetAction={handleFacetAction}
             handleRemoveFacetAction={handleRemoveFacetAction}
-            genre={bookSubjectHeadings}
-            bookSubjectHeadings={bookSubjectHeadings}
+            genre={bookGenres}
             onSelect={handleSelectGenre}
             appliedFacets={bookAppliedFacets}
             hits={bookHits}

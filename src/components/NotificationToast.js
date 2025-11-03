@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {  useEffect } from 'react';
 import { Toast, ToastBody, ToastHeader } from 'reactstrap';
 
 const NotificationToast = ({ isOpen, toggle, message, type }) => {

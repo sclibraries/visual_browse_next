@@ -1,4 +1,3 @@
-import React from 'react';
 import Select from 'react-select';
 import { useQuery } from '@apollo/client';
 import { useStore } from '../store/store';
@@ -70,7 +69,7 @@ function SubjectSort() {
       router.push({ pathname: router.pathname, query: currentQuery }, undefined, { shallow: true });
     } else {
       setSubject(''); // Reset subject if the selection is cleared
-      const { subject, ...rest } = router.query; // Destructure subject out of the query params
+      const {  ...rest } = router.query; // Destructure subject out of the query params
       router.push({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
     }
   };

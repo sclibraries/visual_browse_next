@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/store';
 // useCurrentCollections.js
-export const useCurrentCollections = (an) => {
+const useCurrentCollections = (an) => {
   const [baseUrl] = useStore((state) => [state.baseUrl]);
   const setCurrentCollections = useStore((state) => state.setCurrentCollections);
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     if (!an || typeof an !== 'string') {
       console.error('Invalid argument: an should be a non-empty string.');
       return;
@@ -18,12 +18,14 @@ export const useCurrentCollections = (an) => {
     axios.get(`${baseUrl}/collection_records/check/${eds_id}/${folio_id}`, { withCredentials: true })
       .then(response => setCurrentCollections(response.data))
       .catch(error => console.error('Error fetching collections:', error));
-  };
+  }, [an, baseUrl, setCurrentCollections]);
 
   useEffect(() => {
     fetchData();
-  }, [an]);
+  }, [fetchData]);
 
   return fetchData;
 };
+
+export default useCurrentCollections;
 

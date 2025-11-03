@@ -1,154 +1,153 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import UserInfo from './userInfo';
-import CollectionList from './collections';
-import NewCollectionForm from './newCollectionForm';
-import { Button, Col, Row, Container, Nav, NavItem, NavLink, TabContent, TabPane, Card, CardBody } from 'reactstrap';
-import { useRouter } from 'next/router';
+// pages/account/index.js
+import { useEffect } from 'react';
 import { useStore } from '../../store/store';
-import { shallow } from 'zustand/shallow';
-import CollectionRecords from './collectionRecords';
-import { useFetchAccountData } from '@/hooks/useFetchAccountData';
-import Favorites from './favorites';
+import { useRouter } from 'next/router';
+import AdminLayout from '../../layouts/AdminLayout';
+import { useFetchAccountData } from '../../hooks/useFetchAccountData';
+import { Card, CardBody, CardTitle, Row, Col } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook, faHeart, faFilm, faList, faUsers } from '@fortawesome/free-solid-svg-icons';
+import styles from '../../styles/AccountDashboard.module.css';
 
-function Account() {
+const AccountDashboard = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(router.query.tab || 'favorites');
-  const currentPath = router.asPath;
+  const { loggedIn, authChecked, baseUrl, user, collections, favorites } = useStore((state) => ({
+    loggedIn: state.loggedIn,
+    authChecked: state.authChecked,
+    baseUrl: state.baseUrl,
+    user: state.user,
+    collections: state.collections,
+    favorites: state.favorites || [],
+  }));
 
-  const [
-    collections, 
-    loggedIn, 
-    collectionRecordId, 
-    setCollectionRecordId, 
-    collectionRecordName, 
-    setCollectionRecordName, 
-    user
-  ] = useStore(
-    (state) => [state.collections, state.loggedIn, state.collectionRecordId, state.setCollectionRecordId, state.collectionRecordName, state.setCollectionRecordName, state.user],
-    shallow
-  );
 
   // Fetch user and collection data
-   useFetchAccountData();
+  useFetchAccountData();
 
-   useEffect(() => {
-    const { tab, collection } = router.query;
-  
-    // Potentially, here you could fetch the collection name using the collection ID
-    // For demonstration, I'm directly setting a default name based on ID being present
-    if (collection) {
-      setCollectionRecordId(collection);
-      // Replace 'Default Collection Name' with a function to fetch the actual name using the collection ID if necessary
-      setCollectionRecordName('Collection Records'); 
+  useEffect(() => {
+    if (!authChecked) return; // wait until auth check completes
+    if (loggedIn === false) {
+      const currentPath = router.asPath;
+      // Send user to backend login; after login backend will redirect back to this app
+      window.location.assign(`${baseUrl}/login?redirectTo=${encodeURIComponent(currentPath)}`);
     }
-  
-    // Use the tab query parameter to update the active tab state
-    if (tab) {
-      setActiveTab(tab);
-    }
-  }, [router.query, setCollectionRecordId, setCollectionRecordName]);
+  }, [authChecked, loggedIn, router, baseUrl]);
 
-   useEffect(() => {
-    const handleRouteChange = (url) => {
-      const fullUrl = `${window.location.origin}${url}`;
-      const newTab = new URLSearchParams(new URL(fullUrl).search).get('tab');
-      if (newTab) {
-        setActiveTab(newTab);
-      }
-    };
-  
-    // Update the initial activeTab based on the current route
-    const initialTab = new URLSearchParams(window.location.search).get('tab');
-    if (initialTab) {
-      setActiveTab(initialTab);
-    }
+  if (!authChecked) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
-    router.events.on('routeChangeComplete', handleRouteChange);
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, []);
-
-  const toggle = (tab) => {
-    if (activeTab !== tab) {
-      setActiveTab(tab);
-      setCollectionRecordId('');
-      setCollectionRecordName('');
-      router.push(`${router.pathname}?tab=${tab}`, undefined, { shallow: true });
-    }
-  };
-
-
+  if (loggedIn === false || !user) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dashboard">
-      {loggedIn === false ? (
-        <Button color="primary" href={`https://libtools2.smith.edu:4000/login?redirectTo=${currentPath}`}>
-          Login
-        </Button>
-      ) : (
-        <Container fluid>
-          <Row>
-            <Col md="12">
-              <h1>Account Dashboard</h1>
-              {/* Horizontal Tabs */}
-              <Nav tabs>
-                <NavItem>
-                  <NavLink active={activeTab === 'favorites'} onClick={() => toggle('favorites')}>
-                    Favorites
-                  </NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink active={activeTab === 'collections'} onClick={() => toggle('collections')}>
-                    Collections
-                  </NavLink>
-                </NavItem>
-                {collectionRecordName !== '' && (
-                  <NavItem>
-                    <NavLink active={activeTab === 'collectionRecords'} onClick={() => toggle('collectionRecords')}>
-                      {collectionRecordName}
-                    </NavLink>
-                  </NavItem>
-                )}
-              </Nav>
-
-              {/* Content area */}
-              <TabContent activeTab={activeTab}>
-                <TabPane tabId="userInfo">
-                      <UserInfo user={user} />
-                </TabPane>
-                <TabPane tabId="favorites">
-                    {activeTab === 'favorites' ? (
-                    <Favorites />
-                    ) : (
-                      ''
-                    )}
-                </TabPane>
-                <TabPane tabId="collections">
-                      {collectionRecordId === '' ?
-                            <CollectionList collections={collections} />
-                      : '' }
-                </TabPane>
-                {collectionRecordId !== '' && ( 
-                <TabPane tabId="collectionRecords">
-                        <Row>
-                          <Col md="12">
-                            <CollectionRecords 
-                              collections={collections}
-                            />
-                          </Col>
-                        </Row>
-                </TabPane>
-                )}
-              </TabContent>
-            </Col>
-          </Row>
-        </Container>
-      )}
-    </div>
+    <AdminLayout>
+      <div className={styles.dashboardHeader}>
+        <h1>Welcome, {user.name}</h1>
+        <p>Manage your account, collections, and favorites.</p>
+      </div>
+      
+      <Row className="mt-4">
+        <Col md="6" lg="3" className="mb-4">
+          <Card className={styles.dashboardCard}>
+            <CardBody>
+              <div className={styles.cardIcon}><FontAwesomeIcon icon={faList} /></div>
+              <CardTitle tag="h5">Collections</CardTitle>
+              <div className={styles.cardValue}>{collections?.length || 0}</div>
+              <button 
+                className={styles.cardAction} 
+                onClick={() => router.push('/account/collections')}
+                onKeyDown={(e) => e.key === 'Enter' && router.push('/account/collections')}
+              >
+                Manage Collections →
+              </button>
+            </CardBody>
+          </Card>
+        </Col>
+        
+        <Col md="6" lg="3" className="mb-4">
+          <Card className={styles.dashboardCard}>
+            <CardBody>
+              <div className={styles.cardIcon}><FontAwesomeIcon icon={faHeart} /></div>
+              <CardTitle tag="h5">Favorites</CardTitle>
+              <div className={styles.cardValue}>{favorites?.records?.length || 0}</div>
+              <button 
+                className={styles.cardAction} 
+                onClick={() => router.push('/account/favorites')}
+                onKeyDown={(e) => e.key === 'Enter' && router.push('/account/favorites')}
+              >
+                View Favorites →
+              </button>
+            </CardBody>
+          </Card>
+        </Col>
+        
+        <Col md="6" lg="3" className="mb-4">
+          <Card className={styles.dashboardCard}>
+            <CardBody>
+              <div className={styles.cardIcon}><FontAwesomeIcon icon={faUsers} /></div>
+              <CardTitle tag="h5">Following</CardTitle>
+              <div className={styles.cardValue}>Manage</div>
+              <button 
+                className={styles.cardAction} 
+                onClick={() => router.push('/account/following')}
+                onKeyDown={(e) => e.key === 'Enter' && router.push('/account/following')}
+              >
+                View Following →
+              </button>
+            </CardBody>
+          </Card>
+        </Col>
+        
+        <Col md="6" lg="3" className="mb-4">
+          <Card className={styles.dashboardCard}>
+            <CardBody>
+              <div className={styles.cardIcon}><FontAwesomeIcon icon={faBook} /></div>
+              <CardTitle tag="h5">Books</CardTitle>
+              <div className={styles.cardValue}>Browse</div>
+              <button 
+                className={styles.cardAction} 
+                onClick={() => router.push('/books')}
+                onKeyDown={(e) => e.key === 'Enter' && router.push('/books')}
+              >
+                Explore Books →
+              </button>
+            </CardBody>
+          </Card>
+        </Col>
+        
+        <Col md="6" lg="3" className="mb-4">
+          <Card className={styles.dashboardCard}>
+            <CardBody>
+              <div className={styles.cardIcon}><FontAwesomeIcon icon={faFilm} /></div>
+              <CardTitle tag="h5">Movies</CardTitle>
+              <div className={styles.cardValue}>Browse</div>
+              <button 
+                className={styles.cardAction} 
+                onClick={() => router.push('/movies')}
+                onKeyDown={(e) => e.key === 'Enter' && router.push('/movies')}
+              >
+                Explore Movies →
+              </button>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+    </AdminLayout>
   );
-}
+};
 
-export default Account;
+export default AccountDashboard;

@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useStore } from '../../store/store';
-import { DisplayImage } from '@/components/DisplayImage';
 import { shallow } from 'zustand/shallow';
-import { DisplayLoadingSkeleton } from '@/components/Loading';
 import { useRouter } from 'next/router';
-import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection';
-import { useFetchCollectionRecords } from '@/hooks/useFetchCollectionRecords';
-import axios from 'axios';
+import { useFetchCollectionRecords } from '../../hooks/useFetchCollectionRecords';
 import RecordDisplay from './recordDisplay'
 import { toast } from 'react-toastify';
 import Image from 'next/image'
+import { useAuthRedirect } from '../../hooks/useAuthRedirect';
+import { useAdminApi } from '../../lib/adminApi';
 
 // Your constant LIMIT should be defined somewhere, if it's not dynamic, you can keep it outside of your component
 const LIMIT = 10; // Example limit value, adjust it as needed
 
 function CollectionRecords() {
   const router = useRouter();
+    const { ready, authorized } = useAuthRedirect();
   const [collectionCoverImage] = useStore(state => [
     state.collectionCoverImage
   ], shallow)
+
+    const { deleteCollectionRecord } = useAdminApi();
   // Wait for the collection to be set in the query params
   const { collection } = router.query;
     // Destructure the methods and variables from the hook
     const {
         loading,
-        error,
         hasMore,
         collectionRecords,
         loadMore,
@@ -38,20 +38,17 @@ function CollectionRecords() {
     loadMore();
   }
 
-  const handleDeleteRecord = (an, folio_id, id) => {
+    const handleDeleteRecord = (an, folio_id, id) => {
     if (window.confirm('Are you sure you want to remove this record?')) {
-        const endpoint = `${baseUrl}/collection_records/delete/${id}`;
-        axios.delete(endpoint, {
-            withCredentials: true
-        })
-        .then(() => {
-            toast.success('Successfully removed from collection');
-            removeCollectionRecords(folio_id);
-        })
-        .catch(error => {
-            toast.error('Error removing from collection');
-            console.error('Error removing from collection:', error);
-        });
+                deleteCollectionRecord(id)
+                    .then(() => {
+                        toast.success('Successfully removed from collection');
+                        removeCollectionRecords(folio_id);
+                    })
+                    .catch(error => {
+                        toast.error('Error removing from collection');
+                        console.error('Error removing from collection:', error);
+                    });
     }
   };
 
@@ -65,8 +62,22 @@ function CollectionRecords() {
 
     const recordsToDisplay = collectionRecords || [];
 
+    
+        if (!ready) {
+            return (
+                <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            );
+        }
 
-    return(
+        if (!authorized) {
+            return null;
+        }
+
+        return(
         <div className="container">
         <div className="card mb-3" style={{maxWidth: '540px',marginTop: "30px"}}>
             <div className="row g-0">
@@ -78,6 +89,7 @@ function CollectionRecords() {
                  height={250}
                  src={collectionCoverImage}
                   alt="Collection Cover Image"
+                  unoptimized={true} 
                  />   
                 ) : (
                     <svg 
@@ -106,7 +118,7 @@ function CollectionRecords() {
                 <RecordDisplay
                     key={`${record.record_id}-${index}`} 
                     an={record.eds_id} 
-                    dbid='cat09206a' 
+                    dbid={record.dbid}
                     folio_id={record.folio_id} 
                     router={router}
                     id={record.collection_records_id}

@@ -1,30 +1,55 @@
-import React, { useState, useEffect, Fragment} from 'react'
-import { Container, Collapse} from 'reactstrap'
-import Facets from './Facets'
-import Image from 'next/image'
-import { shallow } from 'zustand/shallow'
-import { useStore } from '../store/store'
-import { useRouter } from 'next/router'
-import CampusLocation from './CampusLocation'
-import { DisplayLoadingSkeleton } from './Loading'
-import DateSlider from './DateSlider'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faPlusSquare, faEye } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios'
-import { toast } from 'react-toastify';
-import CollectionsModal from './CollectionsModal'
-import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import Sort from './Sort'
-function MaterialDisplay(props) {
-    const [collectionModal, setCollectionModal] = useState(false);
-   const [favorites, setFavorites] = useState({});
-    const [isCollapsed, setIsCollapsed] = useState(true);
-    const [setButtonRef] = useState(null);
-    const [modal, setModal] = useState(false);
-    const router = useRouter();
-    const [isDateSliderOpen, setIsDateSliderOpen] = useState(false);
+import { useState, useEffect } from "react";
+import { getMaterialType } from '../utils/materialTypeUtils'; // Adjust the path as necessary
+import {
+  Collapse,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "reactstrap";
+import Facets from "./Facets";
+import Image from "next/image";
+import { shallow } from "zustand/shallow";
+import { useStore } from "../store/store";
+import { useRouter } from "next/router";
+import DateSlider from "./DateSlider";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faHeart, 
+  faPlusSquare,
+  faUpload
+} from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
+import { toast } from "react-toastify";
+import CollectionsModal from "./CollectionsModal";
+import Sort from "./Sort";
+import LinesEllipsis from "react-lines-ellipsis";
+import ImageUploadModal from "./ImageUploadModal";
+import { useRecordImage } from "../hooks/useRecordImage";
+import PlaceholderCover from "./PlaceholderCover";
+import CollectionsSection from "./CollectionsSection";
 
-    const [setAn,setDbid, setMaterial, recordModal, setRecordModal, loading, loggedIn, baseUrl, setCollectionAn] = useStore(state => [
+
+function MaterialDisplay(props) {
+  const [collectionModal, setCollectionModal] = useState(false);
+  const [favorites, setFavorites] = useState({});
+  const [setButtonRef] = useState(null);
+  const router = useRouter();
+  const [isDateSliderOpen, setIsDateSliderOpen] = useState(false);
+
+  const [
+    setAn,
+    setDbid,
+    setMaterial,
+    recordModal,
+    setRecordModal,
+    loading,
+    loggedIn,
+    baseUrl,
+    setCollectionAn,
+    setCollectionDbid,
+  ] = useStore(
+    (state) => [
       state.setAn,
       state.setDbid,
       state.setMaterial,
@@ -33,287 +58,393 @@ function MaterialDisplay(props) {
       state.loading,
       state.loggedIn,
       state.baseUrl,
-      state.setCollectionAn
-    ], shallow)
+      state.setCollectionAn,
+      state.setCollectionDbid,
+    ],
+    shallow
+  );
 
-    const toggleModal = () => setModal(!modal);
+  const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
-    const toggleCollectionModal = (an) => {
-      if(an && an !== '') {
-        setCollectionAn(an); 
-      }// Update the store with the `an` value
+  const toggleImageUploadModal = (record) => {
+    setSelectedRecord(record);
+    setImageUploadModalOpen(!imageUploadModalOpen);
+  };
+
+  const toggleCollectionModal = (an, dbid) => {
+    if (an && an !== "") {
+      setCollectionAn(an);
+      setCollectionDbid(dbid);
       setCollectionModal(!collectionModal); // Toggle the modal state
+    } 
   };
-  
-    const toggleNavbar = () => {
-      setIsCollapsed(!isCollapsed);
-    };
-    
 
-    useEffect(() => {
-      const fetchFavorites = async () => {
-        const baseUrl = useStore.getState().baseUrl; // Or however you get baseUrl
-        const newFavorites = {};
-    
-        for (const record of props.records) {
-          try {
-            const response = await axios.get(`${baseUrl}/records/read/${record.an}`, { withCredentials: true });
-            newFavorites[record.an] = response.data && response.data.record_id ? true : false;
-          } catch (error) {
-            console.error('Error checking favorite:', error);
-          }
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const baseUrl = useStore.getState().baseUrl; // Or however you get baseUrl
+      const newFavorites = {};
+
+      for (const record of props.records) {
+        try {
+          const response = await axios.get(
+            `${baseUrl}/records/read/${record.an}`,
+            { withCredentials: true }
+          );
+          newFavorites[record.an] =
+            response.data && response.data.record_id ? true : false;
+        } catch (error) {
+          ''
         }
-       
-          setFavorites(newFavorites);
-      };
-    
-      if (props.records && props.records.length > 0 && loggedIn) {
-        fetchFavorites();
       }
-    }, [props.records, loggedIn]);
-  
-    useEffect(() => {
-    const handleResize = () => {
-        if (window.innerWidth <= 768) {
-        document.body.classList.add('small-screen');
-        setIsCollapsed(true);
-        } else {
-        document.body.classList.remove('small-screen');
-        setIsCollapsed(false);
-        }
+
+      setFavorites(newFavorites);
     };
 
-    
-
-    // Attach the event listener
-    window.addEventListener('resize', handleResize);
-
-    // Call it once initially
-    handleResize();
-
-    // Cleanup the event listener on component unmount
-    return () => {
-        window.removeEventListener('resize', handleResize);
-    };
-    }, []);
-    
-
-    const handleRecord = (an, dbid, e) => {
-      e.preventDefault()
-      setAn(an)
-      setDbid(dbid)
-      setMaterial(props.material)
-      setRecordModal(!recordModal)
-      router.push(`${router.pathname}?an=${an}&dbid=${dbid}`, undefined, { shallow: true });
+    if (props.records && props.records.length > 0 && loggedIn) {
+      fetchFavorites();
     }
+  }, [props.records, loggedIn]);
 
-
-    const toggleDateSlider = () => {
-      setIsDateSliderOpen(!isDateSliderOpen);
-    };
-
-    const records = props.records
-
-    const toggleFavorite = async (record) => {
-      const eds_id = record.an;
-      const folio_id = eds_id.split('fs00001006.')[1]; // Adjust as needed
-      const isCurrentlyFavorite = favorites[eds_id] || false;
-
-      try {
-          if (isCurrentlyFavorite) {
-              // DELETE request to remove from favorites
-              await axios.delete(`${baseUrl}/records/delete`, {
-                  data: { eds_id, folio_id },
-                  withCredentials: true
-              });
-              setFavorites(prev => ({ ...prev, [eds_id]: false }));
-              toast.success('Removed from favorites');
-          } else {
-              // POST request to add to favorites
-              await axios.post(`${baseUrl}/records/create`, {
-                  eds_id, folio_id
-              }, { withCredentials: true });
-              setFavorites(prev => ({ ...prev, [eds_id]: true }));
-              toast.success('Added to favorites');
-          }
-      } catch (error) {
-          console.error('Error toggling favorite:', error);
-      }
+  const handleRecord = (an, dbid, e) => {
+    e.preventDefault();
+    setAn(an);
+    setDbid(dbid);
+    setMaterial(props.material);
+    setRecordModal(!recordModal);
+    router.push(`${router.pathname}?an=${an}&dbid=${dbid}`, undefined, {
+      shallow: true,
+    });
   };
-    
 
-    return (
-        <Container fluid>
+  const toggleDateSlider = () => {
+    setIsDateSliderOpen(!isDateSliderOpen);
+  };
 
-<         Modal size='xl' isOpen={collectionModal} toggle={toggleCollectionModal} className="modal-dialog modal-dialog-centered">
-                      <ModalHeader toggle={toggleCollectionModal}>Add to Collection</ModalHeader>
-                      <ModalBody>
-                      <CollectionsModal
-                          toggleCollectionModal={toggleCollectionModal}
-                      />
-                      </ModalBody>
-                      <ModalFooter>
-                      <button className="btn btn-secondary" onClick={toggleCollectionModal}>Cancel</button>
-                      </ModalFooter>
-                  </Modal>
-          {/* <Row> */}
-            {/* Sidebar */}
-            {/* <Collapse isOpen={!isCollapsed}>
-            <Col md="3" className="fixed-left">
-              <Facets
-                activatedFacets={props.activatedFacet}
-                facetDisplay={props.facetDisplay}
-                handleFacetAction={props.handleFacetAction}
-                handleRemoveFacetAction={props.handleRemoveFacetAction}
-                genre={props.genre}
-                subjectHeadings={props.subjectHeadings}
-                onSelect={props.onSelect}
-                appliedFacets={props.appliedFacets}
-                materialType={props.materialType}
-              />
-            </Col>
-            </Collapse> */}
-      
-            {/* Main Content */}
-            {/* <Col sm="12" md="9" className="scrollable-middle"> */}
-              <div className="container">
-              <Facets
-                activatedFacets={props.activatedFacet}
-                facetDisplay={props.facetDisplay}
-                handleFacetAction={props.handleFacetAction}
-                handleRemoveFacetAction={props.handleRemoveFacetAction}
-                genre={props.genre}
-                subjectHeadings={props.subjectHeadings}
-                onSelect={props.onSelect}
-                appliedFacets={props.appliedFacets}
-                materialType={props.materialType}
-              />
-        <div className="hide-scrollbar flex-1 h-100 container">
+  const records = props.records;
+
+  const toggleFavorite = async (record) => {
+    const eds_id = record.an;
+    const dbid = record.dbid;
+    let folio_id;
+    if (eds_id.includes("fs00001006.")) {
+      folio_id = eds_id.split("fs00001006.")[1];
+    } else {
+        folio_id = eds_id;
+    }
+  
+    const isCurrentlyFavorite = favorites[eds_id] || false;
+
+    try {
+      if (isCurrentlyFavorite) {
+        // DELETE request to remove from favorites
+        await axios.delete(`${baseUrl}/records/delete`, {
+          data: { eds_id, folio_id },
+          withCredentials: true,
+        });
+        setFavorites((prev) => ({ ...prev, [eds_id]: false }));
+        toast.success("Removed from favorites");
+      } else {
+        // POST request to add to favorites
+        await axios.post(
+          `${baseUrl}/records/create`,
+          {
+            eds_id,
+            folio_id,
+            dbid
+          },
+          { withCredentials: true }
+        );
+        setFavorites((prev) => ({ ...prev, [eds_id]: true }));
+        toast.success("Added to favorites");
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
+
+
+
+  return (
+    <>
+      <Modal
+        size="xl"
+        isOpen={collectionModal}
+        toggle={toggleCollectionModal}
+        className="modal-dialog modal-dialog-centered"
+      >
+        <ModalHeader toggle={toggleCollectionModal}>
+          Add to Collection
+        </ModalHeader>
+        <ModalBody>
+          <CollectionsModal toggleCollectionModal={toggleCollectionModal} />
+        </ModalBody>
+        <ModalFooter>
+          <button className="btn btn-secondary" onClick={toggleCollectionModal}>
+            Cancel
+          </button>
+        </ModalFooter>
+      </Modal>
+      <div>
+        <Facets
+          activatedFacets={props.activatedFacet}
+          facetDisplay={props.facetDisplay}
+          handleFacetAction={props.handleFacetAction}
+          handleRemoveFacetAction={props.handleRemoveFacetAction}
+          genre={props.genre}
+          subjectHeadings={props.subjectHeadings}
+          onSelect={props.onSelect}
+          appliedFacets={props.appliedFacets}
+          materialType={props.materialType}
+          bookGenres={props.bookGenres}
+          comicSubjectHeadings={props.comicSubjectHeadings}
+        />
+        <div className="hide-scrollbar flex-1 h-100">
           <div className="d-flex mb-3">
             <div className="p-2">
-              <p className="text-dark font-weight-medium">Your search resulted in {props.hits} hits </p>
+              <p className="text-dark font-weight-medium">
+                Your search resulted in {props.hits} hits{" "}
+              </p>
             </div>
             <div className="ms-auto p-2">
-            <button className="btn btn-secondary" onClick={toggleDateSlider}>
-              {isDateSliderOpen ? 'Hide Publication Date Filter' : 'Show Publication Date Filter'}
-             </button>
-            </div>  
+              <button className="btn btn-secondary" onClick={toggleDateSlider}>
+                {isDateSliderOpen
+                  ? "Hide Publication Date Filter"
+                  : "Show Publication Date Filter"}
+              </button>
+            </div>
             <div className="p-2">
-            <Sort />
-          </div>
+              <Sort />
+            </div>
           </div>
           <Collapse isOpen={isDateSliderOpen}>
             <DateSlider />
           </Collapse>
-        <div className="row row-cols-* g-4" style={{marginTop: "30px"}}>
-               {loading ? <DisplayLoadingSkeleton /> : records && records.length > 0  ? Object.keys(records).map((key,index) => {
-                    const isFavorite = favorites[records[key].an] || false;
-                    let image = ''
-                    if(records[key].imageItem){
-                        image = records[key].imageItem
-                    } else if( records[key].tmdbSearch && records[key].tmdbSearch.results && records[key].tmdbSearch.results.poster_path && records[key].tmdbSearch.results.poster_path.length > 0 ){
-                        image = `https://image.tmdb.org/t/p/w500${records[key].tmdbSearch.results.poster_path}`
-                    } else if (records[key].googleImages && records[key].googleImages.thumbnail_url && records[key].googleImages.thumbnail_url.length > 0){
-                        image = records[key].googleImages.thumbnail_url
-                    }
-                    
-
-                  const titleString = records[key].titleItem?.toString() || records[key].items?.map(items => ( items.label === "Title" ? items.data : '' )) || ''
-                      let titleStringDisplay = titleString || ''
-                      if(titleString !== '' && titleString.includes('/')){
-                          const titleClean = titleString.split('/')
-                          if(titleClean[0].includes('[')){
-                              titleStringDisplay = titleClean[0].split('[')[0]
-                          } else {
-                              titleStringDisplay = titleClean[0]
-                          }
-                      } else if(titleString !== '' && titleString.includes('[')){
-                              titleStringDisplay = titleString.split('[')[0]
-                      } else {
-                          titleStringDisplay = records[key].titles[0]?.TitleFull
-                      }
-                  return(
-                    <div className="col" key={index}>
-                    <div className="card h-100 shadow-sm p-3 mb-5 bg-body rounded" style={{width: "13em"}} id={'eds-' + index}>
-                        {image == '' ? 
-                            <svg 
-                                  className="rounded card-img-top"
-                                  width="100%" 
-                                  height="248" 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  role="img" 
-                                  preserveAspectRatio="xMidYMid slice" 
-                                  focusable="false"
-                            >
-                                <title>{titleString}</title>
-                                <rect width="100%" height="100%" fill="#d6d6d6"></rect>
-                            </svg>
-                        :
-                        <Image
-                          src={image}
-                          alt={titleStringDisplay}
-                          layout="responsive"
-                          width={500}
-                          height={300}
-                          className="rounded card-img-top"
-                          objectFit="cover" // Cover instead of contain to fill the container
-                          onClick={e => handleRecord(records[key].an, records[key].dbid, e)}
-                          style={{cursor: "pointer"}}
-                        />
-                      }
-                       <div className="card-body">
-                                    <h5 className="product-title fs-sm mb-2">{titleStringDisplay}</h5>
-                                    <hr />
-                                      {/* Icons for favorites and adding to a collection */}
-                                      <ul class="list-group list-group-flush">
-                                      {loggedIn ? (
-                                        <Fragment>
-                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={() => toggleFavorite(records[key])}>
-                                        <FontAwesomeIcon 
-                                            size="1x"
-                                            icon={faHeart} 
-                                            className={isFavorite ? "heart-icon favorite" : "heart-icon"}
-                                        /> {isFavorite ? "Favorite" : "Save to Favorites"}
-                                        </li>
-                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={() => toggleCollectionModal(records[key].an)}>
-                                          <FontAwesomeIcon size="1x" icon={faPlusSquare} /> Add to Collection
-                                        </li>
-                                        </Fragment>
-                                      ) : ''}
-                                        <li className="list-group-item" style={{cursor: "pointer"}} onClick={e => handleRecord(records[key].an, records[key].dbid, e)}>
-                                        <FontAwesomeIcon 
-                                          icon={faEye} 
-                                          size='1x'
-                                        /> See more details
-                                        </li>
-                                      </ul>
-                                    {/* <CampusLocation 
-                                      id={records[key].an}
-                                    /> */}
-                                    {/* <p className="card-text">{records[key].abstractItem}</p> */}
-                                </div>
+          
+          {/* Collections Section - only show if there are collections */}
+          {props.collections && props.collections.length > 0 && (
+            <CollectionsSection 
+              collections={props.collections}
+              collectionHits={props.collectionHits}
+              query={useStore.getState().query || ''}
+            />
+          )}
+          
+          {loading ? (
+            <div className="records-grid">
+                {[...Array(20)].map((_, i) => (
+                  <div key={i} className="record-item">
+                    <div className="image-container">
+                      <div className="placeholder-image"></div>
                     </div>
-                </div>
-                )}) : ''}
-                  </div>
-                  {props.page < props.totalPages ?
-                    <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}>
-                    <button
-                          className={props.loadMore ? "btn btn-info disabled" : "btn btn-primary"}
-                          ref={setButtonRef}
-                          id="buttonLoadMore"
-                          onClick={() =>
-                            props.handleLazyLoad()
-                          }
-                        >
-                        {props.loadMore ? "Loading..." : "Load more"}
-                      </button>
+                    <div className="card-info">
+                      <div className="record-title">
+                        <div className="placeholder-glow">
+                          <span className="placeholder col-8"></span>
+                          <span className="placeholder col-6"></span>
+                          <span className="placeholder col-7"></span>
+                        </div>
                       </div>
-                    : <div className="d-grid gap-2 list" style={{paddingTop: "20px", paddingBottom: "50px"}}><button className="btn btn-primary" disabled>End of results</button></div>}
-                </div>
-              </div>
-            </Container>
-    )
+                      <div className="placeholder-glow">
+                        <span className="placeholder col-10" style={{height: '40px', borderRadius: '8px'}}></span>
+                      </div>
+                      {loggedIn ? (
+                      <div className="interaction-icons">
+                        <div className="placeholder-glow d-flex gap-2">
+                          <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
+                          <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
+                          <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
+                        </div>
+                      </div>
+                      ) : ''}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            ""
+          )}
+          <div className="records-grid">
+            {records && records.length > 0
+              ? Object.keys(records).map((key, index) => {
+                  const record = records[key];
+                  const isFavorite = favorites[record.an] || false;
+                  return (
+                    <RecordItem
+                      key={index}
+                      record={record}
+                      isFavorite={isFavorite}
+                      toggleFavorite={toggleFavorite}
+                      toggleCollectionModal={toggleCollectionModal}
+                      toggleImageUploadModal={toggleImageUploadModal}
+                      handleRecord={handleRecord}
+                      loggedIn={loggedIn}
+                    />
+                  );
+                })
+              : ""}
+          </div>
+          {imageUploadModalOpen && (
+            <ImageUploadModal
+              isOpen={imageUploadModalOpen}
+              toggle={toggleImageUploadModal}
+              record={selectedRecord}
+            />
+          )}
+          {props.page < props.totalPages ? (
+            <div
+              className="d-grid gap-2 list"
+              style={{ paddingTop: "20px", paddingBottom: "50px" }}
+            >
+              <button
+                className={
+                  props.loadMore ? "btn btn-info disabled" : "btn btn-primary"
+                }
+                ref={setButtonRef}
+                id="buttonLoadMore"
+                onClick={() => props.handleLazyLoad()}
+              >
+                {props.loadMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          ) : (
+            <div
+              className="d-grid gap-2 list"
+              style={{ paddingTop: "20px", paddingBottom: "50px" }}
+            >
+              <button className="btn btn-primary" disabled>
+                End of results
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+  </>
+  );
 }
 
-export default MaterialDisplay
+// New RecordItem component to handle individual record rendering and state
+function RecordItem({
+  record,
+  isFavorite,
+  toggleFavorite,
+  toggleCollectionModal,
+  toggleImageUploadModal,
+  handleRecord,
+  loggedIn,
+}) {
+  const imageUrl = useRecordImage(record);
+
+  const titleString =
+    record.titleItem?.toString() ||
+    record.items?.map((items) =>
+      items.label === "Title" ? items.data : ""
+    ) ||
+    "";
+  let titleStringDisplay = titleString || "";
+  if (titleString !== "" && titleString.includes("/")) {
+    const titleClean = titleString.split("/");
+    titleStringDisplay = titleClean[0];
+  } else {
+    titleStringDisplay = record.titles[0]?.TitleFull || titleString;
+  }
+  const materialType = getMaterialType(record);
+
+  return (
+    <div className="record-item" id={"eds-" + record.an}>
+      <div
+        className="image-container"
+        onClick={(e) => handleRecord(record.an, record.dbid, e)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleRecord(record.an, record.dbid, e);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        style={{ cursor: "pointer" }}
+      >
+        {imageUrl && imageUrl !== '' ? (
+          <Image
+            src={imageUrl}
+            alt={titleStringDisplay}
+            fill
+            className="rounded card-img-top"
+            style={{ objectFit: 'contain' }}
+            unoptimized={true}
+          />
+        ) : (
+          <PlaceholderCover 
+            ariaLabel={`No cover for ${titleStringDisplay}`}
+            icon={(() => {
+              const label = materialType?.label?.toLowerCase() || '';
+              return (label.includes('video') || label.includes('movie') || label.includes('dvd') || label.includes('film')) ? '🎬' : '📚';
+            })()}
+          />
+        )}
+      </div>
+      <div className="card-info">
+        <div className="record-title">
+          <LinesEllipsis
+            text={titleStringDisplay}
+            maxLine="3"
+            ellipsis="..."
+            trimRight
+            basedOn="letters"
+          />
+        </div>
+        <div className="material-type-badge">
+          <FontAwesomeIcon icon={materialType.icon} />
+          <span> {materialType.label}</span>
+        </div>
+        <button 
+          className="view-details-btn"
+          onClick={(e) => handleRecord(record.an, record.dbid, e)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleRecord(record.an, record.dbid, e);
+            }
+          }}
+          aria-label={"View details for " + titleStringDisplay}
+        >
+          View Details
+        </button>
+        {loggedIn ? (
+          <div className="interaction-icons">
+            <button
+              className="icon-button"
+              onClick={() => toggleFavorite(record)}
+            >
+              {isFavorite ? (
+                <FontAwesomeIcon
+                  icon={faHeart}
+                  style={{ color: "#fc0303" }}
+                />
+              ) : (
+                <FontAwesomeIcon icon={faHeart} />
+              )}
+            </button>
+            <button
+              className="icon-button"
+              onClick={() =>
+                toggleCollectionModal(record.an, record.dbid)
+              }
+            >
+              <FontAwesomeIcon icon={faPlusSquare} />
+            </button>
+            <button
+              className="icon-button"
+              onClick={() => toggleImageUploadModal(record)}
+            >
+              <FontAwesomeIcon icon={faUpload} />
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export default MaterialDisplay;

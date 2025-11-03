@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { useStore } from '../store/store';
 
@@ -31,17 +31,108 @@ function FieldCodes() {
     setSelectedOption(option);
   };
 
+  const customStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      minHeight: '42px',
+      height: '42px',
+      borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+      boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : 'none',
+      '&:hover': {
+        borderColor: '#3b82f6'
+      }
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      height: '40px',
+      padding: '0 8px'
+    }),
+    input: (provided) => ({
+      ...provided,
+      margin: '0px'
+    }),
+    indicatorSeparator: () => ({
+      display: 'none'
+    }),
+    indicatorsContainer: (provided) => ({
+      ...provided,
+      height: '40px'
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+      maxHeight: '400px',
+      minWidth: '350px'
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      maxHeight: '380px',
+      padding: '4px'
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      padding: '12px 16px',
+      backgroundColor: state.isSelected 
+        ? '#3b82f6' 
+        : state.isFocused 
+        ? '#f8fafc' 
+        : 'white',
+      color: state.isSelected ? 'white' : '#1f2937',
+      fontSize: '0.875rem',
+      lineHeight: '1.4',
+      borderRadius: '6px',
+      margin: '2px 0',
+      border: state.isFocused && !state.isSelected ? '1px solid #e5e7eb' : 'none'
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#1f2937',
+      fontWeight: '500'
+    })
+  };
+
+  const formatOptionLabel = (option, { context }) => {
+    // Show only the label in the control (when selected)
+    if (context === 'value') {
+      return (
+        <div style={{ fontWeight: '500', color: '#1f2937' }}>
+          {option.label}
+        </div>
+      );
+    }
+    
+    // Show full label and description in the dropdown
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ 
+          fontWeight: '600', 
+          fontSize: '0.9rem',
+          color: '#1f2937'
+        }}>
+          {option.label}
+        </div>
+        <div style={{ 
+          fontSize: '0.8rem', 
+          color: '#4b5563',
+          lineHeight: '1.3',
+          fontWeight: '400'
+        }}>
+          {option.description}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <Select
         value={selectedOption}
         onChange={handleChange}
         options={options}
-        getOptionLabel={option => (
-          <>
-            <strong>{option.label}:</strong> {option.description}
-          </>
-        )}
+        formatOptionLabel={formatOptionLabel}
+        styles={customStyles}
+        isSearchable={false}
+        placeholder="Field Type"
       />
     </div>
   );

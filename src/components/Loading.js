@@ -1,7 +1,6 @@
-import React from 'react';
 import { Col } from 'reactstrap';
 
-export const DisplayLoadingSkeleton = (props) => {
+export const DisplayLoadingSkeleton = () => {
     return(
         [...Array(20)].map((x, i) =>
             <Col key={i} sm="12" md="6" lg="4" xl="3" className="p-4">
@@ -25,7 +24,7 @@ export const DisplayLoadingSkeleton = (props) => {
     )
 }
 
-export const DashboardLoading = props => {
+export const DashboardLoading = () => {
     return(
         [...Array(20)].map((x, i) =>
         <div className="col" key={i}>
@@ -49,7 +48,7 @@ export const DashboardLoading = props => {
     )
 }
 
-export const RecomendationsLoading = props => {
+export const RecomendationsLoading = () => {
     return(
         <div className="homeContainer"> 
         {[...Array(20)].map((x, i) =>

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import  {useState, useEffect} from 'react'
 import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { GET_RECORD } from '../lib/api'
@@ -15,7 +15,7 @@ function Records(){
     useEffect(() => {
         // Store the current URL when the component mounts
         setPreviousUrl(router.asPath);
-    }, []);
+    }, [router.asPath]);
 
     const [an, dbid, setRecordData, setRecordModal] = useStore(state => [
         state.an,
@@ -43,7 +43,7 @@ function Records(){
         }
     };
 
-    const { loading, error, data } = useQuery(GET_RECORD, {
+    const { loading } = useQuery(GET_RECORD, {
         variables: {
             an: an,
             dbid: dbid
@@ -52,17 +52,22 @@ function Records(){
     })
 
     if (loading) return <p>Loading...</p>
-    if (error) return <p>Error: {error.message}</p>
 
 
     return(
         <div style={{marginTop: "50px"}}>
-            <ModalHeader toggle={e => handleToggle()}></ModalHeader>
-                <ModalBody>
+            <ModalHeader toggle={() => handleToggle()}></ModalHeader>
+                <ModalBody style={{ 
+                    maxHeight: 'calc(100vh - 150px)',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    position: 'relative',
+                    padding: window.innerWidth < 768 ? '10px' : '15px'
+                }}>
                     <RecordsDisplay />
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="secondary" onClick={e => handleToggle()}>Close</Button>
+                    <Button color="secondary" onClick={() => handleToggle()}>Close</Button>
                 </ModalFooter>
         </div>
     )

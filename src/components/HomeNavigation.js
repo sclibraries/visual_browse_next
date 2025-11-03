@@ -1,9 +1,8 @@
-import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
 
-export const HomeNavigation = props => {
+export const HomeNavigation = () => {
 
     const router = useRouter();
     
@@ -16,7 +15,7 @@ export const HomeNavigation = props => {
     }
 
     return(
-        <ul className="nav nav-underline">
+        <ul className="nav nav-underline d-flex align-items-center" style={{minHeight: "48px"}}>
             <li className="nav-item">
                 <Link 
                     className={`nav-link ${router.pathname === "/" ? "active" : ""}`}

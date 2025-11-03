@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { GET_BROWSE } from '../../lib/api';
 import { useStore } from '../../store/store'
@@ -15,14 +15,11 @@ function All() {
         setAllAppliedFacets,
         allAppliedFacets,
         allFacetAction,
-        allLimiter,
         allDateLimiter,
         allData,
         setAllFacetAction,
-        removeAllFacetAction,
         allSort,
         allQueryString,
-        setAllQueryString,
         allSubjectHeadings,
         allHits,
         setAllHits,
@@ -47,14 +44,11 @@ function All() {
         state.setAllAppliedFacets,
         state.allAppliedFacets,
         state.allFacetAction,
-        state.allLimiter,
         state.allDateLimiter,
         state.allData,
         state.setAllFacetAction,
-        state.removeAllFacetAction,
         state.allSort,
         state.allQueryString,
-        state.setAllQueryString,
         state.allSubjectHeadings,
         state.allHits,
         state.setAllHits,
@@ -121,9 +115,21 @@ useEffect(() => {
 
     const [executeSearch, { loading, data, error, fetchMore }] = useLazyQuery(GET_BROWSE, {
         fetchPolicy: 'network-only',
-        nextFetchPolicy: 'cache-first',
         onCompleted: data => { handleOnComplete(data) }
     })
+
+    useEffect(() => {
+        // Assuming 'data' is the state that gets updated with the query result
+        if (data?.search) {
+            setAllData(data?.search?.records)
+            setAllFacets(data?.search?.facets)
+            setAllAppliedFacets(data?.search?.facetFiltersWithAction)
+            setAllHits(data?.search?.statistics?.hits)
+            setAllResultsQueryString(data?.search?.queryString)
+            setAllTotalPages(data?.search?.statistics?.hits / 22)
+            setAllRefine('y')
+        }
+      }, [data, setAllData, setAllFacets, setAllAppliedFacets, setAllHits, setAllResultsQueryString, setAllTotalPages, setAllRefine]);
 
     if (error) return <div>Error loading.</div>
     setLoading(loading)

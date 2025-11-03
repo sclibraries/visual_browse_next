@@ -1,11 +1,8 @@
-import React, { useEffect, useState} from 'react'
+import { useEffect, useState} from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
 import { shallow } from 'zustand/shallow'
-import Image from 'next/image'
-import Facets from '../../components/Facets'
-import { Row, Col, Container } from 'reactstrap';
 import MaterialDisplay from '../../components/MaterialDisplay'
 
 
@@ -20,16 +17,10 @@ function Movies() {
         setMovieAppliedFacets,
         movieAppliedFacets,
         movieFacetAction,
-        limiter,
-        smith,
-        localOnly,
-        dateLimiter,
         movieData,
         setMovieFacetAction,
-        removeMovieFacetAction,
         sort,
         movieQueryString,
-        setMovieQueryString,
         movieSubjectHeadings,
         movieHits,
         setMovieHits,
@@ -55,16 +46,10 @@ function Movies() {
         state.setMovieAppliedFacets,
         state.movieAppliedFacets,
         state.movieFacetAction,
-        state.limiter,
-        state.smith,
-        state.localOnly,
-        state.dateLimiter,
         state.movieData,
         state.setMovieFacetAction,
-        state.removeMovieFacetAction,
         state.sort,
         state.movieQueryString,
-        state.setMovieQueryString,
         state.movieSubjectHeadings,
         state.movieHits,
         state.setMovieHits,
@@ -129,7 +114,7 @@ function Movies() {
         }
     }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, shouldRefetch, setMovieFacetAction]);
     
-
+      
 
     const handleOnComplete = data => {
         setMovieData(data?.search?.records)
@@ -145,6 +130,19 @@ function Movies() {
         fetchPolicy: 'network-only',
         onCompleted: data => { handleOnComplete(data) }
     });
+
+    useEffect(() => {
+        // Assuming 'data' is the state that gets updated with the query result
+        if (data?.search) {
+          setMovieData(data.search.records);
+          setMovieFacets(data.search.facets);
+          setMovieAppliedFacets(data.search.facetFiltersWithAction);
+          setMovieHits(data.search.statistics.hits);
+          setMovieResultsQueryString(data.search.queryString);
+          setMovieTotalPages(Math.ceil(data.search.statistics.hits / 22));
+          setMovieRefine('y');
+        }
+      }, [data, setMovieData, setMovieFacets, setMovieAppliedFacets, setMovieHits, setMovieResultsQueryString, setMovieTotalPages, setMovieRefine]);
     
     setLoading(loading)
     
@@ -153,6 +151,7 @@ function Movies() {
     }
 
     const records = movieData
+    
 
     const handleFacetAction = (action) => {
         setMovieFacetAction(action)

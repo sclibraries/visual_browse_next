@@ -1,4 +1,3 @@
-import React from 'react';
 import Select from 'react-select';
 import { useStore } from '../store/store';
 import { useRouter } from 'next/router';
@@ -24,7 +23,7 @@ function LocationSort() {
       router.push({ pathname: router.pathname, query: currentQuery }, undefined, { shallow: true });
     } else {
       setLocation(''); // Reset location if the selection is cleared
-      const { location, ...rest } = router.query; // Destructure location out of the query params
+      const { ...rest } = router.query; // Destructure location out of the query params
       router.push({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
     }
   };

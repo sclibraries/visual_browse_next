@@ -50,7 +50,7 @@ export const useFetchPublicCollectionName = (limit, id, type, sortOption, sortOp
         } finally {
             setLoading(false);
         }
-    }, [baseUrl, limit, offset, setCollections, id]);
+    }, [baseUrl, limit, offset, setCollections, id, sortOption, type]);
 
     useEffect(() => {
         if (sortOptionChanged) {
@@ -66,11 +66,11 @@ export const useFetchPublicCollectionName = (limit, id, type, sortOption, sortOp
         }
     }, [offset, sortOption, sortOptionChanged, fetchCollections]);
     
-    // Update loadMore function similarly
-    const loadMore = () => {
+    // Update loadMore function to return a promise
+    const loadMore = async () => {
         if (hasMore && !loading && !sortOptionChanged) {
             setOffset(prevOffset => prevOffset + limit);
-            fetchCollections(sortOption); // Pass sortOption as a parameter
+            await fetchCollections(sortOption);
         }
     };
     

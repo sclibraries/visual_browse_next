@@ -1,310 +1,1089 @@
-import React, {Fragment, useState, useRef, useEffect} from 'react'
-import { useStore } from '../store/store'
-import { shallow } from 'zustand/shallow'
-import { decode } from 'html-entities'
-import { Accordion, AccordionItem, AccordionHeader,AccordionBody, Modal, ModalHeader, ModalBody} from 'reactstrap'
-import RecordAvailability from './RecordAvailability'
-import FullCast from './FullCast'
-import RecommendationDisplay from './Recommendations'
-import { useFavorite } from '@/hooks/useFavorite';
-import { useCollections } from '@/hooks/useCollections';
-import { useToggleFavorite } from '@/hooks/useToggleFavorite';
-import { useCurrentCollections } from '@/hooks/useCurrentCollections';
-import { useAddToCollection } from '@/hooks/useAddToCollection'
-import { useRemoveFromCollection } from '@/hooks/useRemoveFromCollection'
-import { getImage, getTitleString  } from '../lib/functions';
-import NewCollectionForm from './NewCollectionForm'
-import CallNumberBrowse  from './CallNumberBrowse'
-import Image from 'next/image'
-import { useRouter } from 'next/router'
-import CollectionList from '@/pages/account/collections'
-function RecordsDisplay(){
-    const containerRef = useRef(null);
-    const router = useRouter();
+import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
+import { useStore } from '../store/store';
+import { shallow } from 'zustand/shallow';
+import { decode } from 'html-entities';
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+} from 'reactstrap';
+import RecordAvailability from './RecordAvailability';
+import FullCast from './FullCast';
+import RecommendationDisplay from './Recommendations';
+import { useFavorite } from '../hooks/useFavorite';
+import  useCollections  from '../hooks/useCollections';
+import { useToggleFavorite } from '../hooks/useToggleFavorite';
+import useCurrentCollections from '../hooks/useCurrentCollections';
+import { useAddToCollection } from '../hooks/useAddToCollection';
+import { useRemoveFromCollection } from '../hooks/useRemoveFromCollection';
+import { getTitleString } from '../lib/functions';
+import NewCollectionForm from './NewCollectionForm';
+import CallNumberBrowse from './CallNumberBrowse';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
 
-    const [
-        recordData, 
-        baseImage, 
-        an, 
-        loggedIn,
-        currentCollections, 
-        collections, 
-        isStreaming, 
-        isStreamingImageUrl,
-        setQuery,
-        setFieldCode,
-        setSearchValue,
-    ] = useStore(state => [
-        state.recordData,
-        state.baseImage,
-        state.an,
-        state.loggedIn,
-        state.currentCollections,
-        state.collections,
-        state.isStreaming,
-        state.isStreamingImageUrl,
-        state.setQuery,
-        state.setFieldCode,
-        state.setSearchValue
-    ], shallow)
+// Import the custom hook and other necessary components
+import { useRecordImage } from '../hooks/useRecordImage';
+import ImageUploadModal from './ImageUploadModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUpload } from '@fortawesome/free-solid-svg-icons';
 
+function RecordsDisplay() {
+  const containerRef = useRef(null);
+  const router = useRouter();
 
-    const [open, setOpen] = useState("1");
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isFavorite, setIsFavorite] = useFavorite(an);
-    useCollections();
-    useCurrentCollections(an);
-    const refreshCurrentCollections = useCurrentCollections(an);
-    const toggleFavorite = useToggleFavorite(an, isFavorite, setIsFavorite);
-    const addToCollection = useAddToCollection(refreshCurrentCollections);
-    const removeFromCollection = useRemoveFromCollection(refreshCurrentCollections);
+  const [
+    recordData,
+    an,
+    dbid,
+    loggedIn,
+    currentCollections,
+    collections,
+    setQuery,
+    setFieldCode,
+    setSearchValue,
+  ] = useStore(
+    (state) => [
+      state.recordData,
+      state.an,
+      state.dbid,
+      state.loggedIn,
+      state.currentCollections,
+      state.collections,
+      state.setQuery,
+      state.setFieldCode,
+      state.setSearchValue,
+    ],
+    shallow
+  );
 
+  // Change from single open state to array of all accordion IDs
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useFavorite(an);
+  const [hasStreamingVideo, setHasStreamingVideo] = useState(false);
+  const [hasEbook, setHasEbook] = useState(false);
+  const [ebookURL, setEbookURL] = useState('');
+  const [streamingURL, setStreamingURL] = useState('');
+  useCollections();
+  const { refreshCurrentCollections } = useCurrentCollections(an, dbid);
+  const toggleFavorite = useToggleFavorite(an, dbid, isFavorite, setIsFavorite);
+  const addToCollection = useAddToCollection(refreshCurrentCollections);
+  const removeFromCollection = useRemoveFromCollection(refreshCurrentCollections);
 
-    // Update the removeFromCollection function call
-    const handleRemoveFromCollection = (collection_records_id) => {
-        removeFromCollection(collection_records_id);
+  // State variables for the image upload modal
+  const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
+  
+  // State for abstract expansion
+  const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
+  
+  // State for responsive design
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check for mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
+  const toggleImageUploadModal = () => {
+    setImageUploadModalOpen(!imageUploadModalOpen);
+  };
 
-    const toggleModal = () => {
-        setIsModalOpen(!isModalOpen);
-    };
+  const toggleAbstractExpansion = () => {
+    setIsAbstractExpanded(!isAbstractExpanded);
+  };
 
-    const toggle = (id) => {
-        if (open === id) {
-          setOpen();
-        } else {
-          setOpen(id);
+  const handleRemoveFromCollection = (collectionRecordsId) => {
+    removeFromCollection(collectionRecordsId);
+  };
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
+  console.log(recordData);
+
+  // Utility function to clean and format URLs
+  const cleanUrl = (urlString) => {
+    if (!urlString || typeof urlString !== 'string') return '';
+    
+    // Extract just the URL part before any spaces or notes
+    const urlMatch = urlString.match(/^(https?:\/\/[^\s]+)/);
+    return urlMatch ? urlMatch[1] : urlString.trim();
+  };
+
+  useEffect(() => {
+    if (recordData?.urlItem) {
+      const streamingURLFound = recordData.urlItem.find((url) =>
+        url.includes('digitalcampus.swankmp.net')
+      );
+      setHasStreamingVideo(!!streamingURLFound);
+      if (streamingURLFound) {
+        setStreamingURL(cleanUrl(streamingURLFound));
+      }
+    }
+
+    // More robust ebook detection
+    const isEbook = (
+      recordData?.pubType === 'eBook' || 
+      recordData?.pdf === true || 
+      recordData?.otherFullText === true ||
+      (recordData?.fullText?.Text?.Availability && recordData.fullText.Text.Availability !== "0") ||
+      // Check if there's a physical description that indicates it's NOT a physical book
+      (recordData?.pubType === 'Book' && 
+       recordData?.urlItem?.length > 0 && 
+       !recordData?.items?.some(item => 
+         item.label === 'Physical Description' && 
+         item.data?.some(desc => 
+           typeof desc === 'string' && 
+           (desc.includes('pages') || desc.includes('cm') || desc.includes('inches'))
+         )
+       ))
+    );
+
+    setHasEbook(isEbook);
+    
+    if (isEbook && recordData?.urlItem && recordData.urlItem.length > 0) {
+      setEbookURL(cleanUrl(recordData.urlItem[0]));
+    }
+  }, [recordData]);
+
+  const titleStringDisplay = getTitleString(recordData);
+
+  let imdb = '';
+  if (recordData?.urlItem?.length > 0) {
+    recordData.urlItem.forEach((urlItem) => {
+      const cleanedUrl = cleanUrl(urlItem);
+      if (cleanedUrl.includes('imdb')) {
+        const list = cleanedUrl.match(/tt\d+/g);
+        if (list && list.length > 0) {
+          imdb = list[0];
         }
+      }
+    });
+  }
+
+  const handleClick = useCallback(
+    (event) => {
+      const target = event.target.closest('.itemData');
+      if (target) {
+        event.preventDefault();
+        const fieldCode = target.getAttribute('data-fieldcode');
+        const term = target.getAttribute('term');
+        setQuery(term);
+        setSearchValue(decodeURI(term));
+        setFieldCode(fieldCode);
+
+        // Determine the material type and set the routing path
+        let routingPath = '/all';
+        if (recordData.pubType === 'Book') {
+          routingPath = '/books';
+        } else if (recordData.pubType === 'Video Recording') {
+          routingPath = '/movies';
+        }
+
+        // Perform the routing
+        router.push(
+          `${routingPath}?search=${encodeURIComponent(term)}&fieldcode=${encodeURIComponent(
+            fieldCode
+          )}`,
+          undefined,
+          {
+            shallow: true,
+          }
+        );
+      }
+    },
+    [recordData, router, setFieldCode, setQuery, setSearchValue]
+  );
+
+  // Add ref for each accordion section
+  const castRef = useRef(null);
+  const recommendationsRef = useRef(null);
+  const shelfBrowseRef = useRef(null);
+  const fullRecordRef = useRef(null);
+  const topRef = useRef(null); // Add this missing ref declaration
+  
+  // Function to scroll back to top
+  const scrollToTop = () => {
+    const modalBody = document.querySelector('.modal-body');
+    if (modalBody) {
+      modalBody.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else if (topRef.current) {
+      topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('click', handleClick);
+
+      // Cleanup to remove event listener
+      return () => {
+        container.removeEventListener('click', handleClick);
       };
-
-            
-   const image = getImage(recordData, baseImage);
-   const titleStringDisplay = getTitleString(recordData);
-
-    let imdb = ''
-    if(recordData?.urlItem?.length > 0){
-        recordData.urlItem.map(items => {
-            if(items.includes("imdb")){
-                let list = items.match(/tt\d+/g)
-                imdb = list[0]
-            }
-        })
     }
+  }, [handleClick]);
 
-    let subjectTerm = ''
+  // Use the custom hook to get the image URL
+  const image = useRecordImage(recordData);
 
-    if(recordData?.itemsRaw?.length > 0){
-        recordData.itemsRaw.map(items => {
-            if(items.name === "Subject"){
-            }
-        })
-    }
-
-    const handleClick = event => {
-       
-        const target = event.target;
-        if (target.matches('.itemData')) {
-            event.preventDefault(); // Prevent the default anchor behavior
-            const fieldCode = target.getAttribute('data-fieldcode');
-            const term = target.getAttribute('term');
-            setQuery(term); // Update your store
-            setSearchValue(decodeURI(term));
-            setFieldCode(fieldCode);
-    
-            // Determine the material type and set the routing path
-            let routingPath = '/all';
-            if (recordData.pubType === 'Book') {
-                routingPath = '/books';
-            } else if (recordData.pubType === 'Video Recording') {
-                routingPath = '/movies';
-            }
-    
-            // Perform the routing
-            router.push(`${routingPath}?search=${term}&fieldcode=${fieldCode}`, undefined, { shallow: true });
-        }
-    };
-    
-    
-
-    useEffect(() => {
-        console.log(containerRef.current); // Debugging line
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener('click', handleClick);
-    
-            // Cleanup to remove event listener
-            return () => {
-                container.removeEventListener('click', handleClick);
-            };
-        }
-    }, [recordData]);
-    
-
-    console.log(recordData)
-
-
-    return(
-        <div className="layout">
-                {image.length > 0 ?  
-                <aside >
-                    <div className="d-flex flex-column h-100 position-relative">
-                        <div className="hide-scrollbar">
-                            <div className="container py-8"> 
-                            <Image
-                                src={image}
-                                alt={titleStringDisplay}
-                                width={300}
-                                height={450}
-                            />
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-                : ''}
-                <div className="main">
-                    <div className="container-fluid h-100">
-                        <div className="d-flex flex-column h-100 position-relative">
-                            {recordData && Object.keys(recordData).map(items => items).length > 0 ? 
-                                <div className="hide-scrollbar flex-1 h-100" ref={containerRef}>
-                                    <div className="container-fluid">
-                                    <h1 className="display-6">{recordData && recordData.titles && recordData.titles[0] ? recordData.titles[0].TitleFull : titleStringDisplay}</h1> 
-                                    {recordData && recordData.pubType && recordData.pubType === 'Book' ?
-                                            <div> {/* Attach the ref here if it's not already covering this area */}
-                                                {recordData.itemsRaw.map((items, index) => (
-                                                    items.label === 'Authors' ? 
-                                                    <div key={index} dangerouslySetInnerHTML={{ __html: decode(items.data, { level: 'html5' }) }} /> 
-                                                    : ''
-                                                ))}
-                                            </div>
-                                        : ''}
-                                        <div class="d-flex flex-nowrap" style={{marginTop: "20px"}}>
-                                            <div className="order-1 p-2">
-                                                <a target="_blank" className="btn btn-primary" href={recordData.pLink}>Place Hold</a>{ ' ' }
-                                            </div>
-                                            {loggedIn && (
-                                            <Fragment>
-                                                <div className="order-2 p-2">
-                                                <button className="btn btn-danger" onClick={toggleFavorite}>
-                                                    {isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
-                                                </button>
-                                                </div>
-                                                <div className="order-3 p-2 ms-auto">
-                                                    <div className="d-flex mb-3">
-                                                        <div className="p-2">
-                                                            <select
-                                                                className="form-select-lg mb-3"
-                                                                onChange={(e) => addToCollection(e.target.value, an)}
-                                                            >
-                                                                <option value="">Add to collection</option>
-                                                                {collections.map((collection, index) => (
-                                                                <option key={index} value={collection.collection_id}>
-                                                                    {collection.name}
-                                                                </option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                            <div className="p-2">
-                                                                <button className="btn btn-primary" onClick={toggleModal}>Create New Collection</button>
-                                                                <Modal isOpen={isModalOpen} toggle={toggleModal}>
-                                                                    <ModalHeader toggle={toggleModal}>Create New Collection</ModalHeader>
-                                                                    <ModalBody>
-                                                                        <NewCollectionForm />
-                                                                    </ModalBody>
-                                                                </Modal>
-                                                            </div>
-                                                    </div>
-                                                </div>
-                                            </Fragment>
-                                            )}
-                                        </div>
-                                        {loggedIn && currentCollections.length > 0 && (
-                                        <div className="d-flex flex-wrap mb-3">
-                                                    {currentCollections.map((collection, index) => (
-                                                    <div style={{marginRight: "10px"}} className="btn btn-secondary" key={index} onClick={() => handleRemoveFromCollection(collection.collection_records_id)}>
-                                                        {collection.collectionName.name}{' '}
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
-                                                        </svg>
-                                                    </div>
-                                                    ))}
-                                                </div>      
-                                        )}      
-                            {recordData.items ? 
-                                recordData.items.map((items,index) => (
-                                    <div key={index}>
-                                    {items.label === "Abstract" ? <p className="lead">{items.data}</p> : ''}
-                                    {items.label === "Series" ? 
-                                        <p className="lead">{items.data.map((items,key) =>  
-                                            <button key={key} style={{margin: "0 5px 5px 0"}} className="btn btn-light btn-lg">{items}</button>)}</p> 
-                                            : 
-                                        ''}
-                                    </div>
-                                ))    
-                            : ''}
-                        </div>
-                        <div style={{padding: "10px"}}>
-                            <RecordAvailability
-                                id={an}
-                            />
-                        </div>
-                        <br />
-                        <div className="container-fluid" style={{height: "100vh"}}>
-                          <Accordion open={open} toggle={toggle}>
-                           {recordData.pubType && recordData.pubType === 'Video Recording' ?
-                          <AccordionItem>
-                            <AccordionHeader targetId="1">Cast</AccordionHeader>
-                            <AccordionBody accordionId="1">
-                                <FullCast 
-                                    imdb={imdb} 
-                                    title={recordData && recordData.titles && recordData.titles[0] ? recordData.titles[0].TitleFull : titleStringDisplay}
-                                />
-                            </AccordionBody>
-                            </AccordionItem>
-                            : ''}
-                          <AccordionItem>
-                            <AccordionHeader targetId={recordData.pubType && recordData.pubType === 'Video Recording' ? "2" : "1"}>Recommendations</AccordionHeader>
-                            <AccordionBody accordionId={recordData.pubType && recordData.pubType === 'Video Recording' ? "2" : "1"}>
-                                <RecommendationDisplay 
-                                    data={recordData} 
-                                    type={recordData.pubType && recordData.pubType === 'Video Recording' ? "Video" : "Book"}
-                                />
-                            </AccordionBody>
-                            </AccordionItem>
-                            <AccordionItem>
-                                <AccordionHeader targetId="3">Shelf Browse</AccordionHeader>
-                                <AccordionBody accordionId="3">
-                                    <CallNumberBrowse
-                                        initialQuery={an}
-                                    />
-                                </AccordionBody>
-                            </AccordionItem>
-                            <AccordionItem>
-                                <AccordionHeader targetId="4">Full Record</AccordionHeader>
-                                <AccordionBody accordionId="4">
-                                    <div style={{ paddingBottom: '200px' }}> {/* Attach the ref here */}
-                                        <dl className="row">
-                                            {recordData.itemsRaw.map((items, index) => (
-                                                <Fragment key={index}>
-                                                    <dt className="col-sm-3">{items.label}</dt>
-                                                    <dd className="col-sm-9">
-                                                        <div dangerouslySetInnerHTML={{ __html: decode(items.data, { level: 'html5' }) }} />
-                                                    </dd>
-                                                </Fragment>
-                                            ))}
-                                        </dl>
-                                    </div>
-                                </AccordionBody>
-                            </AccordionItem>
-                        </Accordion>
-                        </div>
-                    </div>
-                    : ''}
-                </div>
-            </div>
-           </div> 
-    </div>
+  // Check if the record is open access based on SeriesInfo
+  const isOpenAccess = recordData?.items?.some(item => 
+    item.name === 'SeriesInfo' && 
+    item.data?.some(data => 
+      typeof data === 'string' && data.toLowerCase().includes('open access')
     )
+  ) || false;
+
+  console.log(image)
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+      {/* Add a reference point at the top */}
+      <div ref={topRef} style={{ position: 'absolute', top: 0 }}></div>
+      
+      {/* Hero Section */}
+      <div style={{
+        position: 'relative',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        minHeight: isMobile ? '50vh' : '60vh',
+        display: 'flex',
+        alignItems: 'flex-start',
+        padding: isMobile ? '20px 0' : '40px 0 40px 0'
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          width: '100%', 
+          padding: isMobile ? '0 10px' : '0 20px',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '20px' : '40px',
+          alignItems: isMobile ? 'center' : 'flex-start'
+        }}>
+          {/* Poster Image - Always show container */}
+          <div style={{ 
+            flexShrink: 0,
+            position: 'relative',
+            width: isMobile ? '200px' : '280px'
+          }}>
+            <div style={{
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: image && image.length > 0 ? '0 20px 40px rgba(0,0,0,0.4)' : '0 8px 25px rgba(0,0,0,0.15)',
+              transition: 'transform 0.3s ease',
+              cursor: image && image.length > 0 ? 'pointer' : 'default',
+              background: image && image.length > 0 ? 'transparent' : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+              border: image && image.length > 0 ? 'none' : '2px dashed #cbd5e1',
+              height: isMobile ? '300px' : '420px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onMouseOver={(e) => {
+              if (image && image.length > 0) {
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }
+            }}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onFocus={(e) => {
+              if (image && image.length > 0) {
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }
+            }}
+            onBlur={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {image && image.length > 0 ? (
+                <Image
+                  src={image}
+                  alt={titleStringDisplay}
+                  width={isMobile ? 200 : 280}
+                  height={isMobile ? 300 : 420}
+                  unoptimized={true}
+                  style={{ display: 'block' }}
+                />
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: isMobile ? '16px' : '32px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{
+                    fontSize: isMobile ? '3rem' : '4rem',
+                    opacity: 0.6,
+                    color: '#64748b'
+                  }}>
+                    {recordData?.pubType === 'Primary Source' ? '📜' : 
+                     recordData?.pubType === 'Video Recording' ? '🎬' : '📚'}
+                  </div>
+                  <div style={{
+                    color: '#64748b',
+                    fontSize: isMobile ? '0.85rem' : '1rem',
+                    fontWeight: '500',
+                    lineHeight: '1.4'
+                  }}>
+                    No Cover Image Available
+                  </div>
+                  <div style={{
+                    color: '#94a3b8',
+                    fontSize: isMobile ? '0.75rem' : '0.85rem',
+                    lineHeight: '1.4'
+                  }}>
+                    {recordData?.pubType === 'Primary Source' ? 'Archival Collection' :
+                     recordData?.pubType === 'Video Recording' ? 'Video Recording' :
+                     recordData?.pubType || 'Resource'}
+                  </div>
+                </div>
+              )}
+            </div>
+              
+              {/* Badges */}
+              {isOpenAccess && (
+                <div style={{
+                  position: 'absolute',
+                  top: '12px',
+                  left: '12px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                  zIndex: 10
+                }}>
+                  <span style={{ fontSize: '0.8em' }}>🔓</span>
+                  <span>OPEN ACCESS</span>
+                </div>
+              )}
+              
+              {/* Upload Button */}
+              {loggedIn && (
+                <button
+                  style={{
+                    position: 'absolute',
+                    bottom: '12px',
+                    left: '12px',
+                    right: '12px',
+                    padding: '8px 16px',
+                    background: 'rgba(0,0,0,0.8)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.9)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.8)'}
+                  onFocus={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.9)'}
+                  onBlur={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.8)'}
+                  onClick={toggleImageUploadModal}
+                >
+                  <FontAwesomeIcon icon={faUpload} />
+                  Upload Cover
+                </button>
+              )}
+            </div>
+
+          {/* Main Info */}
+          <div style={{ flex: 1, color: '#1e293b' }}>
+            <h1 style={{
+              fontSize: isMobile ? '1.75rem' : '2.5rem',
+              fontWeight: '700',
+              marginBottom: '12px',
+              lineHeight: '1.2',
+              color: '#1e293b'
+            }}>
+              {recordData?.titles?.[0]?.TitleFull || 
+               recordData?.titleItem?.[0] || 
+               titleStringDisplay}
+            </h1>
+
+            {/* Authors for books and finding aids */}
+            {(recordData?.pubType === 'Book' || recordData?.pubType === 'Primary Source') && (
+              <div style={{ 
+                marginBottom: '20px',
+                fontSize: isMobile ? '1rem' : '1.2rem',
+                color: '#64748b'
+              }}>
+                {recordData.itemsRaw?.map((item) =>
+                  item.label === 'Authors' ? (
+                    <div
+                      key={item.label}
+                      dangerouslySetInnerHTML={{
+                        __html: decode(item.data, { level: 'html5' }),
+                      }}
+                    />
+                  ) : null
+                )}
+                {/* Handle finding aids author data if not in itemsRaw */}
+                {recordData?.authorItem && recordData.authorItem.length > 0 && (
+                  <div>
+                    {recordData.authorItem.join(', ')}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Abstract with truncation and deduplication */}
+            {(() => {
+              // Get abstracts from both MARC records (items) and finding aids (abstractItem)
+              const marcAbstracts = recordData.items?.filter(item => item.label === 'Abstract') || [];
+              const findingAidsAbstract = recordData.abstractItem || [];
+              
+              // Combine both sources
+              const allAbstracts = [
+                ...marcAbstracts,
+                // Convert abstractItem array to items format for consistency
+                ...findingAidsAbstract.map(text => ({ data: text }))
+              ];
+              
+              if (allAbstracts.length === 0) return null;
+
+              // Find the longest unique abstract (likely the most complete one)
+              const uniqueAbstracts = [];
+              allAbstracts.forEach(abstract => {
+                // Handle both array and string data types
+                let text = '';
+                if (Array.isArray(abstract.data)) {
+                  text = abstract.data.join(' ').trim();
+                } else {
+                  text = typeof abstract.data === 'string' 
+                    ? abstract.data.trim() 
+                    : String(abstract.data || '').trim();
+                }
+                
+                if (!text) return; // Skip empty abstracts
+                
+                // Check if this text is not already contained in or doesn't contain existing abstracts
+                const isDuplicate = uniqueAbstracts.some(existing => 
+                  existing.includes(text) || text.includes(existing)
+                );
+                if (!isDuplicate) {
+                  uniqueAbstracts.push(text);
+                }
+              });
+
+              // Use the longest abstract as it's likely the most complete
+              const selectedAbstract = uniqueAbstracts.reduce((longest, current) => 
+                current.length > longest.length ? current : longest, uniqueAbstracts[0] || ''
+              );
+
+              if (!selectedAbstract) return null;
+
+              const maxLength = 150; // Reduced character limit for preview
+              const shouldTruncate = selectedAbstract.length > maxLength;
+              const displayText = shouldTruncate && !isAbstractExpanded 
+                ? selectedAbstract.substring(0, maxLength) + '...'
+                : selectedAbstract;
+
+              return (
+                <div style={{ marginBottom: '24px' }}>
+                  <p style={{
+                    fontSize: isMobile ? '0.95rem' : '1.1rem',
+                    lineHeight: '1.6',
+                    color: '#475569',
+                    marginBottom: shouldTruncate ? '8px' : '0',
+                    maxWidth: isMobile ? '100%' : '600px'
+                  }}>
+                    {displayText}
+                  </p>
+                  {shouldTruncate && (
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <button
+                        onClick={toggleAbstractExpansion}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#3b82f6',
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          textDecoration: 'underline',
+                          padding: '0'
+                        }}
+                      >
+                        {isAbstractExpanded ? 'Show Less' : 'See More'}
+                      </button>
+                      {!isAbstractExpanded && (
+                        <span style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
+                          or{' '}
+                          <button
+                            onClick={() => {
+                              const fullRecordElement = document.querySelector('[data-section="full-record"]');
+                              if (fullRecordElement) {
+                                fullRecordElement.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#3b82f6',
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              textDecoration: 'underline',
+                              padding: '0'
+                            }}
+                          >
+                            view Full Record Details
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Action Buttons */}
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '12px',
+              marginBottom: '20px',
+              justifyContent: isMobile ? 'center' : 'flex-start'
+            }}>
+              {hasStreamingVideo && (
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={streamingURL}
+                  style={{
+                    padding: isMobile ? '10px 20px' : '12px 24px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: isMobile ? '0.85rem' : '0.95rem',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(239,68,68,0.3)'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  onFocus={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onBlur={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  ▶ Watch Now
+                </a>
+              )}
+
+              {hasEbook && (
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={ebookURL}
+                  style={{
+                    padding: isMobile ? '10px 20px' : '12px 24px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: isMobile ? '0.85rem' : '0.95rem',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  onFocus={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onBlur={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  📖 Read Now
+                </a>
+              )}
+
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`https://openurl.ebsco.com/c/4e4lys/openurl?sid=ebsco:plink&id=ebsco:${dbid}:${an}&crl=f&prompt=none`}
+                style={{
+                  padding: isMobile ? '10px 20px' : '12px 24px',
+                  background: 'rgba(255,255,255,0.9)',
+                  color: '#475569',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: isMobile ? '0.85rem' : '0.95rem',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#f1f5f9';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.9)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.background = '#f1f5f9';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.9)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                {hasStreamingVideo || hasEbook ? 'More Info' : 'View Item'}
+              </a>
+
+              {loggedIn && (
+                <button 
+                  style={{
+                    padding: isMobile ? '10px 20px' : '12px 24px',
+                    background: isFavorite ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.9)',
+                    color: isFavorite ? '#dc2626' : '#475569',
+                    border: `2px solid ${isFavorite ? '#ef4444' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: isMobile ? '0.85rem' : '0.95rem',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = isFavorite ? 'rgba(239,68,68,0.2)' : '#f1f5f9';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = isFavorite ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.9)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.background = isFavorite ? 'rgba(239,68,68,0.2)' : '#f1f5f9';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.background = isFavorite ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.9)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  onClick={toggleFavorite}
+                >
+                  {isFavorite ? '❤️ Favorited' : '🤍 Add to Favorites'}
+                </button>
+              )}
+            </div>
+
+            {/* Ebook Access Notice */}
+            {hasEbook && (
+              <div style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                border: '1px solid #f59e0b',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginTop: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                boxShadow: '0 2px 8px rgba(245,158,11,0.2)'
+              }}>
+                <div style={{
+                  fontSize: '1.2em',
+                  color: '#d97706'
+                }}>
+                  🔒
+                </div>
+                <div style={{
+                  flex: 1,
+                  color: '#92400e',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.4'
+                }}>
+                  <strong>Institution Access Required:</strong> This ebook is available only to patrons of the subscribing institution. Off-campus users may need to authenticate through their institution&apos;s library system.
+                </div>
+              </div>
+            )}
+
+            {/* Quick Availability Info - Only show for MARC records, not finding aids */}
+            {recordData?.pubType !== 'Primary Source' && (
+              <div style={{
+                background: 'rgba(255,255,255,0.95)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginTop: '16px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                backdropFilter: 'blur(8px)'
+              }}>
+                <h4 style={{ 
+                  color: '#1e293b', 
+                  marginBottom: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📍 Availability
+                </h4>
+                <RecordAvailability id={an} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        minHeight: '40vh',
+        padding: isMobile ? '20px 0' : '40px 0'
+      }}>
+        {recordData && Object.keys(recordData).length > 0 && (
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 10px' : '0 20px' }} ref={containerRef}>
+            
+            {/* Collections Section */}
+            {loggedIn && (
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '32px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+              }}>
+                <h3 style={{ 
+                  color: '#1e293b', 
+                  marginBottom: '20px',
+                  fontSize: '1.25rem',
+                  fontWeight: '600'
+                }}>
+                  Manage Collections
+                </h3>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '16px', 
+                  marginBottom: '20px',
+                  flexWrap: 'wrap'
+                }}>
+                  <select
+                    style={{
+                      padding: '12px 16px',
+                      background: '#ffffff',
+                      color: '#1e293b',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      minWidth: '220px',
+                      cursor: 'pointer'
+                    }}
+                    onChange={(e) => addToCollection(e.target.value, an, dbid)}
+                  >
+                    <option value="">Add to collection</option>
+                    {collections.map((collection) => (
+                      <option
+                        key={collection.collection_id}
+                        value={collection.collection_id}
+                      >
+                        {collection.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  <button 
+                    style={{
+                      padding: '12px 20px',
+                      background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onClick={toggleModal}
+                  >
+                    Create New Collection
+                  </button>
+                </div>
+                
+                {currentCollections.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {currentCollections.map((collection) => (
+                      <button
+                        key={collection.collection_records_id}
+                        style={{
+                          padding: '8px 16px',
+                          background: 'rgba(239,68,68,0.1)',
+                          color: '#dc2626',
+                          border: '1px solid #ef4444',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onClick={() => handleRemoveFromCollection(collection.collection_records_id)}
+                      >
+                        {collection.collectionName.name}
+                        <span style={{ fontSize: '1.1em' }}>×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Series Tags */}
+            {recordData.items?.map((item) => (
+              item.label === 'Series' && (
+                <div key={item.label} style={{ marginBottom: '32px' }}>
+                  <h3 style={{ 
+                    color: '#1e293b', 
+                    marginBottom: '16px',
+                    fontSize: '1.25rem',
+                    fontWeight: '600'
+                  }}>
+                    Series
+                  </h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                    {item.data.map((seriesItem) => (
+                      <span
+                        key={seriesItem}
+                        style={{
+                          padding: '8px 16px',
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          color: 'white',
+                          borderRadius: '20px',
+                          fontSize: '0.9rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {seriesItem}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            ))}
+
+            {/* Cast Section - Display without accordion */}
+            {recordData.pubType === 'Video Recording' && (
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '32px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+              }}>
+                <div ref={castRef}>
+                  <h3 style={{ 
+                    color: '#1e293b', 
+                    marginBottom: '16px',
+                    fontSize: '1.25rem',
+                    fontWeight: '600'
+                  }}>
+                    🎭 Cast & Crew
+                  </h3>
+                </div>
+                <FullCast
+                  results={recordData.tmdbSearch?.results}
+                  imdb={imdb}
+                  title={recordData?.titles?.[0]?.TitleFull || titleStringDisplay}
+                  year={recordData?.year}
+                />
+              </div>
+            )}
+
+            {/* Recommendations Section - Display without accordion */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              padding: '24px',
+              marginBottom: '32px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            }}>
+              <div ref={recommendationsRef}>
+                <h3 style={{ 
+                  color: '#1e293b', 
+                  marginBottom: '16px',
+                  fontSize: '1.25rem',
+                  fontWeight: '600'
+                }}>
+                  💡 Recommendations
+                </h3>
+              </div>
+              <RecommendationDisplay
+                data={recordData}
+                type={recordData.pubType === 'Video Recording' ? 'Video' : 'Book'}
+              />
+            </div>
+
+            {/* Shelf Browse Section - Display without accordion */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              padding: '24px',
+              marginBottom: '32px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            }}>
+              <div ref={shelfBrowseRef}>
+                <h3 style={{ 
+                  color: '#1e293b', 
+                  marginBottom: '16px',
+                  fontSize: '1.25rem',
+                  fontWeight: '600'
+                }}>
+                  📚 Shelf Browse
+                </h3>
+              </div>
+              <CallNumberBrowse initialQuery={an} />
+            </div>
+
+            {/* Full Record Section - Display without accordion */}
+            <div 
+              data-section="full-record"
+              style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '32px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                overflow: 'hidden',
+                maxWidth: '100%'
+              }}>
+              <div ref={fullRecordRef}>
+                <h3 style={{ 
+                  color: '#1e293b', 
+                  marginBottom: '16px',
+                  fontSize: '1.25rem',
+                  fontWeight: '600'
+                }}>
+                  📋 Full Record Details
+                </h3>
+              </div>
+              <div style={{ paddingBottom: '20px', overflowX: 'auto', maxWidth: '100%' }}>
+                <dl style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr',
+                  gap: '16px 24px',
+                  margin: 0,
+                  width: '100%',
+                  maxWidth: '100%'
+                }}>
+                  {recordData.itemsRaw.map((item) => (
+                    <Fragment key={item.label}>
+                      <dt style={{
+                        color: '#64748b',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        alignSelf: 'start'
+                      }}>
+                        {item.label}
+                      </dt>
+                      <dd style={{
+                        color: '#374151',
+                        margin: 0,
+                        lineHeight: '1.6',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        maxWidth: '100%'
+                      }}>
+                        <div
+                          className="record-detail-content"
+                          style={{
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
+                            maxWidth: '100%'
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: decode(item.data, { level: 'html5' }),
+                          }}
+                        />
+                      </dd>
+                    </Fragment>
+                  ))}
+                </dl>
+              </div>
+            </div>
+
+            {/* Back to Top */}
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '40px', 
+              marginBottom: '40px' 
+            }}>
+              <button 
+                onClick={scrollToTop}
+                style={{
+                  padding: '12px 24px',
+                  background: '#ffffff',
+                  color: '#475569',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+                }}
+              >
+                ↑ Back to Top
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      <Modal isOpen={isModalOpen} toggle={toggleModal}>
+        <ModalHeader toggle={toggleModal}>
+          Create New Collection
+        </ModalHeader>
+        <ModalBody>
+          <NewCollectionForm />
+        </ModalBody>
+      </Modal>
+
+      {imageUploadModalOpen && (
+        <ImageUploadModal
+          isOpen={imageUploadModalOpen}
+          toggle={toggleImageUploadModal}
+          record={{ an, dbid }}
+        />
+      )}
+    </div>
+  );
 }
 
-export default RecordsDisplay
+export default RecordsDisplay;

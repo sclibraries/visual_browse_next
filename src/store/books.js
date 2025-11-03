@@ -4,7 +4,7 @@ const initialState = {
     bookRefine: 'n',
     bookSort: 'relevance',
     bookFieldCode: '',
-    bookAction: 'addfacetfilter(SourceType:Books,ContentProvider:Five Colleges Catalog)',
+    bookAction: 'addfacetfilter(SourceType:Books,ContentProvider:Five Colleges Catalog, ContentProvider:Smith College Finding Aids)',
     //
 
     bookHits: 0,
@@ -17,8 +17,59 @@ const initialState = {
     bookLimiter: [],
     bookAppliedFacets: [],
     bookFacets: [],
-    bookSort: 'relevance',
     bookFacetAction: '',
+    bookGenres : [
+        "Comics (Graphic works)",
+        "Dialogues (Literature)",
+        "Drama",
+        "Exempla",
+        "Fiction",
+        "Folk literature",
+        "Gift books",
+        "Poetry",
+        "Prologues and epilogues",
+        "Romances",
+        "Sagas",
+        "Satirical literature"
+    ],
+    comicSubjectHeadings : [
+        "Action and adventure comics",
+        "Comics adaptations",
+        "Coming-of-age comics",
+        "Detective and mystery comics",
+        "Domestic comics",
+        "Erotic comics",
+        "Fantasy comics",
+        "Funny animal comics",
+        "Graphic medicine (Comics)",
+        "Graphic novels",
+        "Grassroots comics",
+        "Historical comics",
+        "Horror comics",
+        "Humorous comics",
+        "Monster comics",
+        "Mythological comics",
+        "Nonfiction comics",
+        "Paranormal comics",
+        "Political comics",
+        "Psychological comics",
+        "Queer comics",
+        "Religious comics",
+        "Road trip comics",
+        "Romance comics",
+        "School comics",
+        "Science fiction comics",
+        "Social issue comics",
+        "Sports comics",
+        "Spy comics",
+        "Superhero comics",
+        "Thriller comics",
+        "Underground comics",
+        "War comics",
+        "Webcomics",
+        "Western comics",
+        "Wordless comics"
+    ],
     bookSubjectHeadings: [
         "Action and adventure fiction",
         "Alternative histories (Fiction)",
@@ -95,7 +146,7 @@ const initialState = {
 }
 
 
-export const createBooksStore = (set, get) => ({
+export const createBooksStore = (set) => ({
     ...initialState,
     setBookAction: (action) => set({ action }),
     setBookData: (bookData) => set({ bookData }),
@@ -116,7 +167,6 @@ export const createBooksStore = (set, get) => ({
         }))
     },
     setBookFacetAction: (bookFacetAction) => set({ bookFacetAction }),
-    setBookResultsQueryString: (bookResultsQueryString) => set({ bookResultsQueryString }),
     setBookPage: (bookPage) => set({ bookPage }),
     setBookTotalPages: (bookTotalPages) => set({ bookTotalPages }),
     setBookFieldCode: (bookFieldCode) => set({ bookFieldCode }),

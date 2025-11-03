@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useStore } from '../../../store/store';
-import { DisplayImage } from '@/components/DisplayImage';
+import { DisplayImage } from '../../../components/DisplayImage';
 import { shallow } from 'zustand/shallow';
-import { DisplayLoadingSkeleton } from '@/components/Loading';
-function CollectionRecords(props){
-    const [loading, setLoading] = useState(true);;
+import { DisplayLoadingSkeleton } from '../../../components/Loading';
+
+function CollectionRecords() {
+    const [loading, setLoading] = useState(true);
     const [records, setRecords] = useState([]);
     const [folioRecords, setFolioRecords] = useState([]);
 
@@ -83,8 +84,20 @@ function CollectionRecords(props){
                         const isbn = item?.identifiers?.filter(id => id?.identifierTypeId?.includes('8261054f-be78-422d-bd51-4ed9f33c3422'))
                         return(
                         <div className="col" key={index}>
-                        <div className="card" style={{width: "14em"}} onClick={() => handleRecord(item.id)}>
-                        <DisplayImage 
+                            <div
+                            className="card"
+                            style={{ width: "14em" }}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleRecord(item.id)}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleRecord(item.id);
+                                }
+                            }}
+                            aria-label={`View record ${item.id}`}
+                            >                        <DisplayImage 
                             an={item?.id}
                             title={item?.title}
                             material={'book'}

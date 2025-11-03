@@ -1,8 +1,3 @@
-// List of common subject terms that you want to exclude
-const commonTerms = [
-
-    // add more common terms here
-  ];
   
   export function buildRecommendations(itemsRaw) {
     // Function to decode HTML entities
@@ -34,7 +29,7 @@ const commonTerms = [
     return recommendations;
   }
 
-  export const getImage = (recordData, baseImage) => {
+  export const getImage = (recordData) => {
     const imageSize = ['medium'];
     const image = recordData?.image?.find(item => imageSize.includes(item.Size))?.Target || '';
     return image;
@@ -56,7 +51,11 @@ const commonTerms = [
     } else {
         titleStringDisplay = recordData?.titles ? recordData.titles[0]?.TitleFull : ''
     }
-    return titleString;
+    if(titleStringDisplay !== '' && titleStringDisplay.includes('[')){
+        titleString = titleStringDisplay.split('[')[0]
+    } else {
+        titleString = titleStringDisplay
+    }
   };
 
   export const extractTitle = (fullTitle) => {

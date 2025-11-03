@@ -3,7 +3,7 @@ const initialState = {
     allRefine: 'n',
     allSort: 'relevance',
     allFieldCode: '',
-    allAction: 'addlimiter(FC:Y)',
+    allAction: 'addfacetfilter(ContentProvider:Five Colleges Catalog,ContentProvider:Smith College Finding Aids)',
     allHits: 0,
     allPage: 1,
     allTotalPages: 0,
@@ -11,14 +11,19 @@ const initialState = {
     allResultsQueryString: '',
     allExpanded: [],
     allDateLimiter: '',
-    allLimiter: [],
+    allLimiter: "DT1:1600-01/2025-12",
     allAppliedFacets: [],
     allFacets: [],
-    allSort: 'relevance',
+    
+    // Collections-related state
+    allCollections: [],
+    allCollectionHits: 0,
+    includeCollections: true,
+    collectionsLimit: 5,
 }
 
 
-export const createAllStore = (set, get) => ({
+export const createAllStore = (set) => ({
     ...initialState,
     setAllAction: (action) => set({ action }),
     setAllData: (allData) => set({ allData }),
@@ -39,9 +44,14 @@ export const createAllStore = (set, get) => ({
         }))
     },
     setAllFacetAction: (allFacetAction) => set({ allFacetAction }),
-    setAllResultsQueryString: (allResultsQueryString) => set({ allResultsQueryString }),
     setAllPage: (allPage) => set({ allPage }),
     setAllTotalPages: (allTotalPages) => set({ allTotalPages }),
     setAllFieldCode: (allFieldCode) => set({ allFieldCode }),
     setAllRefine: (allRefine) => set({ allRefine }),
+    
+    // Collections actions
+    setAllCollections: (collections) => set({ allCollections: collections }),
+    setAllCollectionHits: (hits) => set({ allCollectionHits: hits }),
+    setIncludeCollections: (include) => set({ includeCollections: include }),
+    setCollectionsLimit: (limit) => set({ collectionsLimit: limit }),
 })

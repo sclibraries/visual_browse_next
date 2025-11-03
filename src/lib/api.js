@@ -216,6 +216,197 @@ query search(
 }  
 `
 
+export const GET_BROWSE_COMBINED = gql`
+query combinedSearch(
+    $query: String!,
+    $action: String,
+    $refine: String,
+    $sort: String,
+    $includefacets: String,
+    $searchmode: String,
+    $autosuggest: String,
+    $autocorrect: String,
+    $view: String = "detailed",
+    $resultsperpage: Int,
+    $pagenumber: Int,
+    $highlight: String,
+    $includeimagequickview: String,
+    $expander: String,
+    $fieldcode: String,
+    $limiter: String,
+    $collectionLimit: Int = 5,
+    $localOnly: String
+) {
+  combinedSearch(
+    query: $query,
+    action: $action,
+    refine: $refine,
+    sort: $sort,
+    includefacets: $includefacets,
+    searchmode: $searchmode,
+    autosuggest: $autosuggest,
+    autocorrect: $autocorrect,
+    view: $view,
+    resultsperpage: $resultsperpage,
+    pagenumber: $pagenumber,
+    highlight: $highlight,
+    includeimagequickview: $includeimagequickview,
+    expander: $expander,
+    fieldcode: $fieldcode,
+    limiter: $limiter,
+    collectionLimit: $collectionLimit,
+    localOnly: $localOnly
+  ) {
+    searchTerm
+    totalEdsResults
+    totalCollectionResults
+    hasMoreEds
+    hasMoreCollections
+    edsResults {
+      queryString
+      autoSuggestedTerms
+      limtersWithAction {
+        Id
+        RemoveAction
+        LimiterValuesWithAction {
+          Value
+        }
+      }
+      queryWithAction{
+        Query{
+          BooleanOperator
+          FieldCode
+          Term
+        }
+        RemoveAction
+      }
+      expandersWithAction{
+          Id
+          RemoveAction
+        }
+      facetFiltersWithAction {
+        RemoveAction
+        FacetValuesWithAction {
+          FacetValue {
+            Id
+            Value
+          }
+          RemoveAction
+        }
+      }
+      statistics {
+        hits
+        time
+      }
+      records {
+        titleItem
+        titles{
+          TitleFull
+        }
+        an
+        dbid
+        pLink
+        pubType
+        pubTypeId
+        imageItem
+        abstractItem
+        items{
+          name
+          label
+          data
+       }
+       itemsRaw{
+          name
+          label
+          data
+       }
+        image{
+          Target
+          Size
+      }
+      googleImages{
+        thumbnail_url
+      }
+    tmdbSearch{
+        results{
+          title
+          poster_path
+        }
+      }
+    }
+      facets  {
+        location{
+          id
+          label  
+          values {
+            value
+            action
+            count
+            label
+          }
+        }
+        publisher {
+          id
+          label  
+          values {
+            value
+            action
+            count
+            label
+          }
+        }
+        subject {
+          id
+          label  
+          values {
+            value
+            action
+            count
+            label
+          }
+        }
+        language {
+          id
+          label  
+          values {
+            value
+            action
+            count
+            label
+          }
+        }
+        sourceType {
+          id
+          label
+          values {
+            value
+            action
+            count
+            label
+          }
+        }
+      }
+    }
+    collectionResults {
+      totalCount
+      hasMore
+      collections {
+        collection_id
+        name
+        description
+        relevanceScore
+        matchType
+        cover_image
+        subjects {
+          subject_id
+          subject
+        }
+      }
+    }
+  }
+}  
+`
+
 export const FOLIORTAC = gql`
 query foliortac($id: String!){
   foliortac(id: $id) {
@@ -280,6 +471,32 @@ query record($an: String!, $dbid: String!){
               Size
             }
             imageItem
+            googleImages{
+              thumbnail_url
+            }
+            tmdbSearch{
+              results{
+                title
+                poster_path
+                fullrecordcast{
+                  id
+                  cast{
+                    name
+                    order
+                    character
+                    gender
+                    profile_path
+                  }
+                  crew{
+                    name
+                    job
+                    profile_path
+                    department
+                    gender
+                  }
+                }
+              }
+            }
             doiItem
             pubType
             pubTypeItem
@@ -435,4 +652,38 @@ export const GET_SHELF_BROWSE = gql`
               }
             }
     }
+`
+
+export const GET_TMDB_CAST = gql`
+  query tmdbSearch($query: String!, $year: String) {
+    tmdbSearch(query: $query, year: $year) {
+      results {
+        id
+        title
+        media_type
+        fullrecordcast {
+          id
+          cast {
+            cast_id
+            character
+            credit_id
+            name
+            gender
+            id
+            order
+            profile_path
+          }
+          crew {
+            credit_id
+            department
+            gender
+            id
+            job
+            name
+            profile_path
+          }
+        }
+      }
+    }
+  }
 `
