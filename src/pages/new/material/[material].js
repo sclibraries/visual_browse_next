@@ -4,7 +4,7 @@ import { useQuery } from '@apollo/client'
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import { useStore } from '../../../store/store';
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import NewMaterialDisplay from '../../../components/NewMaterialDisplay';
 
 const V2_NEW_MATERIAL_SLUG = 'new-material';
@@ -105,7 +105,7 @@ function NewMaterial() {
         break;
     }
 
-    const [setAn,setDbid, setRecordModal, setRecordImageOverride, location, subject, date, setLocation, setSubject, setDate] = useStore(state => [
+    const [setAn,setDbid, setRecordModal, setRecordImageOverride, location, subject, date, setLocation, setSubject, setDate] = useStore(useShallow(state => [
         state.setAn,
         state.setDbid,
         state.setRecordModal,
@@ -116,7 +116,7 @@ function NewMaterial() {
         state.setLocation,
         state.setSubject,
         state.setDate,
-    ], shallow)
+    ]))
 
     const today = new Date();
     const oneDay = new Date(new Date().setDate(today.getDate() - 2));

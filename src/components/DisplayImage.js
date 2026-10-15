@@ -19,7 +19,6 @@ export const DisplayImage = ({ an, refresh, materialType: materialTypeHint, coll
 
   useEffect(() => {
     if (refresh) {
-      console.log('Refreshing image');
       refetch();
     }
   }, [refresh, refetch]);

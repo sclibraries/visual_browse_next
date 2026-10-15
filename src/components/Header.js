@@ -14,7 +14,7 @@ import {
 import Link from 'next/link';
 import SearchBox from './SearchBox';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useRouter } from 'next/router';
 import { LOCAL_COLLECTIONS_CONFIG } from '../lib/localCollectionConfigs';
 
@@ -23,13 +23,13 @@ const { getCollectionDisplayName } = require('../lib/collectionDisplayNames.cjs'
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const useV2CollectionsNav = process.env.NEXT_PUBLIC_USE_COLLECTIONS_V2_NAV === 'true';
-  const [loggedIn, accountReset, setLoggedIn, setAuthChecked, setUser] = useStore((state) => [
+  const [loggedIn, accountReset, setLoggedIn, setAuthChecked, setUser] = useStore(useShallow((state) => [
     state.loggedIn, 
     state.accountReset, 
     state.setLoggedIn, 
     state.setAuthChecked, 
     state.setUser
-  ], shallow);
+  ]));
   const router = useRouter();
   const currentQuery = router.query;
   const [returnParam, setReturnParam] = useState('');
@@ -83,16 +83,13 @@ function Header() {
   }, [router.asPath, router.basePath]);
 
   const handleLogout = useCallback(async () => {
-    console.log('handleLogout called - starting logout process');
     
     // Clear local storage first
-    console.log('Clearing local storage and cookies...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('refreshToken');
     
-    console.log('Resetting Zustand store...');
     // Reset Zustand store state
     setLoggedIn(false);
     setUser(null);
@@ -104,7 +101,6 @@ function Header() {
       ? window.location.origin + (router.basePath || '') + '/'
       : 'https://libtools2.smith.edu/visual-browse/';
     
-    console.log('Redirecting to SSO logout with return URL:', returnUrl);
     
     // Redirect to PHP SSO logout endpoint
     // This will clear the token cookie and redirect to Shibboleth logout

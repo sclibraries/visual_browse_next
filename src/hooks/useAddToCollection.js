@@ -29,8 +29,7 @@ export const useAddToCollection = (onSuccess) => {
     }, {
       withCredentials: true
     })
-    .then(response => {
-      console.log('Successfully added to collection:', response.data);
+    .then(() => {
       toast.success('Added to collection');
       if (onSuccess) {
         onSuccess();

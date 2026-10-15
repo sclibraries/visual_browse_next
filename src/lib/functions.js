@@ -21,7 +21,6 @@
       .filter((term, index, self) => self.indexOf(term) === index) // Remove duplicates
       .slice(0, 5); // Limit to the first 5 items
   
-    console.log(subjects);
   
     // Join terms with 'OR' and format for recommendation query
     const recommendations = subjects.join(' OR ');

@@ -5,7 +5,7 @@ import { DisplayImage } from './DisplayImage';
 import { useStore } from '../store/store';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import CollectionsModal from './CollectionsModal';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import LinesEllipsis from 'react-lines-ellipsis';
@@ -73,11 +73,11 @@ function LocalCollectionDisplay(props){
     const [collectionModal, setCollectionModal] = useState(false);
 
 
-    const [loggedIn, baseUrl, setCollectionAn] = useStore(state => [
+    const [loggedIn, baseUrl, setCollectionAn] = useStore(useShallow(state => [
         state.loggedIn,
         state.baseUrl,
         state.setCollectionAn
-      ], shallow)
+      ]))
 
       const toggleFavorite = async (record) => {
         const eds_id = `scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.${record.replace(/-/g, ".")}`
@@ -136,7 +136,6 @@ function LocalCollectionDisplay(props){
         }
       }, [props.instances, loggedIn]);  
 
-      console.log(instances)
 
     return(
         <LocalCollectionLayout>

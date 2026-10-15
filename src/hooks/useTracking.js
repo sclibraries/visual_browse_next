@@ -1,16 +1,13 @@
 import { useCallback } from 'react';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Custom hook for tracking user interactions and events
  * Sends tracking data to the backend analytics system
  */
 export const useTracking = () => {
-  const [baseUrl, user, loggedIn] = useStore(
-    (state) => [state.baseUrl, state.user, state.loggedIn],
-    shallow
-  );
+  const [baseUrl, user, loggedIn] = useStore(useShallow((state) => [state.baseUrl, state.user, state.loggedIn]));
 
   /**
    * Track an event
@@ -37,9 +34,6 @@ export const useTracking = () => {
         metadata: eventData.metadata || null,
       };
 
-      // Log the payload for debugging
-      console.log('Tracking event payload:', payload);
-      console.log('Event type being sent:', payload.event_type);
 
       const response = await fetch(`${baseUrl}/tracking_events`, {
         method: 'POST',
@@ -55,7 +49,6 @@ export const useTracking = () => {
       }
 
       const result = await response.json();
-      console.log('Tracking response:', result);
       return result;
     } catch (error) {
       console.error('Error tracking event:', error);

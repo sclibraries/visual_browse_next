@@ -166,7 +166,6 @@ const AnalyticsPage = () => {
       const filename = `analytics-detailed-events-${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, filename);
 
-      console.log(`Exported ${filteredEvents.length} events from ${userCollections.length} collections`);
       
     } catch (error) {
       console.error('Error exporting detailed data:', error);

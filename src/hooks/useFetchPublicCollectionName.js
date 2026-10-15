@@ -44,7 +44,7 @@ export const useFetchPublicCollectionName = (limit, id, type, sortOption, sortOp
                 }
             }
         } catch (error) {
-            console.log(error)
+            console.error(error)
             toast.error('Error fetching collections');
             setError(error);
         } finally {

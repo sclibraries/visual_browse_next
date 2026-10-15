@@ -2,20 +2,20 @@ import { useEffect } from 'react';
 import Header from '../components/Header';
 import Records from '../components/Records';
 import { Modal } from 'reactstrap';
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../store/store'
 import { useRouter } from 'next/router'
 import { ToastContainer } from 'react-toastify';
 
 export default function GlobalLayout({ children }) {
   const router = useRouter();
-  const [recordModal, setRecordModal, setAn, setDbid, setRecordImageOverride] = useStore(state => [
+  const [recordModal, setRecordModal, setAn, setDbid, setRecordImageOverride] = useStore(useShallow(state => [
     state.recordModal,
     state.setRecordModal,
     state.setAn,
     state.setDbid,
     state.setRecordImageOverride,
-  ], shallow)
+  ]))
 
   useEffect(() => {
     if (router.query.an && router.query.dbid) {

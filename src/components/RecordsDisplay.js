@@ -1,7 +1,7 @@
 import RecordBadges from './RecordBadges';
 import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { decode } from 'html-entities';
 import {
   Modal,
@@ -46,8 +46,7 @@ function RecordsDisplay() {
     setQuery,
     setFieldCode,
     setSearchValue,
-  ] = useStore(
-    (state) => [
+  ] = useStore(useShallow((state) => [
       state.recordData,
       state.an,
       state.dbid,
@@ -58,9 +57,7 @@ function RecordsDisplay() {
       state.setQuery,
       state.setFieldCode,
       state.setSearchValue,
-    ],
-    shallow
-  );
+    ]));
 
   // Change from single open state to array of all accordion IDs
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,7 +125,6 @@ function RecordsDisplay() {
     setIsModalOpen(!isModalOpen);
   };
 
-  console.log(recordData);
 
   // Utility function to clean and format URLs
   const cleanUrl = (urlString) => {
@@ -293,7 +289,6 @@ function RecordsDisplay() {
     )
   ) || false;
 
-  console.log(image)
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>

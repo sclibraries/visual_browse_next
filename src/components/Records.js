@@ -1,4 +1,4 @@
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../store/store'
 import { GET_RECORD } from '../lib/api'
 import RecordsDisplay from './RecordsDisplay'
@@ -10,13 +10,13 @@ function Records(){
 
     const router = useRouter();
 
-    const [an, dbid, setRecordData, setRecordModal, setRecordImageOverride] = useStore(state => [
+    const [an, dbid, setRecordData, setRecordModal, setRecordImageOverride] = useStore(useShallow(state => [
         state.an,
         state.dbid,
         state.setRecordData,
         state.setRecordModal,
         state.setRecordImageOverride,
-    ], shallow)
+    ]))
 
     const handleOnComplete = (data) => {
         setRecordData(data?.record?.records)

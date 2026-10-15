@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_RECORD } from '../lib/api';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import RecordCoverImage from './RecordCoverImage';
 import { useRouter } from 'next/router';
 import axios from 'axios';
@@ -36,8 +36,7 @@ function PublicCollectionsRecordDisplay(props) {
     baseUrl,
     setCollectionAn,
     setCollectionDbid,
-  ] = useStore(
-    (state) => [
+  ] = useStore(useShallow((state) => [
       state.setAn,
       state.setDbid,
       state.setRecordModal,
@@ -45,9 +44,7 @@ function PublicCollectionsRecordDisplay(props) {
       state.baseUrl,
       state.setCollectionAn,
       state.setCollectionDbid,
-    ],
-    shallow
-  );
+    ]));
     // Add state variables for the image upload modal
   const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -177,9 +174,6 @@ const handleRecord = (an, dbid) => {
     const author = record.items?.find(item => item.label === 'Authors')?.data || 'Unknown Author';
     const publicationYear = Array.isArray(record.year) && record.year.length > 0 ? record.year[0] : null;
     
-    console.log('=== RECORD CLICK TRACKING ===');
-    console.log('About to call trackRecordView with event_type: view_record');
-    console.log('Collection ID:', collection_id, 'Record AN:', an);
     
     trackRecordView(parseInt(collection_id), an, {
       dbid: dbid,

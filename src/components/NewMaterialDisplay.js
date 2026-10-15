@@ -9,7 +9,7 @@ import SubjectSort from './SubjectSort';
 import DateSort from './DateSort';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import CollectionsModal from './CollectionsModal';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import LinesEllipsis from 'react-lines-ellipsis';
@@ -28,11 +28,11 @@ function NewMaterialDisplay(props) {
         setImageRefreshKey((prevKey) => prevKey + 1);
       };
 
-    const [loggedIn, baseUrl, setCollectionAn] = useStore(state => [
+    const [loggedIn, baseUrl, setCollectionAn] = useStore(useShallow(state => [
         state.loggedIn,
         state.baseUrl,
         state.setCollectionAn
-      ], shallow)
+      ]))
 
     const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);

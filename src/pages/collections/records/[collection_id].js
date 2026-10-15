@@ -8,7 +8,7 @@ import { useFetchPublicCollectionDetails } from '../../../hooks/useFetchPublicCo
 import PublicCollectionsRecordDisplay from '../../../components/PublicCollectionsRecordDisplay';
 import FollowButton from '../../../components/FollowButton';
 import { useStore } from '../../../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useTracking } from '../../../hooks/useTracking';
 
 const LIMIT = 50;
@@ -22,14 +22,11 @@ function CollectionRecords() {
   const { trackCollectionView, trackLoadMore } = useTracking();
 
   // Store state for handling record modal
-  const [setAn, setDbid, setRecordModal] = useStore(
-    (state) => [
+  const [setAn, setDbid, setRecordModal] = useStore(useShallow((state) => [
       state.setAn,
       state.setDbid,
       state.setRecordModal,
-    ],
-    shallow
-  );
+    ]));
 
   // Store the initial URL and modal params when component mounts
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useLazyQuery } from '@apollo/client';
 import { GET_BROWSE } from '../../lib/api';
 import { useStore } from '../../store/store'
 import MaterialDisplay from '../../components/MaterialDisplay';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 function All() {
     const [loadMore, setLoadMore] = useState(false);
@@ -37,7 +37,7 @@ function All() {
         allAction,
         setAllRefine,
         fieldCode
-    ] = useStore(state => [
+    ] = useStore(useShallow(state => [
         state.query,
         state.setAllData,
         state.setAllFacets,
@@ -66,7 +66,7 @@ function All() {
         state.allAction,
         state.setAllRefine,
         state.fieldCode
-    ], shallow)
+    ]))
 
   useEffect(() => {
     setShouldRefetch(true);

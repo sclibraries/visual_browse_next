@@ -4,7 +4,7 @@ import { useStore } from '../../store/store';
 import {useFetchFavoriteData} from '../../hooks/useFetchFavoriteData';
 import { GET_RECORD } from '../../lib/api';
 import { useQuery } from '@apollo/client';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'react-toastify';
 // import axios from 'axios';
 import { Table } from 'reactstrap'
@@ -20,10 +20,7 @@ const LIMIT = 20; // The number of records to fetch per page
 
 // Add this just above function Favorites()
 function FavoriteRow({ an, dbid, folio_id, handleDeleteRecord }) {
-  const [setAn, setDbid, setRecordModal] = useStore(
-    state => [state.setAn, state.setDbid, state.setRecordModal],
-    shallow
-  )
+  const [setAn, setDbid, setRecordModal] = useStore(useShallow(state => [state.setAn, state.setDbid, state.setRecordModal]))
   const [imageError, setImageError] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const { loading, error, data } = useQuery(GET_RECORD, { variables: { an, dbid } })

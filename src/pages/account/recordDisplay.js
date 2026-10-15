@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client';
 import { GET_RECORD } from '../../lib/api';
 import { useStore } from '../../store/store';
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import Image from 'next/image'
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook, faUpload } from '@fortawesome/free-solid-svg-icons';
 
 function RecordDisplay({ an, dbid, folio_id, router, id, handleDeleteRecord, collection_id, isDraggable = false }){
-    const [setAn, setDbid, setRecordModal, collectionCoverImage, baseUrl, updateCollection, setCollectionCoverImage] = useStore(state => [
+    const [setAn, setDbid, setRecordModal, collectionCoverImage, baseUrl, updateCollection, setCollectionCoverImage] = useStore(useShallow(state => [
         state.setAn,
         state.setDbid,
         state.setRecordModal,
@@ -20,7 +20,7 @@ function RecordDisplay({ an, dbid, folio_id, router, id, handleDeleteRecord, col
         state.baseUrl,
         state.updateCollection,
         state.setCollectionCoverImage
-    ], shallow)
+    ]))
 
   const { loading, error, data } = useQuery(GET_RECORD, {
     variables: {

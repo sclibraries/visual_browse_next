@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Slider from '@mui/material/Slider';
 import moment from 'moment';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 function DateSlider() {
   const currentYear = moment().year();
@@ -13,11 +13,11 @@ function DateSlider() {
     setMovieFacetAction,
     setAllFacetAction,
     setShouldRefetch
-] = useStore((state) => [
+] = useStore(useShallow((state) => [
     state.setBookFacetAction, 
     state.setMovieFacetAction,
     state.setAllFacetAction,
-    state.setShouldRefetch], shallow);
+    state.setShouldRefetch]));
 
   useEffect(() => {
     setBookFacetAction(`addLimiter(DT1%3A${dateRange[0]}-01/${dateRange[1]}-12)`);

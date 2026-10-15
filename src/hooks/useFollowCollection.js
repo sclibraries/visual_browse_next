@@ -1,15 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Custom hook for following/unfollowing collections
  */
 export const useFollowCollection = () => {
-  const [baseUrl, loggedIn] = useStore(
-    (state) => [state.baseUrl, state.loggedIn],
-    shallow
-  );
+  const [baseUrl, loggedIn] = useStore(useShallow((state) => [state.baseUrl, state.loggedIn]));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,9 +15,7 @@ export const useFollowCollection = () => {
    * Check if user is following a collection
    */
   const checkFollowStatus = useCallback(async (collectionId) => {
-    console.log('useFollowCollection - checkFollowStatus called for collection:', collectionId);
     if (!loggedIn) {
-      console.log('useFollowCollection - User not logged in, returning false');
       return false;
     }
 
@@ -34,12 +29,10 @@ export const useFollowCollection = () => {
       });
 
       if (!response.ok) {
-        console.log('useFollowCollection - Check response not OK:', response.status, response.statusText);
         throw new Error(`Failed to check follow status: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('useFollowCollection - Check response data:', data);
       return data.isFollowing;
     } catch (err) {
       console.error('Error checking follow status:', err);
@@ -51,11 +44,8 @@ export const useFollowCollection = () => {
    * Follow a collection
    */
   const followCollection = useCallback(async (collectionId) => {
-    console.log('useFollowCollection - followCollection called');
-    console.log('useFollowCollection - loggedIn:', loggedIn);
     
     if (!loggedIn) {
-      console.log('useFollowCollection - User not logged in');
       throw new Error('User must be logged in to follow collections');
     }
 
@@ -136,9 +126,7 @@ export const useFollowCollection = () => {
    * Get collections followed by current user
    */
   const getFollowedCollections = useCallback(async (page = 1, limit = 50) => {
-    console.log('useFollowCollection - getFollowedCollections called');
     if (!loggedIn) {
-      console.log('useFollowCollection - User not logged in, returning null');
       return null;
     }
 
@@ -147,7 +135,6 @@ export const useFollowCollection = () => {
 
     try {
       const url = `${baseUrl}/following_collection/user/following?page=${page}&limit=${limit}`;
-      console.log('useFollowCollection - Fetching from:', url);
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
@@ -157,12 +144,10 @@ export const useFollowCollection = () => {
       });
 
       if (!response.ok) {
-        console.log('useFollowCollection - getFollowedCollections response not OK:', response.status, response.statusText);
         throw new Error(`Failed to fetch followed collections: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('useFollowCollection - getFollowedCollections response data:', data);
       return data;
     } catch (err) {
       console.error('Error fetching followed collections:', err);

@@ -6,7 +6,7 @@ const SafeImage = ({ src, alt, fill, style, className, onError, ...props }) => {
   const [isNextImageError, setIsNextImageError] = useState(false);
 
   const handleError = (error) => {
-    console.log('Image error:', error);
+    console.error('Image error:', error);
     setHasError(true);
     if (onError) {
       onError();
@@ -14,7 +14,7 @@ const SafeImage = ({ src, alt, fill, style, className, onError, ...props }) => {
   };
 
   const handleNextImageError = () => {
-    console.log('Next.js Image error - falling back to img tag');
+    console.error('Next.js Image error - falling back to img tag');
     setIsNextImageError(true);
   };
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useStore } from '../../../store/store';
 import { DisplayImage } from '../../../components/DisplayImage';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { DisplayLoadingSkeleton } from '../../../components/Loading';
 
 function CollectionRecords() {
@@ -13,11 +13,11 @@ function CollectionRecords() {
     const router = useRouter();
     const id = router.query.collection_id
 
-    const [setAn,setDbid,setRecordModal] = useStore(state => [
+    const [setAn,setDbid,setRecordModal] = useStore(useShallow(state => [
         state.setAn,
         state.setDbid,
         state.setRecordModal
-      ], shallow)
+      ]))
 
     useEffect(() => {
         if(id){

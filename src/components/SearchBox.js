@@ -2,7 +2,7 @@ import  { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useStore } from '../store/store';
 import {  Form, Input, Button } from 'reactstrap';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import FieldCodes from './FieldCodes';
 
 const {
@@ -29,7 +29,7 @@ function SearchBox() {
     // Add these to check existing data
     allData,
     allHits
-  ] = useStore((state) => [
+  ] = useStore(useShallow((state) => [
     state.setQuery, 
     state.searchValue, 
     state.setSearchValue,
@@ -42,15 +42,15 @@ function SearchBox() {
     // Add existing data check
     state.allData,
     state.allHits
-  ], shallow);
+  ]));
 
   const [
     setShouldRefetch, 
     setMovieRefine
-  ] = useStore((state) => [
+  ] = useStore(useShallow((state) => [
     state.setShouldRefetch, 
     state.setMovieRefine
-  ], shallow);
+  ]));
 
     // Function to update the query string
   

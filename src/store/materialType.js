@@ -145,8 +145,6 @@ export const createMaterialStore = (set, get, type) => {
 
     // This function ensures you're updating only the specific type's state
     const updateTypeState = (partialState) => {
-        console.log("Previous State:", get()[type]);
-        console.log("Partial Update:", partialState);
         
         set(prevState => ({
             [type]: {

@@ -7,7 +7,6 @@
 // Keep this file until the new routes are created and wired. After that, replace with redirects or remove.
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '../../store/store'
-// import { shallow } from 'zustand/shallow'
 import { useRouter } from 'next/router';
 import AdminLayout from '../../layouts/AdminLayout';
 import { useFetchAccountData } from '../../hooks/useFetchAccountData';
@@ -263,7 +262,6 @@ const CollectionsPage = () => {
           setSelectedCollection(updatedCollections[0] || null);
         }
       } catch (error) {
-        console.log(error)
         toast.error(error?.response?.data?.message|| 'Error deleting collection');
         console.error('Error deleting collection:', error);
       }

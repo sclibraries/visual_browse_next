@@ -2,7 +2,7 @@ import { useEffect, useState} from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import MaterialDisplay from '../../components/MaterialDisplay'
 
 
@@ -39,7 +39,7 @@ function Movies() {
         movieAction,
         setMovieRefine,
         fieldCode
-    ] = useStore(state => [
+    ] = useStore(useShallow(state => [
         state.query,
         state.setMovieData,
         state.setMovieFacets,
@@ -68,7 +68,7 @@ function Movies() {
         state.movieAction,
         state.setMovieRefine,
         state.fieldCode
-    ], shallow)
+    ]))
 
     useEffect(() => {
         setShouldRefetch(true);
@@ -164,7 +164,6 @@ function Movies() {
     }
 
     const handleSelectGenre = (genre) => {
-        console.log(genre)
         setMovieFacetAction(`addfacetfilter(SubjectEDS:${genre})`)
         setShouldRefetch(true);
     }

@@ -19,7 +19,6 @@ export const useFetchAccountData = () => {
       try {
         setLoading(true);
         const userResponse = await axios.get(`${baseUrl}/account/get-user-data`, { withCredentials: true });
-        console.log('useFetchAccountData - userResponse.data:', userResponse.data);
         setUser(userResponse.data);
 
         const collectionResponse = await axios.get(`${baseUrl}/collection_name/read-all`, { withCredentials: true });

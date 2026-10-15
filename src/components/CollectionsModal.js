@@ -50,7 +50,6 @@ const getCollectionRecordsId = (collectionId) => {
                     <tbody>
                         {collections.map((collection, index) => {
                             const collectionRecordsId = getCollectionRecordsId(collection.collection_id);
-                            console.log(collectionRecordsId)
                             return(
                             <tr key={index}>
                             <td>{collection.name}</td>

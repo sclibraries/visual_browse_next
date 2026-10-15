@@ -8,15 +8,12 @@ import { Card, CardBody, CardTitle, Nav, NavItem, NavLink, TabContent, TabPane, 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers, faHeart, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { useFollowCollection } from '../../hooks/useFollowCollection';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthRedirect } from '../../hooks/useAuthRedirect';
 
 const AccountFollowing = () => {
   const router = useRouter();
-  const [baseUrl, user] = useStore(
-    (state) => [state.baseUrl, state.user],
-    shallow
-  );
+  const [baseUrl, user] = useStore(useShallow((state) => [state.baseUrl, state.user]));
   const { ready, authorized } = useAuthRedirect();
 
   const [activeTab, setActiveTab] = useState('following');

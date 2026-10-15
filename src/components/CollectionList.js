@@ -17,7 +17,7 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import NewCollectionForm from './NewCollectionForm';
@@ -30,9 +30,9 @@ function CollectionList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const [collections, setCollections, baseUrl, setCollectionRecordId, setCollectionRecordName, updateCollection, setCollectionCoverImage] = useStore((state) => [
+  const [collections, setCollections, baseUrl, setCollectionRecordId, setCollectionRecordName, updateCollection, setCollectionCoverImage] = useStore(useShallow((state) => [
     state.collections, state.setCollections, state.baseUrl, state.setCollectionRecordId, state.setCollectionRecordName, state.updateCollection, state.setCollectionCoverImage
-  ], shallow);
+  ]));
 
   const handleEdit = (collectionId) => {
     setIsEditing(collectionId);
@@ -89,7 +89,7 @@ function CollectionList() {
         });
       }
     } catch (error) {
-      console.log(error.response.data.message)
+      console.error(error.response.data.message)
         toast.error(`${error.response.data.message}`, {
           autoClose: false,
           position: "top-right"

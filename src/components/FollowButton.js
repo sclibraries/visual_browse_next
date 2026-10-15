@@ -2,17 +2,14 @@ import { useState, useEffect } from 'react';
 import { Button, Spinner, Alert } from 'reactstrap';
 import { useFollowCollection } from '../hooks/useFollowCollection';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Follow/Unfollow button component for collections
  * Only shows for logged-in users
  */
 const FollowButton = ({ collectionId, className = "" }) => {
-  const [loggedIn] = useStore(
-    (state) => [state.loggedIn],
-    shallow
-  );
+  const [loggedIn] = useStore(useShallow((state) => [state.loggedIn]));
   
   const [isFollowing, setIsFollowing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -45,8 +42,6 @@ const FollowButton = ({ collectionId, className = "" }) => {
   }
 
   const handleFollowToggle = async () => {
-    console.log('FollowButton - handleFollowToggle called');
-    console.log('FollowButton - loggedIn:', loggedIn);
     
     try {
       if (isFollowing) {

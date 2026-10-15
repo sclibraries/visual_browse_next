@@ -10,7 +10,7 @@ import {
 } from "reactstrap";
 import Facets from "./Facets";
 import RecordCoverImage from './RecordCoverImage';
-import { shallow } from "zustand/shallow";
+import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { useRouter } from "next/router";
 import DateSlider from "./DateSlider";
@@ -51,8 +51,7 @@ function MaterialDisplay(props) {
     baseUrl,
     setCollectionAn,
     setCollectionDbid,
-  ] = useStore(
-    (state) => [
+  ] = useStore(useShallow((state) => [
       state.setAn,
       state.setDbid,
       state.setMaterial,
@@ -63,9 +62,7 @@ function MaterialDisplay(props) {
       state.baseUrl,
       state.setCollectionAn,
       state.setCollectionDbid,
-    ],
-    shallow
-  );
+    ]));
 
   const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);

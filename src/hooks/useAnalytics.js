@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Custom hook for fetching analytics data
  */
 export const useAnalytics = () => {
-  const [baseUrl, loggedIn] = useStore(
-    (state) => [state.baseUrl, state.loggedIn],
-    shallow
-  );
+  const [baseUrl, loggedIn] = useStore(useShallow((state) => [state.baseUrl, state.loggedIn]));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

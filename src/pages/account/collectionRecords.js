@@ -1,6 +1,6 @@
 import  { useState, useEffect } from 'react';
 import { useStore } from '../../store/store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useRouter } from 'next/router';
 import { useFetchCollectionRecords } from '../../hooks/useFetchCollectionRecords';
 import RecordDisplay from './recordDisplay'
@@ -15,9 +15,9 @@ const LIMIT = 10; // Example limit value, adjust it as needed
 function CollectionRecords() {
   const router = useRouter();
     const { ready, authorized } = useAuthRedirect();
-  const [collectionCoverImage] = useStore(state => [
+  const [collectionCoverImage] = useStore(useShallow(state => [
     state.collectionCoverImage
-  ], shallow)
+  ]))
 
     const { deleteCollectionRecord } = useAdminApi();
   // Wait for the collection to be set in the query params

@@ -50,7 +50,6 @@ function NewCollectionForm({ onCancel }) {
 
       const response = await axios.post(`${baseUrl}/collection_name/create`, collectionWithSubjects, { withCredentials: true });
       
-      console.log('New collection created:', response.data);
       if (response.data && typeof response.data === 'object') {
         // Update Zustand store with new collection
         addCollection(response.data);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
-import { shallow } from 'zustand/shallow'
+import { useShallow } from 'zustand/react/shallow'
 import MaterialDisplay from '../../components/MaterialDisplay'
 
 function Books() {
@@ -37,7 +37,7 @@ function Books() {
         bookAction,
         setBookRefine,
         fieldCode
-    ] = useStore(state => [
+    ] = useStore(useShallow(state => [
         state.query,
         state.setBookData,
         state.setBookFacets,
@@ -66,13 +66,12 @@ function Books() {
         state.bookAction,
         state.setBookRefine,
         state.fieldCode
-    ], shallow)
+    ]))
 
     useEffect(() => {
         setShouldRefetch(true)
     }, [])
 
-    console.log(bookGenres)
 
     useEffect(() => {
         if (shouldRefetch) {

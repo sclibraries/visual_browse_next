@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 const useUpdateQueryString = (originalQueryString, facetAction) => {
   const [updatedQueryString, setUpdatedQueryString] = useState(originalQueryString);
 
-  console.log('originalQueryString', originalQueryString);
-    console.log('facetAction', facetAction);
 
   useEffect(() => {
     const updateQueryString = () => {
@@ -37,7 +35,6 @@ const useUpdateQueryString = (originalQueryString, facetAction) => {
     updateQueryString();
   }, [originalQueryString, facetAction]);
 
-  console.log('updatedQueryString', updatedQueryString)
   return updatedQueryString;
 };
 

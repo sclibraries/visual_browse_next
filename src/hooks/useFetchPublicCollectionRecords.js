@@ -34,7 +34,7 @@ export const useFetchCollectionRecords = (limit, collection_id) => {
                 }
             }
         } catch (error) {
-            console.log(error)
+            console.error(error)
             toast.error('Error fetching collection records');
             setError(error);
         } finally {

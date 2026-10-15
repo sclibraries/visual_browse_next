@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import { useRouter } from 'next/router';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { Collapse } from 'reactstrap';
 import Select from 'react-select';
 import Slider from '@mui/material/Slider';
@@ -336,17 +336,14 @@ function SqlCollectionPage() {
   const searchParam = Array.isArray(router.query.search) ? router.query.search[0] : router.query.search;
   const collectionSearchQuery = decodeQueryValue(searchParam);
 
-  const [setAn, setDbid, setRecordModal, setIsStreaming, setIsStreamingImageUrl, setRecordImageOverride] = useStore(
-    (state) => [
+  const [setAn, setDbid, setRecordModal, setIsStreaming, setIsStreamingImageUrl, setRecordImageOverride] = useStore(useShallow((state) => [
       state.setAn,
       state.setDbid,
       state.setRecordModal,
       state.setIsStreaming,
       state.setIsStreamingImageUrl,
       state.setRecordImageOverride,
-    ],
-    shallow,
-  );
+    ]));
 
   const { data: configData } = useQuery(GET_COLLECTION_CONFIG_V2, {
     variables: { slug },
