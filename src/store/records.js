@@ -1,6 +1,7 @@
 const initialState = {
     an: '',
     dbid: '',
+    recordImageOverride: '',
     material: '',
     recordData: [],
     collectionNames: [],
@@ -15,6 +16,7 @@ export const createRecordsStore = (set) => ({
     ...initialState,
     setAn: (an) => set({ an }),
     setDbid: (dbid) => set({ dbid }),
+    setRecordImageOverride: (recordImageOverride) => set({ recordImageOverride }),
     setMaterial: (material) => set({ material }),
     setRecordData: (recordData) => set({ recordData }),
     setCollectionNames: (collectionNames) => set({ collectionNames }),

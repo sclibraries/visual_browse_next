@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Row, Col } from 'reactstrap';
 import { decode } from 'html-entities';
 import Image from 'next/image';
@@ -5,6 +6,55 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook } from '@fortawesome/free-solid-svg-icons';
 
 const RecordDetailsModal = ({ isOpen, toggle, recordData, image }) => {
+  const [imageAspectRatio, setImageAspectRatio] = useState(2 / 3);
+
+  useEffect(() => {
+    const type = String(recordData?.pubType || '').toLowerCase();
+    const fallbackAspectRatio =
+      type.includes('sound recording') ||
+      type.includes('audio') ||
+      type.includes('music') ||
+      type.includes('compact disc') ||
+      type.includes('cd')
+        ? 1
+        : 2 / 3;
+
+    if (!image) {
+      setImageAspectRatio(fallbackAspectRatio);
+      return;
+    }
+
+    let cancelled = false;
+    const probe = new window.Image();
+    probe.onload = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const width = probe.naturalWidth || 0;
+      const height = probe.naturalHeight || 0;
+      if (!width || !height) {
+        setImageAspectRatio(fallbackAspectRatio);
+        return;
+      }
+
+      const detectedRatio = width / height;
+      setImageAspectRatio(Math.min(Math.max(detectedRatio, 0.55), 1.4));
+    };
+
+    probe.onerror = () => {
+      if (!cancelled) {
+        setImageAspectRatio(fallbackAspectRatio);
+      }
+    };
+
+    probe.src = image;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [image, recordData?.pubType]);
+
   if (!recordData || !recordData.itemsRaw) {
     return (
       <Modal isOpen={isOpen} toggle={toggle} size="lg">
@@ -43,28 +93,36 @@ const RecordDetailsModal = ({ isOpen, toggle, recordData, image }) => {
           {/* Left column - Image and basic info */}
           <Col md="4">
             <div className="text-center mb-3">
-              {image ? (
-                <Image
-                  src={image}
-                  alt={titleFull}
-                  width={200}
-                  height={300}
-                  style={{ objectFit: 'cover', borderRadius: '8px' }}
-                  unoptimized={true}
-                />
-              ) : (
-                <div 
-                  className="d-flex align-items-center justify-content-center bg-light"
-                  style={{ 
-                    width: '200px', 
-                    height: '300px', 
-                    borderRadius: '8px',
-                    margin: '0 auto'
-                  }}
-                >
-                  <FontAwesomeIcon icon={faBook} size="3x" style={{ color: "#adb5bd" }} />
-                </div>
-              )}
+              <div
+                style={{
+                  width: '220px',
+                  maxWidth: '100%',
+                  aspectRatio: `${imageAspectRatio} / 1`,
+                  margin: '0 auto',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  backgroundColor: '#f8f9fa',
+                }}
+              >
+                {image ? (
+                  <Image
+                    src={image}
+                    alt={titleFull}
+                    fill
+                    sizes="220px"
+                    style={{ objectFit: 'contain' }}
+                    unoptimized={true}
+                  />
+                ) : (
+                  <div
+                    className="d-flex align-items-center justify-content-center bg-light"
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <FontAwesomeIcon icon={faBook} size="3x" style={{ color: '#adb5bd' }} />
+                  </div>
+                )}
+              </div>
             </div>
             
             <h5 className="mb-3">{titleFull}</h5>

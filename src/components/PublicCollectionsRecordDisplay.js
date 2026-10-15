@@ -1,9 +1,10 @@
+import RecordBadges from './RecordBadges';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_RECORD } from '../lib/api';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow';
-import Image from 'next/image';
+import RecordCoverImage from './RecordCoverImage';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -18,6 +19,8 @@ import { useRecordImage } from '../hooks/useRecordImage';
 import ImageUploadModal from './ImageUploadModal';
 import LinesEllipsis from 'react-lines-ellipsis';
 import { useTracking } from '../hooks/useTracking';
+
+const { getPlaceholderCoverConfig } = require('../utils/placeholderCover.cjs');
 
 function PublicCollectionsRecordDisplay(props) {
   const router = useRouter();
@@ -249,49 +252,16 @@ return (
         </button>
       </ModalFooter>
     </Modal>
-    <div className="image-container" aria-hidden="true" onClick={() => handleImageClick(an, dbid)} style={{ position: 'relative' }}>
+    <div className="image-container" onClick={() => handleImageClick(an, dbid)} style={{ position: 'relative' }}>
       {image !== '' ? (
-        <Image
-          src={image}
-          alt={titleFull}
-          layout="responsive"
-          width={500}
-          height={300}
-          className="rounded card-img-top"
-          objectFit="contain"
-          unoptimized={true}
-          style={{ cursor: 'pointer' }}
-        />
+        <RecordCoverImage src={image} alt={titleFull} />
       ) : (
-        <PlaceholderCover 
+        <PlaceholderCover
+          {...getPlaceholderCoverConfig({ materialType: getMaterialType(record)?.label, pubType: record?.pubType })}
           ariaLabel={`No cover for ${titleFull}`}
-          icon={(() => {
-            const label = (getMaterialType(record)?.label || '').toLowerCase();
-            return (label.includes('video') || label.includes('movie') || label.includes('dvd') || label.includes('film')) ? '🎬' : '📚';
-          })()}
         />
       )}
-      {isOpenAccess && (
-        <div style={{
-          position: 'absolute',
-          top: '8px',
-          left: '8px',
-          backgroundColor: '#28a745',
-          color: 'white',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '0.75rem',
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          zIndex: 10
-        }}>
-          <span style={{ fontSize: '0.8em' }}>🔓</span>
-          <span>OPEN ACCESS</span>
-        </div>
-      )}
+      <RecordBadges record={record} isOpenAccess={isOpenAccess} />
     </div>
     <div className="card-info">
       <div className="record-title" id={`titleTooltip-${sanitizedAn}`}>

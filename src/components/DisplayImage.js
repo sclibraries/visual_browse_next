@@ -1,12 +1,14 @@
 import { useQuery } from '@apollo/client';
 import { GET_RECORD } from '../lib/api';
-import Image from 'next/image';
+import RecordCoverImage from './RecordCoverImage';
 import { useRecordImage } from '../hooks/useRecordImage';
 import PlaceholderCover from './PlaceholderCover';
 import { getMaterialType } from '../utils/materialTypeUtils';
 import { useEffect } from 'react';
 
-export const DisplayImage = ({ an, refresh }) => {
+const { getPlaceholderCoverConfig } = require('../utils/placeholderCover.cjs');
+
+export const DisplayImage = ({ an, refresh, materialType: materialTypeHint, collectionSlug }) => {
   const anVariable = an ? an.replace(/-/g, '.') : '';
   const { data, error, loading, refetch } = useQuery(GET_RECORD, {
     variables: {
@@ -71,27 +73,16 @@ export const DisplayImage = ({ an, refresh }) => {
   }
 
   // Render image or placeholder
-  const materialType = record ? getMaterialType(record) : null;
+  const materialType = materialTypeHint || (record ? getMaterialType(record)?.label : '');
+  const placeholderCover = getPlaceholderCoverConfig({
+    materialType,
+    pubType: record?.pubType,
+    collectionSlug,
+  });
 
   return imageUrl && imageUrl !== '' ? (
-    <Image
-      src={imageUrl}
-      alt={title}
-      fill
-      className="rounded card-img-top"
-      style={{ objectFit: 'contain' }}
-      unoptimized={true}
-      onError={() => {
-        // Intentionally no-op; hook will not change. Fallback handled when no URL.
-      }}
-    />
+    <RecordCoverImage src={imageUrl} alt={title} />
   ) : (
-    <PlaceholderCover 
-      ariaLabel={`No cover for ${title}`}
-      icon={(() => {
-        const label = materialType?.label?.toLowerCase() || '';
-        return (label.includes('video') || label.includes('movie') || label.includes('dvd') || label.includes('film')) ? '🎬' : '📚';
-      })()}
-    />
+    <PlaceholderCover {...placeholderCover} ariaLabel={`No cover for ${title}`} />
   );
 };

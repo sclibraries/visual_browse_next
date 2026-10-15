@@ -12,7 +12,7 @@ import LinesEllipsis from 'react-lines-ellipsis';
 import Image from 'next/image'
 import LocalCollectionLayout from '../layouts/LocalCollectionLayout';
 
-function LocalCollectionItem({ instance, isFavorite, loggedIn, onViewDetails, onToggleFavorite, onToggleCollection }) {
+function LocalCollectionItem({ instance, isFavorite, loggedIn, onViewDetails, onToggleFavorite, onToggleCollection, collectionSlug }) {
   const imageUrl = instance?.uriImage || '';
   const title = instance?.title || 'No Title';
   const handleClick = () => onViewDetails(imageUrl || '');
@@ -31,7 +31,7 @@ function LocalCollectionItem({ instance, isFavorite, loggedIn, onViewDetails, on
           />
         ) : (
           // Use DisplayImage for server-side lookup; it will fallback to PlaceholderCover
-          <DisplayImage an={instance.id} />
+          <DisplayImage an={instance.id} materialType={instance?.materialType} collectionSlug={collectionSlug} />
         )}
       </div>
       <div className="card-info">
@@ -68,7 +68,7 @@ function LocalCollectionItem({ instance, isFavorite, loggedIn, onViewDetails, on
 
 function LocalCollectionDisplay(props){
 
-    const { instances, page, totalRecords, limit, loadMore, handleLazyLoad, handleRecord } = props;
+  const { instances, page, totalRecords, limit, loadMore, handleLazyLoad, handleRecord, headerContent } = props;
     const [favorites, setFavorites] = useState({});
     const [collectionModal, setCollectionModal] = useState(false);
 
@@ -159,6 +159,7 @@ function LocalCollectionDisplay(props){
                             <p>Results: <strong>{props.totalRecords}</strong></p>
                         </div>
                     </div>
+                  {headerContent ? <div className="px-2 pb-3">{headerContent}</div> : null}
                     {props.loading ? (
                        <div className="records-grid">
                                  {[...Array(20)].map((_, i) => (
@@ -174,12 +175,16 @@ function LocalCollectionDisplay(props){
                                            <span className="placeholder col-7"></span>
                                          </div>
                                        </div>
+                                       <div className="placeholder-glow mb-1">
+                                         <span className="placeholder col-5" style={{height: '18px', borderRadius: '4px'}}></span>
+                                       </div>
                                        <div className="placeholder-glow">
-                                         <span className="placeholder col-10" style={{height: '40px', borderRadius: '8px'}}></span>
+                                         <span className="placeholder col-10" style={{height: '34px', borderRadius: '8px'}}></span>
                                        </div>
                                        {loggedIn ? (
                                        <div className="interaction-icons">
                                          <div className="placeholder-glow d-flex gap-2">
+                                           <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
                                            <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
                                            <span className="placeholder rounded-circle" style={{width: '24px', height: '24px'}}></span>
                                          </div>
@@ -201,6 +206,7 @@ function LocalCollectionDisplay(props){
                                 instance={instance}
                                 isFavorite={isFavorite}
                                 loggedIn={loggedIn}
+                                collectionSlug={props.collectionSlug}
                                 onViewDetails={(img) => handleRecord(instance.id, img)}
                                 onToggleFavorite={() => toggleFavorite(instance.id)}
                                 onToggleCollection={() => toggleCollectionModal(instance.id)}

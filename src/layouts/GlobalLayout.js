@@ -9,17 +9,23 @@ import { ToastContainer } from 'react-toastify';
 
 export default function GlobalLayout({ children }) {
   const router = useRouter();
-  const [recordModal, setRecordModal, setAn, setDbid] = useStore(state => [
+  const [recordModal, setRecordModal, setAn, setDbid, setRecordImageOverride] = useStore(state => [
     state.recordModal,
     state.setRecordModal,
     state.setAn,
-    state.setDbid
+    state.setDbid,
+    state.setRecordImageOverride,
   ], shallow)
 
   useEffect(() => {
     if (router.query.an && router.query.dbid) {
       setAn(router.query.an)
       setDbid(router.query.dbid)
+      if (typeof router.query.img === 'string') {
+        setRecordImageOverride(decodeURIComponent(router.query.img))
+      } else {
+        setRecordImageOverride('')
+      }
       setRecordModal(true)
     }
     // Function to run when the route changes
@@ -28,6 +34,7 @@ export default function GlobalLayout({ children }) {
       if (!newRoute.searchParams.has('an') && !newRoute.searchParams.has('dbid')) {
         // Close the modal if the 'record' query parameter is not present
         setRecordModal(false);
+        setRecordImageOverride('');
       }
     };
 
@@ -38,7 +45,7 @@ export default function GlobalLayout({ children }) {
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
     };
-  }, [router, setRecordModal]);
+  }, [router, setAn, setDbid, setRecordImageOverride, setRecordModal]);
 
   const toggleModal = () => setRecordModal(!recordModal);
  

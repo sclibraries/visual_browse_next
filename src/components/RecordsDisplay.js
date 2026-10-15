@@ -1,3 +1,4 @@
+import RecordBadges from './RecordBadges';
 import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow';
@@ -19,7 +20,7 @@ import { useRemoveFromCollection } from '../hooks/useRemoveFromCollection';
 import { getTitleString } from '../lib/functions';
 import NewCollectionForm from './NewCollectionForm';
 import CallNumberBrowse from './CallNumberBrowse';
-import Image from 'next/image';
+import RecordCoverImage from './RecordCoverImage';
 import { useRouter } from 'next/router';
 
 // Import the custom hook and other necessary components
@@ -27,6 +28,8 @@ import { useRecordImage } from '../hooks/useRecordImage';
 import ImageUploadModal from './ImageUploadModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
+
+const { isEbook } = require('../utils/ebook.cjs');
 
 function RecordsDisplay() {
   const containerRef = useRef(null);
@@ -36,6 +39,7 @@ function RecordsDisplay() {
     recordData,
     an,
     dbid,
+    recordImageOverride,
     loggedIn,
     currentCollections,
     collections,
@@ -47,6 +51,7 @@ function RecordsDisplay() {
       state.recordData,
       state.an,
       state.dbid,
+      state.recordImageOverride,
       state.loggedIn,
       state.currentCollections,
       state.collections,
@@ -78,6 +83,7 @@ function RecordsDisplay() {
   
   // State for responsive design
   const [isMobile, setIsMobile] = useState(false);
+  const [imageAspectRatio, setImageAspectRatio] = useState(2 / 3);
   
   // Check for mobile on mount and resize
   useEffect(() => {
@@ -90,6 +96,21 @@ function RecordsDisplay() {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const getFallbackAspectRatio = useCallback(() => {
+    const type = String(recordData?.pubType || '').toLowerCase();
+    if (
+      type.includes('sound recording') ||
+      type.includes('audio') ||
+      type.includes('music') ||
+      type.includes('compact disc') ||
+      type.includes('cd')
+    ) {
+      return 1;
+    }
+
+    return 2 / 3;
+  }, [recordData?.pubType]);
 
   const toggleImageUploadModal = () => {
     setImageUploadModalOpen(!imageUploadModalOpen);
@@ -129,29 +150,9 @@ function RecordsDisplay() {
       }
     }
 
-    // More robust ebook detection
-    const isEbook = (
-      recordData?.pubType === 'eBook' || 
-      recordData?.pdf === true || 
-      recordData?.otherFullText === true ||
-      (recordData?.fullText?.Text?.Availability && recordData.fullText.Text.Availability !== "0") ||
-      // Check if there's a physical description that indicates it's NOT a physical book
-      (recordData?.pubType === 'Book' && 
-       recordData?.urlItem?.length > 0 && 
-       !recordData?.items?.some(item => 
-         item.label === 'Physical Description' && 
-         item.data?.some(desc => 
-           typeof desc === 'string' && 
-           (desc.includes('pages') || desc.includes('cm') || desc.includes('inches'))
-         )
-       ))
-    );
-
-    setHasEbook(isEbook);
-    
-    if (isEbook && recordData?.urlItem && recordData.urlItem.length > 0) {
-      setEbookURL(cleanUrl(recordData.urlItem[0]));
-    }
+    const ebook = isEbook(recordData);
+    setHasEbook(ebook);
+    setEbookURL(ebook && recordData?.urlItem?.length > 0 ? cleanUrl(recordData.urlItem[0]) : '');
   }, [recordData]);
 
   const titleStringDisplay = getTitleString(recordData);
@@ -236,7 +237,53 @@ function RecordsDisplay() {
   }, [handleClick]);
 
   // Use the custom hook to get the image URL
-  const image = useRecordImage(recordData);
+  const resolvedImage = useRecordImage(recordData);
+  const image = recordImageOverride || resolvedImage;
+
+  useEffect(() => {
+    const fallbackAspectRatio = getFallbackAspectRatio();
+
+    if (!image) {
+      setImageAspectRatio(fallbackAspectRatio);
+      return;
+    }
+
+    let cancelled = false;
+    const probe = new window.Image();
+
+    probe.onload = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const width = probe.naturalWidth || 0;
+      const height = probe.naturalHeight || 0;
+
+      if (!width || !height) {
+        setImageAspectRatio(fallbackAspectRatio);
+        return;
+      }
+
+      const detectedRatio = width / height;
+      const boundedRatio = Math.min(Math.max(detectedRatio, 0.55), 1.4);
+      setImageAspectRatio(boundedRatio);
+    };
+
+    probe.onerror = () => {
+      if (!cancelled) {
+        setImageAspectRatio(fallbackAspectRatio);
+      }
+    };
+
+    probe.src = image;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getFallbackAspectRatio, image]);
+
+  const cardWidth = isMobile ? 210 : 300;
+  const frameAspectRatio = imageAspectRatio || getFallbackAspectRatio();
 
   // Check if the record is open access based on SeriesInfo
   const isOpenAccess = recordData?.items?.some(item => 
@@ -276,9 +323,11 @@ function RecordsDisplay() {
           <div style={{ 
             flexShrink: 0,
             position: 'relative',
-            width: isMobile ? '200px' : '280px'
+            width: `${cardWidth}px`,
+            maxWidth: '100%'
           }}>
             <div style={{
+              position: 'relative',
               borderRadius: '12px',
               overflow: 'hidden',
               boxShadow: image && image.length > 0 ? '0 20px 40px rgba(0,0,0,0.4)' : '0 8px 25px rgba(0,0,0,0.15)',
@@ -286,7 +335,8 @@ function RecordsDisplay() {
               cursor: image && image.length > 0 ? 'pointer' : 'default',
               background: image && image.length > 0 ? 'transparent' : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
               border: image && image.length > 0 ? 'none' : '2px dashed #cbd5e1',
-              height: isMobile ? '300px' : '420px',
+              width: '100%',
+              aspectRatio: `${frameAspectRatio} / 1`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -305,14 +355,7 @@ function RecordsDisplay() {
             onBlur={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
               {image && image.length > 0 ? (
-                <Image
-                  src={image}
-                  alt={titleStringDisplay}
-                  width={isMobile ? 200 : 280}
-                  height={isMobile ? 300 : 420}
-                  unoptimized={true}
-                  style={{ display: 'block' }}
-                />
+                <RecordCoverImage src={image} alt={titleStringDisplay} />
               ) : (
                 <div style={{
                   display: 'flex',
@@ -351,29 +394,8 @@ function RecordsDisplay() {
               )}
             </div>
               
-              {/* Badges */}
-              {isOpenAccess && (
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  left: '12px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
-                  zIndex: 10
-                }}>
-                  <span style={{ fontSize: '0.8em' }}>🔓</span>
-                  <span>OPEN ACCESS</span>
-                </div>
-              )}
-              
+              <RecordBadges record={recordData} isOpenAccess={isOpenAccess} />
+
               {/* Upload Button */}
               {loggedIn && (
                 <button

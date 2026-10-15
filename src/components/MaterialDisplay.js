@@ -1,3 +1,4 @@
+import RecordBadges from './RecordBadges';
 import { useState, useEffect } from "react";
 import { getMaterialType } from '../utils/materialTypeUtils'; // Adjust the path as necessary
 import {
@@ -8,7 +9,7 @@ import {
   ModalFooter,
 } from "reactstrap";
 import Facets from "./Facets";
-import Image from "next/image";
+import RecordCoverImage from './RecordCoverImage';
 import { shallow } from "zustand/shallow";
 import { useStore } from "../store/store";
 import { useRouter } from "next/router";
@@ -28,6 +29,8 @@ import ImageUploadModal from "./ImageUploadModal";
 import { useRecordImage } from "../hooks/useRecordImage";
 import PlaceholderCover from "./PlaceholderCover";
 import CollectionsSection from "./CollectionsSection";
+
+const { getPlaceholderCoverConfig } = require('../utils/placeholderCover.cjs');
 
 
 function MaterialDisplay(props) {
@@ -351,38 +354,36 @@ function RecordItem({
   const materialType = getMaterialType(record);
 
   return (
-    <div className="record-item" id={"eds-" + record.an}>
-      <div
-        className="image-container"
-        onClick={(e) => handleRecord(record.an, record.dbid, e)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleRecord(record.an, record.dbid, e);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-        style={{ cursor: "pointer" }}
-      >
+    <div 
+      className="record-item" 
+      id={"eds-" + record.an}
+      onClick={(e) => {
+        // Only trigger if clicking the card itself, not the interaction buttons
+        if (!e.target.closest('.interaction-icons')) {
+          handleRecord(record.an, record.dbid, e);
+        }
+      }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.interaction-icons')) {
+          e.preventDefault();
+          handleRecord(record.an, record.dbid, e);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: "pointer" }}
+      aria-label={`View details for ${titleStringDisplay}`}
+    >
+      <div className="image-container">
         {imageUrl && imageUrl !== '' ? (
-          <Image
-            src={imageUrl}
-            alt={titleStringDisplay}
-            fill
-            className="rounded card-img-top"
-            style={{ objectFit: 'contain' }}
-            unoptimized={true}
-          />
+          <RecordCoverImage src={imageUrl} alt={titleStringDisplay} />
         ) : (
-          <PlaceholderCover 
+          <PlaceholderCover
+            {...getPlaceholderCoverConfig({ materialType: materialType?.label, pubType: record?.pubType })}
             ariaLabel={`No cover for ${titleStringDisplay}`}
-            icon={(() => {
-              const label = materialType?.label?.toLowerCase() || '';
-              return (label.includes('video') || label.includes('movie') || label.includes('dvd') || label.includes('film')) ? '🎬' : '📚';
-            })()}
           />
         )}
+        <RecordBadges record={record} />
       </div>
       <div className="card-info">
         <div className="record-title">
@@ -398,24 +399,15 @@ function RecordItem({
           <FontAwesomeIcon icon={materialType.icon} />
           <span> {materialType.label}</span>
         </div>
-        <button 
-          className="view-details-btn"
-          onClick={(e) => handleRecord(record.an, record.dbid, e)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleRecord(record.an, record.dbid, e);
-            }
-          }}
-          aria-label={"View details for " + titleStringDisplay}
-        >
-          View Details
-        </button>
         {loggedIn ? (
           <div className="interaction-icons">
             <button
               className="icon-button"
-              onClick={() => toggleFavorite(record)}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(record);
+              }}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
               {isFavorite ? (
                 <FontAwesomeIcon
@@ -428,15 +420,21 @@ function RecordItem({
             </button>
             <button
               className="icon-button"
-              onClick={() =>
-                toggleCollectionModal(record.an, record.dbid)
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleCollectionModal(record.an, record.dbid);
+              }}
+              aria-label="Add to collection"
             >
               <FontAwesomeIcon icon={faPlusSquare} />
             </button>
             <button
               className="icon-button"
-              onClick={() => toggleImageUploadModal(record)}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleImageUploadModal(record);
+              }}
+              aria-label="Upload custom image"
             >
               <FontAwesomeIcon icon={faUpload} />
             </button>

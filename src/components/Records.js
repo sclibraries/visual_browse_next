@@ -1,4 +1,3 @@
-import  {useState, useEffect} from 'react'
 import { shallow } from 'zustand/shallow'
 import { useStore } from '../store/store'
 import { GET_RECORD } from '../lib/api'
@@ -10,18 +9,13 @@ import { useRouter } from 'next/router'
 function Records(){
 
     const router = useRouter();
-    const [previousUrl, setPreviousUrl] = useState('');
 
-    useEffect(() => {
-        // Store the current URL when the component mounts
-        setPreviousUrl(router.asPath);
-    }, [router.asPath]);
-
-    const [an, dbid, setRecordData, setRecordModal] = useStore(state => [
+    const [an, dbid, setRecordData, setRecordModal, setRecordImageOverride] = useStore(state => [
         state.an,
         state.dbid,
         state.setRecordData,
-        state.setRecordModal
+        state.setRecordModal,
+        state.setRecordImageOverride,
     ], shallow)
 
     const handleOnComplete = (data) => {
@@ -30,17 +24,20 @@ function Records(){
 
     const handleToggle = () => {
         setRecordModal(false);
+        setRecordImageOverride('');
 
-        // Check if previousUrl contains 'an' or 'dbid'
-        const urlContainsAnOrDbid = previousUrl.includes('an=') || previousUrl.includes('dbid=');
-      
-        if (urlContainsAnOrDbid) {
-          // If it does, redirect to the homepage
-          router.push('/', undefined, { shallow: true });
-        } else {
-          // Otherwise, go to the previousUrl
-          router.push(previousUrl, undefined, { shallow: true });
-        }
+        // Remove 'an' and 'dbid' query parameters from the current URL
+        const currentUrl = new URL(router.asPath, window.location.origin);
+        const searchParams = new URLSearchParams(currentUrl.search);
+        searchParams.delete('an');
+        searchParams.delete('dbid');
+        searchParams.delete('img');
+        
+        // Construct the URL without the record query params
+        const cleanPath = currentUrl.pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
+        
+        // Navigate to the clean URL
+        router.push(cleanPath, undefined, { shallow: true });
     };
 
     const { loading } = useQuery(GET_RECORD, {

@@ -47,6 +47,8 @@ function getInitialImage(record) {
   }
   if (record.imageItem) {
     return record.imageItem;
+  } else if (record.coverImage && record.coverImage.url) {
+    return record.coverImage.url;
   } else if (
     record.tmdbSearch &&
     record.tmdbSearch.results &&
