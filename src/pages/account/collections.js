@@ -17,8 +17,8 @@ import {
   Table, Spinner, Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
   Badge, Modal, ModalHeader, ModalBody
 } from 'reactstrap';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import styles from '../../styles/CollectionsPage.module.css';
 import NewCollectionForm from '../../components/NewCollectionForm';
 import EditCollectionForm from '../../components/EditCollectionForm';
@@ -210,6 +210,38 @@ const CollectionsPage = () => {
       setOriginalRecords([]);
     }
   }, [collectionRecords, hasLocalChanges, setLocalRecords, setOriginalRecords]);
+
+  const [activeId, setActiveId] = useState(null);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragStart = useCallback((event) => {
+    setActiveId(event.active.id);
+  }, []);
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    setActiveId(null);
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = displayRecords.findIndex(record => record.collection_records_id === active.id);
+    const newIndex = displayRecords.findIndex(record => record.collection_records_id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      moveRecord(oldIndex, newIndex, collectionRecords);
+    }
+  }, [displayRecords, moveRecord, collectionRecords]);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
 
   const moveRow = useCallback(async (dragIndex, hoverIndex) => {
     if (!selectedCollection) return;
@@ -924,7 +956,13 @@ const CollectionsPage = () => {
                       </div>
                     )}
                     
-                    <DndProvider backend={HTML5Backend}>
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      onDragCancel={handleDragCancel}
+                    >
                       <div className={styles.tableContainer}>
                         <Table hover responsive className={styles.recordsTable} size="sm">
                           <thead className={styles.stickyHeader}>
@@ -965,35 +1003,41 @@ const CollectionsPage = () => {
                                 </td>
                               </tr>
                             ) : displayRecords.length > 0 ? (
-                              displayRecords.map((record, index) => {
-                                const currentCover = selectedCollection?.cover_image;
-                                return (
-                                  <DraggableRecordRow
-                                    key={record.collection_records_id}
-                                    index={index}
-                                    record={record}
-                                    moveRecord={(from, to) => moveRow(from, to)}
-                                    onDelete={handleDeleteRecord}
-                                    onViewRecord={(rec) => {
-                                      const [setAn, setDbid, setRecordModal] = useStore.getState
-                                        ? [useStore.getState().setAn, useStore.getState().setDbid, useStore.getState().setRecordModal]
-                                        : [null, null, null];
-                                      if (setAn && setDbid && setRecordModal) {
-                                        setAn(rec.eds_id || rec.folio_id);
-                                        setDbid(rec.dbid);
-                                        setRecordModal(true);
-                                      }
-                                    }}
-                                    onSetCoverImage={(img) => handleSetCoverImage(selectedCollection.collection_id, img)}
-                                    isSelected={selectedRecords.includes(record.collection_records_id)}
-                                    onToggleSelect={handleToggleSelect}
-                                    selectedRecords={selectedRecords}
-                                    onMoveToPosition={(pos) => onMoveToPosition(pos)}
-                                    totalRecords={displayRecords.length}
-                                    currentCover={currentCover}
-                                  />
-                                );
-                              })
+                              <SortableContext 
+                                items={displayRecords.map(r => r.collection_records_id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {displayRecords.map((record, index) => {
+                                  const currentCover = selectedCollection?.cover_image;
+                                  return (
+                                    <DraggableRecordRow
+                                      key={record.collection_records_id}
+                                      id={record.collection_records_id}
+                                      index={index}
+                                      record={record}
+                                      moveRecord={(from, to) => moveRow(from, to)}
+                                      onDelete={handleDeleteRecord}
+                                      onViewRecord={(rec) => {
+                                        const [setAn, setDbid, setRecordModal] = useStore.getState
+                                          ? [useStore.getState().setAn, useStore.getState().setDbid, useStore.getState().setRecordModal]
+                                          : [null, null, null];
+                                        if (setAn && setDbid && setRecordModal) {
+                                          setAn(rec.eds_id || rec.folio_id);
+                                          setDbid(rec.dbid);
+                                          setRecordModal(true);
+                                        }
+                                      }}
+                                      onSetCoverImage={(img) => handleSetCoverImage(selectedCollection.collection_id, img)}
+                                      isSelected={selectedRecords.includes(record.collection_records_id)}
+                                      onToggleSelect={handleToggleSelect}
+                                      selectedRecords={selectedRecords}
+                                      onMoveToPosition={(pos) => onMoveToPosition(pos)}
+                                      totalRecords={displayRecords.length}
+                                      currentCover={currentCover}
+                                    />
+                                  );
+                                })}
+                              </SortableContext>
                             ) : (
                               <tr>
                                 <td colSpan={10} className="text-center py-5">
@@ -1007,7 +1051,30 @@ const CollectionsPage = () => {
                           </tbody>
                         </Table>
                       </div>
-                    </DndProvider>
+                      <DragOverlay>
+                        {activeId ? (
+                          <div style={{
+                            backgroundColor: 'white',
+                            border: '2px solid #007bff',
+                            borderRadius: '4px',
+                            padding: '8px',
+                            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                            cursor: 'grabbing',
+                            opacity: 0.9
+                          }}>
+                            {(() => {
+                              const activeRecord = displayRecords.find(r => r.collection_records_id === activeId);
+                              return activeRecord ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <FontAwesomeIcon icon={faGripVertical} />
+                                  <span>{activeRecord.titleFull || 'Dragging item...'}</span>
+                                </div>
+                              ) : null;
+                            })()}
+                          </div>
+                        ) : null}
+                      </DragOverlay>
+                    </DndContext>
                     
                     {/* Infinite scroll sentinel */}
                     <div ref={tableBottomRef} style={{ height: '20px', margin: '20px 0' }} />

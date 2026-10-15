@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
-import { useDrag, useDrop } from 'react-dnd';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import Image from 'next/image';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Spinner } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,8 +20,6 @@ import { useRecordImage } from '../../hooks/useRecordImage';
 import ImageUploadModal from '../ImageUploadModal';
 import RecordDetailsModal from '../RecordDetailsModal';
 import styles from '../../styles/CollectionsPage.module.css';
-
-const ItemTypes = { RECORD: 'record' };
 
 function LoadingRow({ isDragging }) {
   return (
@@ -56,6 +55,7 @@ function ErrorRow({ isDragging, onDelete, record }) {
 }
 
 export default function DraggableRecordRow({
+  id,
   record,
   index,
   moveRecord,
@@ -69,7 +69,6 @@ export default function DraggableRecordRow({
   totalRecords,
   currentCover,
 }) {
-  const ref = useRef(null);
   const [imageError, setImageError] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -85,30 +84,20 @@ export default function DraggableRecordRow({
 
   const handleImageError = () => setImageError(true);
 
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemTypes.RECORD,
-    item: () => {
-      document.body.style.cursor = 'grabbing';
-      return { id: record.collection_records_id, index };
-    },
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
-    end: () => { document.body.style.cursor = 'default'; },
-  });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
 
-  const [{ isDragOver }, drop] = useDrop({
-    accept: ItemTypes.RECORD,
-    hover: (draggedItem) => {
-      if (!ref.current) return;
-      const dragIndex = draggedItem.index;
-      const hoverIndex = index;
-      if (dragIndex === hoverIndex) return;
-      moveRecord(dragIndex, hoverIndex);
-      draggedItem.index = hoverIndex;
-    },
-    collect: (monitor) => ({ isDragOver: monitor.isOver() }),
-  });
-
-  drag(drop(ref));
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const toggleUploadModal = useCallback(() => setShowUploadModal((s) => !s), []);
   const toggleDetailsModal = useCallback(() => setShowDetailsModal((s) => !s), []);
@@ -133,9 +122,9 @@ export default function DraggableRecordRow({
   return (
     <>
       <tr
-        ref={ref}
-        className={`${styles.tableRow} ${isDragging ? styles.dragging : ''} ${isDragOver ? styles.dragTarget : ''} ${isSelected ? styles.selectedRow : ''}`}
-        style={{ opacity: isDragging ? 0.5 : 1 }}
+        ref={setNodeRef}
+        style={style}
+        className={`${styles.tableRow} ${isDragging ? styles.dragging : ''} ${isSelected ? styles.selectedRow : ''}`}
       >
         <td className={styles.selectCell}>
           <input
@@ -145,7 +134,11 @@ export default function DraggableRecordRow({
             onClick={(e) => e.stopPropagation()}
           />
         </td>
-        <td className={styles.dragHandleCell}><div className={styles.dragHandle}><FontAwesomeIcon icon={faGripVertical} /></div></td>
+        <td className={styles.dragHandleCell} {...attributes} {...listeners}>
+          <div className={styles.dragHandle} style={{ cursor: isDragging ? 'grabbing' : 'grab' }}>
+            <FontAwesomeIcon icon={faGripVertical} />
+          </div>
+        </td>
         <td className={styles.precisionArrowsCell}>
           <div className={styles.precisionArrows}>
             <Button color="outline-secondary" size="sm" onClick={(e) => { e.stopPropagation(); if (index > 0) moveRecord(index, index - 1); }} disabled={index === 0} title="Move up one position" className={styles.precisionButton}>
