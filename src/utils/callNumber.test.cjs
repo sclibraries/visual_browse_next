@@ -1,47 +1,47 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
+const { formatCallNumber, formatVolume, hasVolumes } = require('./callNumber.cjs');
 
-let formatCallNumber;
-try {
-  ({ formatCallNumber } = require('./callNumber.cjs'));
-} catch (error) {
-  if (error.code !== 'MODULE_NOT_FOUND' || !error.message.includes('./callNumber.cjs')) {
-    throw error;
-  }
-}
-
-function format(...args) {
-  assert.equal(typeof formatCallNumber, 'function', 'callNumber.cjs must export formatCallNumber');
-  return formatCallNumber(...args);
-}
-
-test('appends the FOLIO volume to the owner example', () => {
-  assert.equal(
-    format('TREASURE CASES M2 .D62', '(35)'),
-    'TREASURE CASES M2 .D62 (35)'
-  );
+test('formats a scalar call number by trimming it', () => {
+  assert.equal(formatCallNumber('  M2 .D62  '), 'M2 .D62');
 });
 
-test('trims and joins array parts from the call number and volume', () => {
-  assert.equal(
-    format([' TREASURE CASES ', 'M2 .D62 '], ['', '(35)', ' ']),
-    'TREASURE CASES M2 .D62 (35)'
-  );
+test('joins trimmed non-empty call number array parts', () => {
+  assert.equal(formatCallNumber([' M2 ', '', ' .D62 ', null, '  ']), 'M2 .D62');
 });
 
-test('returns the call number when the volume is missing or empty', () => {
-  assert.equal(format('M2 .D62', null), 'M2 .D62');
-  assert.equal(format('M2 .D62', '  '), 'M2 .D62');
+test('strips one exact outer pair of parentheses from a volume', () => {
+  assert.equal(formatVolume('(35)'), '35');
+  assert.equal(formatVolume('( 12 )'), '12');
 });
 
-test('adds a volume without parentheses as FOLIO sends it', () => {
-  assert.equal(format('M2 .D62', 'v.2'), 'M2 .D62 v.2');
+test('keeps an unparenthesized volume unchanged', () => {
+  assert.equal(formatVolume('v.2'), 'v.2');
 });
 
-test('does not append a volume already at the end of the call number', () => {
-  assert.equal(format('M2 .D62 (12)', '(12)'), 'M2 .D62 (12)');
+test('keeps values with parentheses that do not wrap the whole volume', () => {
+  assert.equal(formatVolume('(1) (2)'), '(1) (2)');
+  assert.equal(formatVolume('v.(3)'), 'v.(3)');
 });
 
-test('returns an empty string when both inputs contain no parts', () => {
-  assert.equal(format([], [null, '', '  ']), '');
+test('returns an empty string for an empty volume', () => {
+  assert.equal(formatVolume('  '), '');
+});
+
+test('joins trimmed non-empty volume array parts', () => {
+  assert.equal(formatVolume([' (35) ', '', ' v.2 ']), '(35) v.2');
+});
+
+test('reports volumes when at least one holding has a formatted volume', () => {
+  assert.equal(hasVolumes([{ volume: [] }, { volume: ['  ', '(35)'] }]), true);
+});
+
+test('reports no volumes when no holding has a formatted volume', () => {
+  assert.equal(hasVolumes([{ volume: null }, { volume: '  ' }, {}]), false);
+});
+
+test('reports no volumes for missing or empty holdings', () => {
+  assert.equal(hasVolumes([]), false);
+  assert.equal(hasVolumes(null), false);
+  assert.equal(hasVolumes(undefined), false);
 });

@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { FOLIORTAC } from '../lib/api';
 import styled from 'styled-components';
-const { formatCallNumber } = require('../utils/callNumber.cjs');
+const { formatCallNumber, formatVolume, hasVolumes } = require('../utils/callNumber.cjs');
 
 // Styled Components for RecordAvailability
 const TableContainer = styled.div`
@@ -94,6 +94,7 @@ function RecordAvailability(props) {
     
         // Extract holdings or provide an empty array as a fallback
         const holdings = data?.foliortac?.holding || [];
+    const showVolume = hasVolumes(holdings);
 
     
     return (
@@ -103,6 +104,7 @@ function RecordAvailability(props) {
             <StyledTr> {/* This StyledTr will now correctly maintain its background on hover */}
               <StyledTh scope="col">Status</StyledTh>
               <StyledTh scope="col">Call Number</StyledTh>
+              {showVolume && <StyledTh scope="col">Volume</StyledTh>}
               <StyledTh scope="col">Location</StyledTh>
             </StyledTr>
           </StyledThead>
@@ -125,14 +127,15 @@ function RecordAvailability(props) {
                 return (
                   <StyledTr key={index}>
                     <StatusTd isAvailable={isAvailable}>{currentStatus}</StatusTd>
-                    <StyledTd>{formatCallNumber(holding.callNumber, holding.volume)}</StyledTd>
+                    <StyledTd>{formatCallNumber(holding.callNumber)}</StyledTd>
+                    {showVolume && <StyledTd>{formatVolume(holding.volume)}</StyledTd>}
                     <StyledTd>{holding.location}</StyledTd>
                   </StyledTr>
                 );
               })
             ) : (
               <StyledTr>
-                <StyledTd colSpan="3" style={{ textAlign: 'center' }}>
+                <StyledTd colSpan={showVolume ? 4 : 3} style={{ textAlign: 'center' }}>
                   No holdings information available.
                 </StyledTd>
               </StyledTr>
