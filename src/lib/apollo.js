@@ -1,4 +1,3 @@
-/* global Set */
 import { ApolloClient, InMemoryCache } from '@apollo/client';
 import { HttpLink } from '@apollo/client/link/http';
 

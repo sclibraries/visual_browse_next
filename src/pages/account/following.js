@@ -1,5 +1,4 @@
 // pages/account/following.js
-/* global Promise */
 import { useEffect, useState, useCallback } from 'react';
 import { useStore } from '../../store/store';
 import { useRouter } from 'next/router';

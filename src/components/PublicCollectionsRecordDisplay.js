@@ -252,7 +252,22 @@ return (
         </button>
       </ModalFooter>
     </Modal>
-    <div className="image-container" onClick={() => handleImageClick(an, dbid)} style={{ position: 'relative' }}>
+    <button
+      type="button"
+      className="image-container"
+      aria-label={`View details for ${titleFull}`}
+      onClick={() => handleImageClick(an, dbid)}
+      style={{
+        position: 'relative',
+        appearance: 'none',
+        padding: 0,
+        border: 'none',
+        color: 'inherit',
+        font: 'inherit',
+        textAlign: 'inherit',
+        cursor: 'pointer',
+      }}
+    >
       {image !== '' ? (
         <RecordCoverImage src={image} alt={titleFull} />
       ) : (
@@ -262,7 +277,7 @@ return (
         />
       )}
       <RecordBadges record={record} isOpenAccess={isOpenAccess} />
-    </div>
+    </button>
     <div className="card-info">
       <div className="record-title" id={`titleTooltip-${sanitizedAn}`}>
         <LinesEllipsis

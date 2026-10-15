@@ -102,7 +102,7 @@ const splitFacetControls = (
   const usedFields = new Set();
   const primaryFacets = [];
 
-  const useFacet = (facet) => {
+  const addFacet = (facet) => {
     if (!facet || usedFields.has(facet.field) || primaryFacets.length >= maxVisible) {
       return;
     }
@@ -124,14 +124,14 @@ const splitFacetControls = (
     return matches[0];
   };
 
-  useFacet(pickFacet([/genre/]));
+  addFacet(pickFacet([/genre/]));
 
   const personPatterns = slug === 'audio-cds'
     ? [/performer/, /contributor/, /artist/, /composer/, /author/]
     : [/author/, /contributor/];
-  useFacet(pickFacet(personPatterns, { preferNonHeavy: true }));
+  addFacet(pickFacet(personPatterns, { preferNonHeavy: true }));
 
-  useFacet(pickFacet([/campus/, /location/, /library/]));
+  addFacet(pickFacet([/campus/, /location/, /library/]));
 
   const remaining = available.filter((facet) => !usedFields.has(facet.field));
   for (const facet of remaining) {
@@ -140,7 +140,7 @@ const splitFacetControls = (
     }
 
     if (getFacetValueCount(facet) <= maxValuesForPrimary) {
-      useFacet(facet);
+      addFacet(facet);
     }
   }
 
@@ -150,7 +150,7 @@ const splitFacetControls = (
         break;
       }
 
-      useFacet(facet);
+      addFacet(facet);
     }
   }
 
