@@ -1,6 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { FOLIORTAC } from '../lib/api';
 import styled from 'styled-components';
+const { formatCallNumber } = require('../utils/callNumber.cjs');
 
 // Styled Components for RecordAvailability
 const TableContainer = styled.div`
@@ -124,7 +125,7 @@ function RecordAvailability(props) {
                 return (
                   <StyledTr key={index}>
                     <StatusTd isAvailable={isAvailable}>{currentStatus}</StatusTd>
-                    <StyledTd>{holding.callNumber}</StyledTd>
+                    <StyledTd>{formatCallNumber(holding.callNumber, holding.volume)}</StyledTd>
                     <StyledTd>{holding.location}</StyledTd>
                   </StyledTr>
                 );

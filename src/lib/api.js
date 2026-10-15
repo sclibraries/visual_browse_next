@@ -441,6 +441,7 @@ query foliortac($id: String!){
       id
       status
       callNumber
+      volume
       location
     }
   }
