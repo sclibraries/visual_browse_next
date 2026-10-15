@@ -16,9 +16,13 @@ import SearchBox from './SearchBox';
 import { useStore } from '../store/store';
 import { shallow } from 'zustand/shallow';
 import { useRouter } from 'next/router';
+import { LOCAL_COLLECTIONS_CONFIG } from '../lib/localCollectionConfigs';
+
+const { getCollectionDisplayName } = require('../lib/collectionDisplayNames.cjs');
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const useV2CollectionsNav = process.env.NEXT_PUBLIC_USE_COLLECTIONS_V2_NAV === 'true';
   const [loggedIn, accountReset, setLoggedIn, setAuthChecked, setUser] = useStore((state) => [
     state.loggedIn, 
     state.accountReset, 
@@ -42,7 +46,23 @@ function Header() {
   }
 
   const generateLink = (path) => {
-    const queryString = new URLSearchParams(currentQuery).toString();
+    const blockedQueryParams = new Set(['slug', 'collections', 'material', 'an', 'dbid', 'img']);
+    const queryString = new URLSearchParams(
+      Object.entries(currentQuery).reduce((acc, [key, value]) => {
+        if (blockedQueryParams.has(key) || value == null) {
+          return acc;
+        }
+
+        if (Array.isArray(value)) {
+          value.forEach((item) => acc.append(key, String(item)));
+          return acc;
+        }
+
+        acc.append(key, String(value));
+        return acc;
+      }, new URLSearchParams())
+    ).toString();
+
     return `${path}${queryString ? `?${queryString}` : ''}`;
   };
 
@@ -105,25 +125,31 @@ function Header() {
               <Link className="nav-link" href="/">New</Link>
             </NavItem>
             <NavItem>
-            <Link  className="nav-link" href={generateLink('/movies/')}>Movies</Link>
-          </NavItem>
+              <Link className="nav-link" href={generateLink('/movies/')}>Movies</Link>
+            </NavItem>
             <NavItem>
-            <Link  className="nav-link" href={generateLink('/books/')}>Books</Link>
-          </NavItem>
+              <Link className="nav-link" href={generateLink('/books/')}>Books</Link>
+            </NavItem>
+            <NavItem>
+              <Link className="nav-link" href="/collections/audio-cds">{getCollectionDisplayName('audio-cds', 'Music CDs')}</Link>
+            </NavItem>
+            <NavItem className="d-none d-md-flex align-items-center text-white-50 px-1">|</NavItem>
             <NavItem>
               <Link className="nav-link" href="/collections/">Shared Collections</Link>
             </NavItem>
+            <NavItem className="d-none d-md-flex align-items-center text-white-50 px-1">|</NavItem>
             <UncontrolledDropdown nav inNavbar>
               <DropdownToggle nav caret>
                 Local Collections
               </DropdownToggle>
               <DropdownMenu end>
-                <DropdownItem>
-                  <Link href="/local-collections/collections/fiction-nonfiction/">Fiction Non-Fiction</Link>
-                </DropdownItem>
-                <DropdownItem>
-                  <Link href="/local-collections/collections/swank/">Swank Streaming Videos</Link>
-                </DropdownItem>
+                {LOCAL_COLLECTIONS_CONFIG.map((collection) => (
+                  <DropdownItem key={collection.key}>
+                    <Link href={useV2CollectionsNav ? collection.v2Path : collection.legacyPath}>
+                      {useV2CollectionsNav ? collection.v2Label : collection.legacyLabel}
+                    </Link>
+                  </DropdownItem>
+                ))}
               </DropdownMenu>
             </UncontrolledDropdown>
           </Nav>

@@ -2,14 +2,26 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useFetchPublicCollectionName } from '../../../hooks/useFetchPublicCollectionName';
 import { useRouter } from 'next/router';
-import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
+import dynamic from 'next/dynamic';
 import { DisplayLoadingSkeleton } from '../../../components/Loading';
+
+const ResponsiveMasonry = dynamic(
+  () => import('react-responsive-masonry').then((m) => m.ResponsiveMasonry),
+  { ssr: false }
+);
+
+const Masonry = dynamic(
+  () => import('react-responsive-masonry').then((m) => m.default),
+  { ssr: false }
+);
 
 const LIMIT = 25;
 
 function UserCollections() {
   const router = useRouter();
   const { author_id } = router.query;
+
+  const [isClient, setIsClient] = useState(false);
 
   const {
     loading,
@@ -31,19 +43,44 @@ function UserCollections() {
     }
   }, [loading]);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="hide-scrollbar flex-1 h-100 container">
-      <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 4, 900: 5 }}>
-        <Masonry>
+      {isClient ? (
+        <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 4, 900: 5 }}>
+          <Masonry>
+            {loading ? (
+              <DisplayLoadingSkeleton />
+            ) : (
+              collections.map((collection, index) => (
+                <CollectionItem key={index} collection={collection} />
+              ))
+            )}
+          </Masonry>
+        </ResponsiveMasonry>
+      ) : (
+        <div className="collections-grid">
           {loading ? (
-            <DisplayLoadingSkeleton />
+            [...Array(8)].map((_, index) => (
+              <div key={index} className="collection-skeleton">
+                <div className="skeleton-image"></div>
+                <div className="skeleton-content">
+                  <div className="skeleton-title"></div>
+                  <div className="skeleton-link"></div>
+                  <div className="skeleton-link"></div>
+                </div>
+              </div>
+            ))
           ) : (
             collections.map((collection, index) => (
               <CollectionItem key={index} collection={collection} />
             ))
           )}
-        </Masonry>
-      </ResponsiveMasonry>
+        </div>
+      )}
       <div>
         {!isFetchingMore && hasMore && (
           <div className="d-grid gap-2 list" style={{ paddingTop: "20px", paddingBottom: "50px" }}>

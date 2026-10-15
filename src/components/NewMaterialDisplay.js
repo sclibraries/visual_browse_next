@@ -14,6 +14,7 @@ import CollectionsModal from './CollectionsModal';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import LinesEllipsis from 'react-lines-ellipsis';
 import ImageUploadModal from "./ImageUploadModal";
+import { getMaterialType } from '../utils/materialTypeUtils';
 
 
 
@@ -113,7 +114,7 @@ function NewMaterialDisplay(props) {
     return (
         <HomeLayout>    
         <Fragment>
-        <         Modal size='xl' isOpen={collectionModal} toggle={toggleCollectionModal} className="modal-dialog modal-dialog-centered">
+            <Modal size='xl' isOpen={collectionModal} toggle={toggleCollectionModal} className="modal-dialog modal-dialog-centered">
                       <ModalHeader toggle={toggleCollectionModal}>Add to Collection</ModalHeader>
                       <ModalBody>
                       <CollectionsModal
@@ -178,70 +179,20 @@ function NewMaterialDisplay(props) {
                     <div className="records-grid">
                         {props.poLines && !props.loading &&
                             props.poLines && props.poLines.length > 0 ? Object.keys(props.poLines).map((key, index) => {
-                            const isFavorite = favorites[props.poLines[key].instanceId] || false;
+                            const poLine = props.poLines[key];
+                            const isFavorite = favorites[poLine.instanceId] || false;
                             return(
-                                <div key={index} className="record-item">
-                                <div 
-                                    className="image-container"
-                                    onClick={() => props.handleRecord(props.poLines[key].instanceId)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            props.handleRecord(props.poLines[key].instanceId);
-                                        }
-                                    }}
-                                    role="button"
-                                    tabIndex={0}
-                                    style={{ cursor: "pointer" }}
-                                    aria-label={`View details for ${props.poLines[key].titleOrPackage}`}
-                                >
-                                    <DisplayImage 
-                                        an={props.poLines[key].instanceId} 
-                                        refresh={imageRefreshKey}
-                                    />
-                                </div>
-                                <div className="card-info">
-                                    <div className="record-title">
-                                        <LinesEllipsis
-                                            text={props.poLines[key].titleOrPackage}
-                                            maxLine='3'
-                                            ellipsis='...'
-                                            trimRight
-                                            basedOn='letters'
-                                        />
-                                    </div>
-                                    <button 
-                                        className="view-details-btn"
-                                        onClick={() => props.handleRecord(props.poLines[key].instanceId)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                props.handleRecord(props.poLines[key].instanceId);
-                                            }
-                                        }}
-                                        aria-label={`View details for ${props.poLines[key].titleOrPackage}`}
-                                    >
-                                        View Details
-                                    </button>
-                                    {loggedIn ? (
-                                    <div className="interaction-icons">
-                                        <button onClick={() => toggleFavorite(props.poLines[key].instanceId)} className="icon-button">
-                                            {isFavorite ? <FontAwesomeIcon icon={faHeart} style={{color: "#fc0303"}} /> : <FontAwesomeIcon icon={faHeart} />}
-                                        </button>
-                                        <button onClick={() => toggleCollectionModal(props.poLines[key].instanceId)} className="icon-button">
-                                            <FontAwesomeIcon icon={faPlusSquare} />
-                                        </button>
-                                        <button
-                                            className="icon-button"
-                                            onClick={() => openImageUploadModal(props.poLines[key].instanceId)}
-                                            >
-                                            <FontAwesomeIcon icon={faUpload} />
-                                        </button>
-                                    </div>
-                                    ) : ''}
-                                </div>
-                                </div>
-
+                                <NewRecordItem
+                                    key={index}
+                                    poLine={poLine}
+                                    isFavorite={isFavorite}
+                                    toggleFavorite={toggleFavorite}
+                                    toggleCollectionModal={toggleCollectionModal}
+                                    openImageUploadModal={openImageUploadModal}
+                                    handleRecord={props.handleRecord}
+                                    loggedIn={loggedIn}
+                                    imageRefreshKey={imageRefreshKey}
+                                />
                             )
                             }
                         ): ''}
@@ -272,6 +223,109 @@ function NewMaterialDisplay(props) {
           )}
         </HomeLayout>
     )
+}
+
+// NewRecordItem component to handle individual record rendering
+function NewRecordItem({
+  poLine,
+  isFavorite,
+  toggleFavorite,
+  toggleCollectionModal,
+  openImageUploadModal,
+  handleRecord,
+  loggedIn,
+  imageRefreshKey,
+}) {
+  // Extract title from FOLIO instance data with fallback to titleOrPackage
+  const instanceTitle = poLine.retrieveorderitems?.instances?.[0]?.title;
+  const titleDisplay = instanceTitle || poLine.titleOrPackage;
+  const imageUrl = poLine?.uriImage || poLine?.coverImageUrl || '';
+  
+  // Get material type from items section
+  const materialTypeName = poLine.retrieveorderitems?.instances?.[0]?.items?.[0]?.retrievemattype?.[0]?.name;
+  const materialType = getMaterialType({ materialType: materialTypeName });
+
+  return (
+    <div 
+      className="record-item"
+      onClick={(e) => {
+        if (!e.target.closest('.interaction-icons')) {
+          handleRecord(poLine.instanceId, imageUrl);
+        }
+      }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.interaction-icons')) {
+          e.preventDefault();
+          handleRecord(poLine.instanceId, imageUrl);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: "pointer" }}
+      aria-label={`View details for ${titleDisplay}`}
+    >
+      <div className="image-container">
+        <DisplayImage 
+          an={poLine.instanceId} 
+          materialType={poLine.materialType}
+          refresh={imageRefreshKey}
+        />
+      </div>
+      <div className="card-info">
+        <div className="record-title">
+          <LinesEllipsis
+            text={titleDisplay}
+            maxLine='3'
+            ellipsis='...'
+            trimRight
+            basedOn='letters'
+          />
+        </div>
+        <div className="material-type-badge">
+          <FontAwesomeIcon icon={materialType.icon} />
+          <span> {materialType.label}</span>
+        </div>
+        {loggedIn ? (
+          <div className="interaction-icons">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(poLine.instanceId);
+              }} 
+              className="icon-button"
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              {isFavorite ? (
+                <FontAwesomeIcon icon={faHeart} style={{color: "#fc0303"}} />
+              ) : (
+                <FontAwesomeIcon icon={faHeart} />
+              )}
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleCollectionModal(poLine.instanceId);
+              }} 
+              className="icon-button"
+              aria-label="Add to collection"
+            >
+              <FontAwesomeIcon icon={faPlusSquare} />
+            </button>
+            <button
+              className="icon-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openImageUploadModal(poLine.instanceId);
+              }}
+              aria-label="Upload custom image"
+            >
+              <FontAwesomeIcon icon={faUpload} />
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 export default NewMaterialDisplay;

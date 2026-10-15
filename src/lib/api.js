@@ -42,6 +42,35 @@ export const GET_ORDERS = gql`
         receiptDate
         instanceId
         titleOrPackage
+        retrieveorderitems {
+          instances {
+            id
+            title
+            items {
+              materialTypeId
+              retrievemattype {
+                id
+                name
+              }
+            }
+            contributors {
+              name
+              primary
+            }
+            publication {
+              publisher
+              dateOfPublication
+            }
+            electronicAccess {
+              uri
+              linkText
+            }
+            identifiers {
+              value
+              identifierTypeId
+            }
+          }
+        }
       }
     }
   }
@@ -135,6 +164,7 @@ query search(
       pubType
       pubTypeId
       imageItem
+      coverImage { url source }
       abstractItem
       items{
         name
@@ -150,9 +180,7 @@ query search(
         Target
         Size
     }
-    googleImages{
-      thumbnail_url
-    }
+
   tmdbSearch{
       results{
         title
@@ -309,6 +337,7 @@ query combinedSearch(
         pubType
         pubTypeId
         imageItem
+        coverImage { url source }
         abstractItem
         items{
           name
@@ -324,9 +353,7 @@ query combinedSearch(
           Target
           Size
       }
-      googleImages{
-        thumbnail_url
-      }
+
     tmdbSearch{
         results{
           title
@@ -471,9 +498,8 @@ query record($an: String!, $dbid: String!){
               Size
             }
             imageItem
-            googleImages{
-              thumbnail_url
-            }
+            coverImage { url source }
+
             tmdbSearch{
               results{
                 title
@@ -546,6 +572,7 @@ query search($query: String!, $action: String, $refine: String){
             }
             titleFull
             imageItem
+            coverImage { url source }
             tmdbSearch{
                 results{
                   title
@@ -683,6 +710,216 @@ export const GET_TMDB_CAST = gql`
             profile_path
           }
         }
+      }
+    }
+  }
+`
+
+export const GET_COLLECTION_CONFIGS_V2 = gql`
+  query GET_COLLECTION_CONFIGS_V2($active: Boolean) {
+    collectionConfigsV2(active: $active) {
+      slug
+      title
+      description
+      materialType
+      recordCount
+      facetConfig {
+        field
+        label
+        type
+        expanded
+      }
+      sortConfig {
+        value
+        label
+      }
+      searchConfig {
+        fields {
+          value
+          label
+        }
+      }
+      displayConfig {
+        imageField
+        titleField
+        subtitleField
+        badgeField
+        streaming
+      }
+    }
+  }
+`
+
+export const GET_COLLECTION_CONFIG_V2 = gql`
+  query GET_COLLECTION_CONFIG_V2($slug: String!) {
+    collectionConfigV2(slug: $slug) {
+      slug
+      title
+      description
+      materialType
+      recordCount
+      facetConfig {
+        field
+        label
+        type
+        expanded
+      }
+      sortConfig {
+        value
+        label
+      }
+      searchConfig {
+        fields {
+          value
+          label
+        }
+      }
+      displayConfig {
+        imageField
+        titleField
+        subtitleField
+        badgeField
+        streaming
+      }
+    }
+  }
+`
+
+export const GET_COLLECTION_SEARCH_V2 = gql`
+  query GET_COLLECTION_SEARCH_V2($input: CollectionSearchInput!) {
+    collectionSearchV2(input: $input) {
+      total
+      page
+      limit
+      facets {
+        field
+        label
+        truncated
+        supportsSearch
+        requiresQuery
+        values {
+          value
+          label
+          count
+        }
+      }
+      appliedFilters {
+        field
+        value
+        label
+      }
+      availableSorts {
+        value
+        label
+      }
+      records {
+        id
+        instanceId
+        folioInstanceUuid
+        title
+        uriImage
+        coverImageUrl
+        callNumber
+        publicationYear
+        materialType
+        streamingUrl
+        isStreaming
+        contributors {
+          name
+          role
+          primary
+          viafId
+        }
+        subjects {
+          heading
+          headingType
+          source
+        }
+        items {
+          id
+          materialType
+          locationName
+          locationId
+          libraryName
+          campusName
+          callNumber
+          status
+        }
+        identifiers {
+          type
+          value
+        }
+        notes {
+          noteType
+          note
+        }
+      }
+    }
+  }
+`
+
+export const GET_COLLECTION_FACET_VALUES_V2 = gql`
+  query GET_COLLECTION_FACET_VALUES_V2($input: CollectionFacetValuesInput!) {
+    collectionFacetValuesV2(input: $input) {
+      field
+      label
+      page
+      limit
+      total
+      hasMore
+      supportsSearch
+      requiresQuery
+      values {
+        value
+        label
+        count
+      }
+    }
+  }
+`
+
+export const GET_COLLECTION_RECORD_V2 = gql`
+  query GET_COLLECTION_RECORD_V2($slug: String!, $id: ID!) {
+    collectionRecordV2(slug: $slug, id: $id) {
+      id
+      instanceId
+      folioInstanceUuid
+      title
+      uriImage
+      coverImageUrl
+      callNumber
+      publicationYear
+      materialType
+      streamingUrl
+      isStreaming
+      contributors {
+        name
+        role
+        primary
+        viafId
+      }
+      subjects {
+        heading
+        headingType
+        source
+      }
+      items {
+        id
+        materialType
+        locationName
+        locationId
+        libraryName
+        campusName
+        callNumber
+        status
+      }
+      identifiers {
+        type
+        value
+      }
+      notes {
+        noteType
+        note
       }
     }
   }

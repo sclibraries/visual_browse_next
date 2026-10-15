@@ -5,6 +5,12 @@ import {  Form, Input, Button } from 'reactstrap';
 import { shallow } from 'zustand/shallow';
 import FieldCodes from './FieldCodes';
 
+const {
+  buildSearchClearNavigation,
+  buildSearchNavigation,
+  getSearchScope,
+} = require('../utils/collectionSearchRouting.cjs');
+
 function SearchBox() {
   const router = useRouter();
     // useRef to store the previous search query value
@@ -93,19 +99,13 @@ function SearchBox() {
     setAllRefine('n');
     setMovieSort('relevance')
     setQuery(searchValue);
-  
-    const escapedSearch = encodeURIComponent(searchValue);
-  
-    const currentPath = router.pathname;
-    if (currentPath !== '/books' && currentPath !== '/movies') {
-      // Redirect to /all with the search query for any path that is neither '/books' nor '/movies'
-      router.push({ pathname: '/all', query: { search: escapedSearch } });
-    } else {
-      router.push({
-        pathname: router.pathname,
-        query: { ...router.query, search: escapedSearch, fieldcode: fieldCode },
-      });
-    }
+
+    router.push(buildSearchNavigation({
+      pathname: router.pathname,
+      query: router.query,
+      searchValue,
+      fieldCode,
+    }));
     
     setShouldRefetch(true);
   };
@@ -126,20 +126,14 @@ function SearchBox() {
   
     setShouldRefetch(true);
   
-    // Check if the current route is one of the specified routes
-    if (['/movies', '/books', '/all'].includes(router.pathname)) {
-      // If so, clear the search-related query parameters
-      router.replace({ 
+    router.replace(
+      buildSearchClearNavigation({
         pathname: router.pathname,
-        query: {}  // Clears all query parameters for these specific paths
-      }, undefined, { shallow: true });
-    } else {
-      // For other paths, maintain the existing query parameters
-      router.replace({ 
-        pathname: router.pathname,
-        query: router.query  // Keeps the existing query parameters intact
-      }, undefined, { shallow: true });
-    }
+        query: router.query,
+      }),
+      undefined,
+      { shallow: true }
+    );
   };
   
   
@@ -171,21 +165,20 @@ function SearchBox() {
   };
 
   // Get current search scope for display
-  const getCurrentScope = () => {
-    switch (router.pathname) {
-      case '/books':
-        return { label: 'Books Only', icon: '📚', color: '#8b5cf6' };
-      case '/movies':
-        return { label: 'Movies Only', icon: '🎬', color: '#ef4444' };
-      case '/all':
-        return { label: 'All Materials', icon: '🔍', color: '#10b981' };
-      default:
-        return { label: 'All Materials', icon: '🔍', color: '#10b981' };
-    }
-  };
-
-  const currentScope = getCurrentScope();
+  const currentScope = getSearchScope(router.pathname);
   const isLimitedScope = router.pathname === '/books' || router.pathname === '/movies';
+  const scopeBadgeLabel = currentScope.label === 'All Materials'
+    ? 'All'
+    : currentScope.label === 'Books Only'
+      ? 'Books'
+      : currentScope.label === 'Movies Only'
+        ? 'Movies'
+        : 'Collection';
+  const primarySearchLabel = currentScope.label === 'Books Only'
+    ? 'Books'
+    : currentScope.label === 'Movies Only'
+      ? 'Movies'
+      : 'Collection';
 
   return (
 <div className="searchbox bg-white fixed z-100 shadow" style={{ 
@@ -235,8 +228,7 @@ function SearchBox() {
           whiteSpace: 'nowrap'
         }}>
           <span style={{ fontSize: '0.7rem' }}>{currentScope.icon}</span>
-          {currentScope.label === 'All Materials' ? 'All' : 
-           currentScope.label === 'Books Only' ? 'Books' : 'Movies'}
+          {scopeBadgeLabel}
         </span>
         
         <Button 
@@ -337,8 +329,7 @@ function SearchBox() {
           pointerEvents: 'none'
         }}>
           <span style={{ fontSize: '0.75rem' }}>{currentScope.icon}</span>
-          {currentScope.label === 'All Materials' ? 'All' : 
-           currentScope.label === 'Books Only' ? 'Books' : 'Movies'}
+          {scopeBadgeLabel}
         </span>
       </div>
       
@@ -352,7 +343,7 @@ function SearchBox() {
         }}
       >
         {isLimitedScope && searchValue.trim() ? 
-          `Search ${currentScope.label === 'Books Only' ? 'Books' : 'Movies'}` : 
+          `Search ${primarySearchLabel}` : 
           'Search'
         }
       </Button>

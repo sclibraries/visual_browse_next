@@ -1,26 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useFetchPublicCollectionName } from '../../hooks/useFetchPublicCollectionName';
+import { useSearchPublicCollections } from '../../hooks/useSearchPublicCollections';
 
 const LIMIT = 25;
 
 function Collections() {
   const [sortOption, setSortOption] = useState('newest_desc');
-  const [sortOptionChanged, setSortOptionChanged] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const {
     loading,
+    initialLoading,
     hasMore,
     loadMore,
     collections
-  } = useFetchPublicCollectionName(LIMIT, '', '', sortOption, sortOptionChanged);
-
-  useEffect(() => {
-    if (!loading && sortOptionChanged) {
-      setSortOptionChanged(false);
-    }
-  }, [loading, sortOptionChanged]);
+  } = useSearchPublicCollections({
+    limit: LIMIT,
+    sortOption,
+    query: searchQuery,
+    debounceMs: 250,
+  });
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -32,13 +32,19 @@ function Collections() {
 
   const handleSortChange = (e) => {
     setSortOption(e.target.value);
-    setSortOptionChanged(true);
   };
 
   return (
     <div className="hide-scrollbar flex-1 h-100 container">
       <h1 className="display-4">Shared Collections</h1>
       <div className="collections-sort">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search collections..."
+          aria-label="Search collections"
+        />
         <select value={sortOption} onChange={handleSortChange}>
           <option value="newest_desc">Newest (Desc)</option>
           <option value="newest_asc">Newest (Asc)</option>
@@ -47,7 +53,7 @@ function Collections() {
         </select>
       </div>
       <div className="collections-grid">
-        {(loading && collections.length === 0) || sortOptionChanged ? (
+        {initialLoading ? (
           // Show loading skeletons for initial load or when sorting changes
           [...Array(8)].map((_, index) => (
             <div key={index} className="collection-skeleton">
@@ -65,6 +71,12 @@ function Collections() {
           ))
         )}
       </div>
+
+      {!initialLoading && !loading && searchQuery.trim() && collections.length === 0 && (
+        <div className="text-muted" style={{ paddingTop: '8px' }}>
+          No collections match your search.
+        </div>
+      )}
 
       {!isLoadingMore && hasMore && (
         <div className="d-grid gap-2 list" style={{ paddingTop: "20px", paddingBottom: "50px" }}>
@@ -90,7 +102,6 @@ function Collections() {
 }
 
 const CollectionItem = ({ collection }) => {
-  const descriptionRef = useRef(null);
   const [imageError, setImageError] = useState(false);
 
   // Reset error state when collection changes
@@ -111,9 +122,9 @@ const CollectionItem = ({ collection }) => {
               <div className="fallback-icon">📚</div>
               <div className="fallback-text">Collection</div>
             </div>
-            <div className="collection-description" ref={descriptionRef}>
-              {collection.description}
-            </div>
+            {collection.description ? (
+              <div className="collection-description">{collection.description}</div>
+            ) : null}
           </>
         ) : (
           <>
@@ -125,12 +136,17 @@ const CollectionItem = ({ collection }) => {
               unoptimized={true}
               onError={handleImageError}
             />
-            <div className="collection-description">{collection.description}</div>
+            {collection.description ? (
+              <div className="collection-description">{collection.description}</div>
+            ) : null}
           </>
         )}
       </div>
       <div className="collection-title">
         <h3>{collection.name}</h3>
+        {collection.description ? (
+          <p className="collection-snippet">{collection.description}</p>
+        ) : null}
         <div className="collection-links">
           <Link
             href={`/collections/records/${collection.collection_id}?name=${collection.name}&author_id=${collection.user_id}`}
