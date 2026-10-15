@@ -3,7 +3,7 @@ const initialState = {
     allRefine: 'n',
     allSort: 'relevance',
     allFieldCode: '',
-    allAction: 'addfacetfilter(ContentProvider:Five Colleges Catalog,ContentProvider:Smith College Finding Aids)',
+    allAction: 'addfacetfilter(ContentProvider:Five Colleges Catalog,ContentProvider:Smith College Finding Aids, ContentProvider:Smith College Online Resources)',
     allHits: 0,
     allPage: 1,
     allTotalPages: 0,
@@ -11,7 +11,7 @@ const initialState = {
     allResultsQueryString: '',
     allExpanded: [],
     allDateLimiter: '',
-    allLimiter: "DT1:1600-01/2025-12",
+    allLimiter: "DT1:1600-01/2025-12,FC:Y",
     allAppliedFacets: [],
     allFacets: [],
     

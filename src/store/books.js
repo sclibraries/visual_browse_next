@@ -4,7 +4,7 @@ const initialState = {
     bookRefine: 'n',
     bookSort: 'relevance',
     bookFieldCode: '',
-    bookAction: 'addfacetfilter(SourceType:Books,ContentProvider:Five Colleges Catalog, ContentProvider:Smith College Finding Aids)',
+    bookAction: 'addfacetfilter(SourceType:Books,SourceType:eBooks,ContentProvider:Five Colleges Catalog, ContentProvider:Smith College Finding Aids, ContentProvider:Smith College Online Resources)',
     //
 
     bookHits: 0,

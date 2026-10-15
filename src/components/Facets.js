@@ -138,7 +138,7 @@ function Facets({
             {appliedFacets.map((facet, index) => (
             facet.FacetValuesWithAction.filter(value => value.FacetValue.Value !== 'Smith College Finding Aids').map(value => {
                 // Determine if the current value should be disabled
-                const isDisabled = ['Videos', 'Books', 'Five Colleges Catalog'].includes(value.FacetValue.Value);
+                const isDisabled = ['Videos', 'Books', 'Five Colleges Catalog', 'eBooks', 'Smith College Online Resources'].includes(value.FacetValue.Value);
                 return (
                 <Button
                     className={`btn ${isDisabled ? "btn-secondary" : "btn-success"}`} // Use "btn-secondary" for disabled buttons as a suggestion
