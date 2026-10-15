@@ -1,5 +1,6 @@
 /* global Set */
 import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { HttpLink } from '@apollo/client/link/http';
 
 const cache = new InMemoryCache({
   typePolicies: {
@@ -93,8 +94,11 @@ const cache = new InMemoryCache({
 });
 
 const client = new ApolloClient({
-  uri: 'https://libtools2.smith.edu:4000',
-  credentials: "include",
+  ssrMode: typeof window === 'undefined',
+  link: new HttpLink({
+    uri: 'https://libtools2.smith.edu:4000',
+    credentials: 'include',
+  }),
   cache: cache,
 });
 
