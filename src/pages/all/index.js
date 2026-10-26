@@ -35,6 +35,7 @@ function All() {
         setLoading,
         allRefine,
         allAction,
+        allLimiter,
         setAllRefine,
         fieldCode
     ] = useStore(useShallow(state => [
@@ -64,6 +65,7 @@ function All() {
         state.setLoading,
         state.allRefine,
         state.allAction,
+        state.allLimiter,
         state.setAllRefine,
         state.fieldCode
     ]))
@@ -88,7 +90,8 @@ useEffect(() => {
                 fieldcode: fieldCode,
                 refine: 'n',
                 sort: allSort,
-                action: allAction
+                action: allAction,
+                limiter: allLimiter
             }
         }
 
@@ -100,7 +103,7 @@ useEffect(() => {
             setAllFacetAction('');
         }
     }
-}, [allQueryString, allFacetAction, allSort, allDateLimiter, shouldRefetch, setAllFacetAction]);
+}, [allQueryString, allFacetAction, allSort, allDateLimiter, allLimiter, shouldRefetch, setAllFacetAction]);
 
 
     const handleOnComplete = data => {

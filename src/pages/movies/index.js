@@ -37,6 +37,7 @@ function Movies() {
         movieRefine,
         movieSort,
         movieAction,
+        movieLimiter,
         setMovieRefine,
         fieldCode
     ] = useStore(useShallow(state => [
@@ -66,6 +67,7 @@ function Movies() {
         state.movieRefine,
         state.movieSort,
         state.movieAction,
+        state.movieLimiter,
         state.setMovieRefine,
         state.fieldCode
     ]))
@@ -93,7 +95,8 @@ function Movies() {
                     fieldcode: fieldCode,
                     refine: 'n',
                     sort: movieSort,
-                    action: movieAction
+                    action: movieAction,
+                    limiter: movieLimiter
                 }
             }
 
@@ -112,7 +115,7 @@ function Movies() {
                 setMovieFacetAction('');
             }
         }
-    }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, shouldRefetch, setMovieFacetAction]);
+    }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, movieLimiter, shouldRefetch, setMovieFacetAction]);
     
       
 

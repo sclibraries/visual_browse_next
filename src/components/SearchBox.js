@@ -25,7 +25,6 @@ function SearchBox() {
     fieldCode,
     setFieldCode,
     setAllRefine,
-    setAllAction,
     // Add these to check existing data
     allData,
     allHits
@@ -38,7 +37,6 @@ function SearchBox() {
     state.fieldCode,
     state.setFieldCode,
     state.setAllRefine,
-    state.setAllAction,
     // Add existing data check
     state.allData,
     state.allHits
@@ -142,8 +140,6 @@ function SearchBox() {
 
   // Function to handle expanding search to all materials
   const handleSearchAll = () => {
-    // Set the proper action for "all" search to include both catalogs and finding aids
-    setAllAction('addfacetfilter(ContentProvider:Five Colleges Catalog,ContentProvider:Smith College Finding Aids)');
     setAllRefine('n');
     
     if (searchValue.trim() === '') {

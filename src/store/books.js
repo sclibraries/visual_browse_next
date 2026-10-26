@@ -1,10 +1,13 @@
+const { buildScopedSearch } = require('../lib/searchScope.cjs');
+const { action: bookAction, limiter: bookLimiter } = buildScopedSearch('books');
+
 const initialState = {
 
     //These are core to the books store and work in conjunction conjunction with main > query. Initial searches should always be *
     bookRefine: 'n',
     bookSort: 'relevance',
     bookFieldCode: '',
-    bookAction: 'addfacetfilter(SourceType:Books,SourceType:eBooks,ContentProvider:Five Colleges Catalog, ContentProvider:Smith College Finding Aids, ContentProvider:Smith College Online Resources)',
+    bookAction,
     //
 
     bookHits: 0,
@@ -14,7 +17,7 @@ const initialState = {
     bookResultsQueryString: '',
     bookExpanded: [],
     bookDateLimiter: '',
-    bookLimiter: [],
+    bookLimiter,
     bookAppliedFacets: [],
     bookFacets: [],
     bookFacetAction: '',
@@ -148,7 +151,7 @@ const initialState = {
 
 export const createBooksStore = (set) => ({
     ...initialState,
-    setBookAction: (action) => set({ action }),
+    setBookAction: (bookAction) => set({ bookAction }),
     setBookData: (bookData) => set({ bookData }),
     setBookQueryString: (bookQueryString) => set({ bookQueryString }),
     setBookResultsQueryString: (bookResultsQueryString) => set({ bookResultsQueryString }),

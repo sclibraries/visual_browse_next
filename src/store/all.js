@@ -1,9 +1,12 @@
+const { buildScopedSearch } = require('../lib/searchScope.cjs');
+const { action: allAction, limiter: allLimiter } = buildScopedSearch('all');
+
 const initialState = {
 
     allRefine: 'n',
     allSort: 'relevance',
     allFieldCode: '',
-    allAction: 'addfacetfilter(ContentProvider:Five Colleges Catalog,ContentProvider:Smith College Finding Aids, ContentProvider:Smith College Online Resources)',
+    allAction,
     allHits: 0,
     allPage: 1,
     allTotalPages: 0,
@@ -11,7 +14,7 @@ const initialState = {
     allResultsQueryString: '',
     allExpanded: [],
     allDateLimiter: '',
-    allLimiter: "DT1:1600-01/2025-12,FC:Y",
+    allLimiter,
     allAppliedFacets: [],
     allFacets: [],
     
@@ -25,13 +28,13 @@ const initialState = {
 
 export const createAllStore = (set) => ({
     ...initialState,
-    setAllAction: (action) => set({ action }),
+    setAllAction: (allAction) => set({ allAction }),
     setAllData: (allData) => set({ allData }),
     setAllQueryString: (allQueryString) => set({ allQueryString }),
     setAllResultsQueryString: (allResultsQueryString) => set({ allResultsQueryString }),
     setAllExpanded: (allExpanded) => set({ allExpanded }),
     setAllDateLimiter: (dateLimiter) => set({ dateLimiter }),
-    setAllLimiter: (limiter) => set({ limiter }),
+    setAllLimiter: (allLimiter) => set({ allLimiter }),
     setAllAppliedFacets: (allAppliedFacets) => set({ allAppliedFacets }),
     setAllFacets: (allFacets) => set({ allFacets}),
     reset: () => set({ ...initialState }),

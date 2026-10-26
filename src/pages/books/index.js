@@ -35,6 +35,7 @@ function Books() {
         bookRefine,
         bookSort,
         bookAction,
+        bookLimiter,
         setBookRefine,
         fieldCode
     ] = useStore(useShallow(state => [
@@ -64,6 +65,7 @@ function Books() {
         state.bookRefine,
         state.bookSort,
         state.bookAction,
+        state.bookLimiter,
         state.setBookRefine,
         state.fieldCode
     ]))
@@ -90,14 +92,15 @@ function Books() {
                 refine: 'n',
                 fieldcode: fieldCode,
                 sort: bookSort,
-                action: bookAction
+                action: bookAction,
+                limiter: bookLimiter
             }
           }
       
           executeSearch({ variables });
           setShouldRefetch(false);
         }
-      }, [bookQueryString, bookResultsQueryString, bookFacetAction, bookSort, dateLimiter, shouldRefetch, setShouldRefetch, setBookFacetAction]);
+      }, [bookQueryString, bookResultsQueryString, bookFacetAction, bookSort, bookLimiter, dateLimiter, shouldRefetch, setShouldRefetch, setBookFacetAction]);
 
     const handleOnComplete = data => {
         setBookData(data?.search?.records)

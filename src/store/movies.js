@@ -1,9 +1,12 @@
+const { buildScopedSearch } = require('../lib/searchScope.cjs');
+const { action: movieAction, limiter: movieLimiter } = buildScopedSearch('movies');
+
 const initialState = {
     //These are core to the movies store and work in conjunction with main > query. Initial searches should always be *
     movieRefine: 'n',
     movieSort: 'date',
     movieFieldCode: '',
-    movieAction: 'addfacetfilter(SourceType:Videos,ContentProvider:Five Colleges Catalog)',
+    movieAction,
     //
 
 
@@ -19,6 +22,7 @@ const initialState = {
     movieDateLimiter: '',
     dateLimiter: '',
     limiter: [],
+    movieLimiter,
     movieAppliedFacets: [],
     movieLocalOnly: false,
     movieFacets: [],
@@ -56,7 +60,7 @@ const initialState = {
 
 export const createMoviesStore = (set) => ({
     ...initialState,
-    setMovieAction: (action) => set({ action }),
+    setMovieAction: (movieAction) => set({ movieAction }),
     setMovieData: (movieData) => set({ movieData }),
     setMovieQueryString: (movieQueryString) => set({ movieQueryString }),
     setExpanded: (expanded) => set({ expanded }),

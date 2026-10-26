@@ -136,9 +136,9 @@ function Facets({
         appliedFacets && appliedFacets.length > 0 &&
         <div className="d-grid gap-2 d-md-block">
             {appliedFacets.map((facet, index) => (
-            facet.FacetValuesWithAction.filter(value => value.FacetValue.Value !== 'Smith College Finding Aids').map(value => {
+            facet.FacetValuesWithAction.map(value => {
                 // Determine if the current value should be disabled
-                const isDisabled = ['Videos', 'Books', 'Five Colleges Catalog', 'eBooks', 'Smith College Online Resources'].includes(value.FacetValue.Value);
+                const isDisabled = ['Videos', 'Books', 'eBooks'].includes(value.FacetValue.Value);
                 return (
                 <Button
                     className={`btn ${isDisabled ? "btn-secondary" : "btn-success"}`} // Use "btn-secondary" for disabled buttons as a suggestion
