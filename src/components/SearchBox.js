@@ -10,6 +10,7 @@ const {
   buildSearchNavigation,
   getSearchScope,
 } = require('../utils/collectionSearchRouting.cjs');
+const { normalizeSearchInput } = require('../utils/searchInput.cjs');
 
 function SearchBox() {
   const router = useRouter();
@@ -55,8 +56,8 @@ function SearchBox() {
     useEffect(() => {
       if (prevSearchQuery.current !== router.query.search) {
         if (router.query.search) {
-          const unescapedSearch = decodeURIComponent(router.query.search);
-          setQuery(router.query.search);
+          const normalizedSearch = normalizeSearchInput(decodeURIComponent(router.query.search));
+          setQuery(normalizedSearch);
           if(router.query.fieldcode) {
             setFieldCode(router.query.fieldcode)
           }
@@ -77,7 +78,7 @@ function SearchBox() {
             }
           }
 
-          setSearchValue(unescapedSearch);
+          setSearchValue(normalizedSearch);
           setShouldRefetch(true);
           prevSearchQuery.current = router.query.search;
         }
@@ -92,16 +93,18 @@ function SearchBox() {
       handleClear(); // Clear the search if the input is empty
       return;
     }
+    const normalizedSearch = normalizeSearchInput(searchValue);
     setMovieRefine('n');
     setBookRefine('n');
     setAllRefine('n');
     setMovieSort('relevance')
-    setQuery(searchValue);
+    setSearchValue(normalizedSearch);
+    setQuery(normalizedSearch);
 
     router.push(buildSearchNavigation({
       pathname: router.pathname,
       query: router.query,
-      searchValue,
+      searchValue: normalizedSearch,
       fieldCode,
     }));
     
@@ -133,11 +136,6 @@ function SearchBox() {
       { shallow: true }
     );
   };
-  
-  
-
-  
-
   // Function to handle expanding search to all materials
   const handleSearchAll = () => {
     setAllRefine('n');
@@ -149,9 +147,11 @@ function SearchBox() {
       setShouldRefetch(true);
       return;
     }
-    
-    setQuery(searchValue);
-    const escapedSearch = encodeURIComponent(searchValue);
+
+    const normalizedSearch = normalizeSearchInput(searchValue);
+    setSearchValue(normalizedSearch);
+    setQuery(normalizedSearch);
+    const escapedSearch = encodeURIComponent(normalizedSearch);
     
     router.push({
       pathname: '/all',
