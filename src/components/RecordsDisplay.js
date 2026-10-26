@@ -60,7 +60,7 @@ function RecordsDisplay() {
       state.setSearchValue,
     ]));
 
-  const access = getRecordAccess({ an, dbid, record: recordData });
+  const access = getRecordAccess({ an, record: recordData });
 
   // Change from single open state to array of all accordion IDs
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -275,15 +275,6 @@ function RecordsDisplay() {
   const cardWidth = isMobile ? 210 : 300;
   const frameAspectRatio = imageAspectRatio || getFallbackAspectRatio();
 
-  // Check if the record is open access based on SeriesInfo
-  const isOpenAccess = recordData?.items?.some(item => 
-    item.name === 'SeriesInfo' && 
-    item.data?.some(data => 
-      typeof data === 'string' && data.toLowerCase().includes('open access')
-    )
-  ) || false;
-
-
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
       {/* Add a reference point at the top */}
@@ -383,7 +374,7 @@ function RecordsDisplay() {
               )}
             </div>
               
-              <RecordBadges record={recordData} isOpenAccess={isOpenAccess} />
+              <RecordBadges record={recordData} isOpenAccess={access.openAccess} />
 
               {/* Upload Button */}
               {loggedIn && (
@@ -732,7 +723,7 @@ function RecordsDisplay() {
                   fontSize: '0.9rem',
                   lineHeight: '1.4'
                 }}>
-                  <strong>Institution Access Required:</strong> This ebook is available only to patrons of the subscribing institution. Off-campus users may need to authenticate through their institution&apos;s library system.
+                  Access may require signing in with your Smith account.
                 </div>
               </div>
             )}

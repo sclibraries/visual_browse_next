@@ -1,7 +1,8 @@
 const { isFolioAn, folioIdFromAn } = require('../lib/folioId.cjs');
 
-// Owner: confirm these database IDs before deployment.
-const OPEN_ACCESS_DBIDS = ['edsoap', 'edsdoj', 'edsdob'];
+const RIGHTS_ITEM = /rights|copyright/i;
+const OPEN_ACCESS_EVIDENCE = /creativecommons\.org|creative commons|\bCC[ -]?(BY|0)\b|attribution(-[a-z]+)* \d|public domain|open access/i;
+const OPEN_ACCESS_SERIES = /open access/i;
 
 function cleanUrl(urlString) {
   if (!urlString || typeof urlString !== 'string') return '';
@@ -26,11 +27,37 @@ function firstUsableLink(links, getUrl) {
   return null;
 }
 
-function getRecordAccess({ an, dbid, record } = {}) {
-  const openAccess = OPEN_ACCESS_DBIDS.includes(dbid);
+function recordItems(record) {
+  return [
+    ...(Array.isArray(record?.items) ? record.items : []),
+    ...(Array.isArray(record?.itemsRaw) ? record.itemsRaw : []),
+  ];
+}
+
+function itemDataMatches(item, pattern) {
+  const data = Array.isArray(item?.data) ? item.data : [item?.data];
+  return data.some(value => typeof value === 'string' && pattern.test(value));
+}
+
+function isRightsItem(item) {
+  return [item?.name, item?.label].some(value =>
+    typeof value === 'string' && RIGHTS_ITEM.test(value)
+  );
+}
+
+function isOpenAccess(record) {
+  return recordItems(record).some(item => (
+    item?.name === 'SeriesInfo' && itemDataMatches(item, OPEN_ACCESS_SERIES)
+  ) || (
+    isRightsItem(item) && itemDataMatches(item, OPEN_ACCESS_EVIDENCE)
+  ));
+}
+
+function getRecordAccess({ an, record } = {}) {
+  const openAccess = isOpenAccess(record);
 
   if (isFolioAn(an)) {
-    return { type: 'holdings', folioId: folioIdFromAn(an) };
+    return { type: 'holdings', folioId: folioIdFromAn(an), openAccess };
   }
 
   const customLink = firstUsableLink(record?.fullText?.CustomLinks, link => link?.Url);
@@ -60,4 +87,4 @@ function getRecordAccess({ an, dbid, record } = {}) {
   return { type: 'none', openAccess };
 }
 
-module.exports = { cleanUrl, getRecordAccess };
+module.exports = { cleanUrl, getRecordAccess, isOpenAccess };

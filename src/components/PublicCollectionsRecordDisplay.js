@@ -21,6 +21,7 @@ import LinesEllipsis from 'react-lines-ellipsis';
 import { useTracking } from '../hooks/useTracking';
 
 const { getPlaceholderCoverConfig } = require('../utils/placeholderCover.cjs');
+const { isOpenAccess } = require('../utils/recordAccess.cjs');
 
 function PublicCollectionsRecordDisplay(props) {
   const router = useRouter();
@@ -58,6 +59,7 @@ function PublicCollectionsRecordDisplay(props) {
 
   // Initialize `record` before any Hooks
   const record = data?.record?.records || {};
+  const openAccess = isOpenAccess(record);
 
   // Call `useRecordImage` before any returns
   const image = useRecordImage(record);
@@ -183,7 +185,7 @@ const handleRecord = (an, dbid) => {
       material_type: materialType?.label,
       source: 'collection_browse',
       has_image: !!image,
-      is_open_access: isOpenAccess
+      is_open_access: openAccess
     });
   }
 };
@@ -211,15 +213,6 @@ const titleFull = record.titles?.[0]?.TitleFull || 'No Title';
 const sanitizedAn = an.replace(/[^a-zA-Z0-9_-]/g, '_');
 
 const publicationYear = Array.isArray(record.year) && record.year.length > 0 ? record.year[0] : null;
-
-// Check if the record is open access based on SeriesInfo
-const isOpenAccess = record.items?.some(item => 
-  item.name === 'SeriesInfo' && 
-  item.data?.some(data => 
-    typeof data === 'string' && data.toLowerCase().includes('open access')
-  )
-) || false;
-
 
 return (
   <div key={recordKey} className="record-item">
@@ -270,7 +263,7 @@ return (
           ariaLabel={`No cover for ${titleFull}`}
         />
       )}
-      <RecordBadges record={record} isOpenAccess={isOpenAccess} />
+      <RecordBadges record={record} isOpenAccess={openAccess} />
     </button>
     <div className="card-info">
       <div className="record-title" id={`titleTooltip-${sanitizedAn}`}>

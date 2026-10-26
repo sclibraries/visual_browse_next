@@ -14,21 +14,27 @@ function getAccess(input) {
 test('uses the FOLIO holdings path before external record links', () => {
   const access = getAccess({
     an: 'scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.123e4567.e89b.12d3.a456.426614174000',
-    dbid: 'cat09206a',
     record: { urlItem: ['https://example.edu/book'] },
   });
 
   assert.deepEqual(access, {
     type: 'holdings',
     folioId: '123e4567-e89b-12d3-a456-426614174000',
+    openAccess: false,
   });
 });
 
-test('uses the first usable CustomLink and marks known open-access databases', () => {
+test('uses the first usable CustomLink and recognizes OAPEN rights evidence', () => {
   const access = getAccess({
     an: 'edsoap.20.500.12657.117639',
-    dbid: 'edsoap',
     record: {
+      items: [{
+        name: 'Rights',
+        data: [
+          'Attribution-NonCommercial 4.0 International',
+          'URL: https://creativecommons.org/licenses/by-nc/4.0/',
+        ],
+      }],
       fullText: {
         CustomLinks: [
           { Name: 'Missing target', Url: 'javascript:blocked()' },
@@ -49,7 +55,6 @@ test('uses the first usable CustomLink and marks known open-access databases', (
 test('falls back to fullText links with the default access label', () => {
   const access = getAccess({
     an: 'edsarticle.123',
-    dbid: 'edscat',
     record: { fullText: { Links: [{ Url: 'https://example.edu/full-text' }] } },
   });
 
@@ -64,7 +69,6 @@ test('falls back to fullText links with the default access label', () => {
 test('uses the first usable urlItem and strips trailing notes', () => {
   const access = getAccess({
     an: 'edsbook.123',
-    dbid: 'edscat',
     record: { urlItem: ['Not a URL', 'https://example.edu/book Notes from EDS'] },
   });
 
@@ -77,7 +81,6 @@ test('uses the first usable urlItem and strips trailing notes', () => {
 test('uses the EBSCO Discovery link when no direct access URL is available', () => {
   const access = getAccess({
     an: 'edsbook.456',
-    dbid: 'edscat',
     record: { pLink: 'https://search.ebscohost.com/login.aspx?direct=true&db=cat' },
   });
 
@@ -88,13 +91,13 @@ test('uses the EBSCO Discovery link when no direct access URL is available', () 
   });
 });
 
-test('does not treat an open-access database with no direct URL as online', () => {
+test('keeps record-based open access for discovery and missing links', () => {
+  const rights = [{ name: 'Rights', data: ['Creative Commons CC BY 4.0'] }];
   const discovery = getAccess({
     an: 'edsoap.20.500.12657.117639',
-    dbid: 'edsoap',
-    record: { pLink: 'https://search.ebscohost.com/record/123' },
+    record: { items: rights, pLink: 'https://search.ebscohost.com/record/123' },
   });
-  const none = getAccess({ an: 'edsoap.123', dbid: 'edsoap', record: {} });
+  const none = getAccess({ an: 'edsoap.123', record: { items: rights } });
 
   assert.equal(discovery.type, 'discovery');
   assert.equal(discovery.openAccess, true);
@@ -105,7 +108,6 @@ test('does not treat an open-access database with no direct URL as online', () =
 test('returns none when no usable links exist', () => {
   assert.deepEqual(getAccess({
     an: 'edsbook.789',
-    dbid: 'edscat',
     record: {
       fullText: {
         CustomLinks: [{ Name: 'unsafe', Url: 'javascript:blocked()' }],
@@ -122,4 +124,56 @@ test('cleans URL notes and safely handles missing or non-string values', () => {
   assert.equal(recordAccess.cleanUrl('https://example.edu/record Note'), 'https://example.edu/record');
   assert.equal(recordAccess.cleanUrl(' plain text '), 'plain text');
   assert.equal(recordAccess.cleanUrl(null), '');
+});
+
+test('recognizes open access from matching rights and copyright fields', () => {
+  assert.equal(typeof recordAccess.isOpenAccess, 'function');
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'Rights', data: ['Attribution-NonCommercial 4.0 International'] }],
+  }), true);
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'Copyright', data: ['Creative Commons public license'] }],
+  }), true);
+});
+
+test('does not treat ordinary copyright as open access', () => {
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'Rights', data: ['Copyright © 2021 Example Press. All rights reserved.'] }],
+  }), false);
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'Description', data: ['Open access resource'] }],
+  }), false);
+});
+
+test('keeps the SeriesInfo open-access rule and defaults to false without evidence', () => {
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'SeriesInfo', data: ['Open Access collection'] }],
+  }), true);
+  assert.equal(recordAccess.isOpenAccess({ items: [] }), false);
+  assert.equal(recordAccess.isOpenAccess({}), false);
+});
+
+test('recognizes a Rights label even when the field name differs', () => {
+  assert.equal(recordAccess.isOpenAccess({
+    items: [{ name: 'Field 938', label: 'Rights', data: ['Public domain'] }],
+  }), true);
+});
+
+test('recognizes rights evidence from itemsRaw when items is absent', () => {
+  assert.equal(recordAccess.isOpenAccess({
+    itemsRaw: [{ name: 'Copyright', data: ['CC0'] }],
+  }), true);
+});
+
+test('marks a FOLIO record with Creative Commons rights as open access', () => {
+  const access = getAccess({
+    an: 'scf.oai.edge.fivecolleges.folio.ebsco.com.fs00001006.123e4567.e89b.12d3.a456.426614174000',
+    record: { items: [{ name: 'Rights', data: ['Creative Commons Attribution 4.0'] }] },
+  });
+
+  assert.deepEqual(access, {
+    type: 'holdings',
+    folioId: '123e4567-e89b-12d3-a456-426614174000',
+    openAccess: true,
+  });
 });
