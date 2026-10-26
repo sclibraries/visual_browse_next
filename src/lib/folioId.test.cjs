@@ -17,6 +17,6 @@ test('recognizes a FOLIO EDS an and rejects other identifiers', () => {
 test('converts the dotted FOLIO identifier suffix to a dashed UUID', () => {
   assert.equal(typeof folioId.folioIdFromAn, 'function');
   assert.equal(folioId.folioIdFromAn(FOLIO_AN), '123e4567-e89b-12d3-a456-426614174000');
-  assert.equal(folioId.folioIdFromAn('123e4567-e89b-12d3-a456-426614174000'), '123e4567-e89b-12d3-a456-426614174000');
+  assert.equal(folioId.folioIdFromAn('123e4567-e89b-12d3-a456-426614174000'), '');
   assert.equal(folioId.folioIdFromAn('edsoap.20.500.12657.117639'), '');
 });

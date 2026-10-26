@@ -20,7 +20,7 @@ async function renderPanel(access) {
   const exports = {};
   const mockModules = {
     '../styles/RecordAccessPanel.module.css': { panel: 'panel', heading: 'heading', openAccess: 'open-access', link: 'link' },
-    './RecordAvailability': ({ id }) => React.createElement('span', { 'data-folio-id': id }, 'holdings table'),
+    './RecordAvailability': ({ folioId }) => React.createElement('span', { 'data-folio-id': folioId }, 'holdings table'),
   };
 
   vm.runInNewContext(code, {
@@ -28,7 +28,10 @@ async function renderPanel(access) {
     require: name => mockModules[name] || requireModule(name),
   });
 
-  return renderToStaticMarkup(React.createElement(exports.default, { access }));
+  const panels = (Array.isArray(access) ? access : [access]).map((panelAccess, index) => (
+    React.createElement(exports.default, { access: panelAccess, key: index })
+  ));
+  return renderToStaticMarkup(React.createElement(React.Fragment, null, panels));
 }
 
 test('renders an accessible online link and an open-access text status', async () => {
@@ -63,6 +66,18 @@ test('passes the parsed FOLIO ID to the holdings table', async () => {
   const markup = await renderPanel({ type: 'holdings', folioId: '123e4567-e89b-12d3-a456-426614174000' });
 
   assert.match(markup, /data-folio-id="123e4567-e89b-12d3-a456-426614174000"/);
+});
+
+test('uses unique heading IDs when multiple access panels render', async () => {
+  const markup = await renderPanel([
+    { type: 'online', url: 'https://example.edu/one', label: 'First link' },
+    { type: 'discovery', url: 'https://example.edu/two' },
+  ]);
+  const sectionIds = [...markup.matchAll(/aria-labelledby="([^"]+)"/g)].map((match) => match[1]);
+  const headingIds = [...markup.matchAll(/<h4[^>]*id="([^"]+)"/g)].map((match) => match[1]);
+
+  assert.equal(new Set(sectionIds).size, 2);
+  assert.deepEqual(sectionIds, headingIds);
 });
 
 test('renders no section when access is unavailable or unrecognized', async () => {

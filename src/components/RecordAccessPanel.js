@@ -1,7 +1,9 @@
+import { useId } from 'react';
 import RecordAvailability from './RecordAvailability';
 import styles from '../styles/RecordAccessPanel.module.css';
 
 function RecordAccessPanel({ access }) {
+  const headingId = useId();
   const hasHoldings = access?.type === 'holdings';
   const hasLink = access?.type === 'online' || access?.type === 'discovery';
   if (!hasHoldings && !hasLink) return null;
@@ -11,11 +13,11 @@ function RecordAccessPanel({ access }) {
     : access.label;
 
   return (
-    <section className={styles.panel} aria-labelledby="record-availability-heading">
-      <h4 className={styles.heading} id="record-availability-heading">
+    <section className={styles.panel} aria-labelledby={headingId}>
+      <h4 className={styles.heading} id={headingId}>
         <span aria-hidden="true">📍</span> Availability
       </h4>
-      {hasHoldings && <RecordAvailability id={access.folioId} />}
+      {hasHoldings && <RecordAvailability folioId={access.folioId} />}
       {hasLink && (
         <div>
           {access.openAccess && <p className={styles.openAccess}>Open access: free to read</p>}

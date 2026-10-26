@@ -2,7 +2,6 @@ import { useQuery } from '@apollo/client';
 import { FOLIORTAC } from '../lib/api';
 import { styled } from 'styled-components';
 const { formatCallNumber, formatVolume, hasVolumes } = require('../utils/callNumber.cjs');
-const { folioIdFromAn } = require('../lib/folioId.cjs');
 
 // Styled Components for RecordAvailability
 const TableContainer = styled.div`
@@ -64,16 +63,13 @@ const StatusTd = styled(StyledTd)`
 `;
 
 
-function RecordAvailability({ id }) {
-    const cleanId = folioIdFromAn(id);
-    const hasFolioId = Boolean(cleanId);
-
+function RecordAvailability({ folioId }) {
     const { data, loading, error } = useQuery(FOLIORTAC, {
-        skip: !hasFolioId,
-        variables: { id: cleanId },
+        skip: !folioId,
+        variables: { id: folioId },
     });
 
-    if (!hasFolioId) {
+    if (!folioId) {
         return null;
     }
 

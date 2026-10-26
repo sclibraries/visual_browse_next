@@ -54,12 +54,10 @@ function getRecordAccess({ an, dbid, record } = {}) {
 
   const discoveryUrl = httpUrl(record?.pLink);
   if (discoveryUrl) {
-    return openAccess
-      ? { type: 'discovery', url: discoveryUrl, openAccess: true }
-      : { type: 'discovery', url: discoveryUrl };
+    return { type: 'discovery', url: discoveryUrl, openAccess };
   }
 
-  return openAccess ? { type: 'none', openAccess: true } : { type: 'none' };
+  return { type: 'none', openAccess };
 }
 
 module.exports = { cleanUrl, getRecordAccess };

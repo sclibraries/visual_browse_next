@@ -71,6 +71,7 @@ test('uses the first usable urlItem and strips trailing notes', () => {
   assert.equal(access.type, 'online');
   assert.equal(access.url, 'https://example.edu/book');
   assert.equal(access.label, 'Access online');
+  assert.equal(access.openAccess, false);
 });
 
 test('uses the EBSCO Discovery link when no direct access URL is available', () => {
@@ -83,6 +84,7 @@ test('uses the EBSCO Discovery link when no direct access URL is available', () 
   assert.deepEqual(access, {
     type: 'discovery',
     url: 'https://search.ebscohost.com/login.aspx?direct=true&db=cat',
+    openAccess: false,
   });
 });
 
@@ -112,7 +114,7 @@ test('returns none when no usable links exist', () => {
       urlItem: ['not a url'],
       pLink: 'javascript:blocked()',
     },
-  }), { type: 'none' });
+  }), { type: 'none', openAccess: false });
 });
 
 test('cleans URL notes and safely handles missing or non-string values', () => {
