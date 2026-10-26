@@ -143,27 +143,28 @@ function Facets({
         appliedFacets && appliedFacets.length > 0 &&
         <div className="d-grid gap-2 d-md-block">
             {appliedFacets.map((facet, index) => (
-            facet.FacetValuesWithAction.map(value => {
+            facet.FacetValuesWithAction
+            .filter(value => !isScopeValue(
+                SEARCH_SCOPE_BY_MATERIAL_TYPE[materialType],
+                value.FacetValue.Value
+            ))
+            .map(value => {
                 const facetValue = value.FacetValue.Value;
-                const isDisabled = isScopeValue(SEARCH_SCOPE_BY_MATERIAL_TYPE[materialType], facetValue);
                 return (
                 <Button
                     color="secondary"
-                    outline={!isDisabled}
+                    outline
                     key={`${value.FacetValue.Value}-${index}`} // Changed to use value and index to ensure key uniqueness
                     onClick={() => handleRemoveFacetAction(value.RemoveAction)}
                     type="button"
                     style={{ marginRight: "10px" }}
-                    disabled={isDisabled} // Disable button based on the condition
-                    aria-label={isDisabled ? `${facetValue} (always applied on this page)` : `Remove filter: ${facetValue}`}
+                    aria-label={`Remove filter: ${facetValue}`}
                 >
                     {facetValue}{' '}
-                    {!isDisabled && (
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x-circle" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                     <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                     </svg>
-                    )}
                 </Button>
                 );
             })
