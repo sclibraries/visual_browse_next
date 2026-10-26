@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 
 const {
   LIBRARY_COLLECTION_LIMITER,
-  SOURCE_TYPES_BY_PAGE,
   buildScopedSearch,
+  isScopeValue,
 } = require('./searchScope.cjs');
 
 const expectedScopes = {
@@ -12,14 +12,6 @@ const expectedScopes = {
   books: 'addfacetfilter(SourceType:Books,SourceType:eBooks)',
   movies: 'addfacetfilter(SourceType:Videos)',
 };
-
-test('exports the agreed SourceType lists for each search page', () => {
-  assert.deepEqual(SOURCE_TYPES_BY_PAGE, {
-    all: ['Books', 'eBooks', 'Videos', 'Audio', 'Music Scores', 'Archival Materials', 'Non-Print Resources'],
-    books: ['Books', 'eBooks'],
-    movies: ['Videos'],
-  });
-});
 
 test('builds each page scope with the library collection limiter and no provider allow-list', async (t) => {
   for (const [page, action] of Object.entries(expectedScopes)) {
@@ -29,6 +21,23 @@ test('builds each page scope with the library collection limiter and no provider
       assert.deepEqual(scope, { action, limiter: 'FT1:y' });
       assert.equal(scope.limiter, LIBRARY_COLLECTION_LIMITER);
       assert.doesNotMatch(scope.action, /ContentProvider:/);
+    });
+  }
+});
+
+test('locks every SourceType that defines each page scope, but not ContentProvider values', async (t) => {
+  const sourceTypesByPage = {
+    all: ['Books', 'eBooks', 'Videos', 'Audio', 'Music Scores', 'Archival Materials', 'Non-Print Resources'],
+    books: ['Books', 'eBooks'],
+    movies: ['Videos'],
+  };
+
+  for (const [page, sourceTypes] of Object.entries(sourceTypesByPage)) {
+    await t.test(page, () => {
+      for (const sourceType of sourceTypes) {
+        assert.equal(isScopeValue(page, sourceType), true, `${sourceType} should be locked on ${page}`);
+      }
+      assert.equal(isScopeValue(page, 'Five Colleges Catalog'), false);
     });
   }
 });

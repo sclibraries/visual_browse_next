@@ -19,8 +19,13 @@ function buildScopedSearch(page) {
   };
 }
 
+function isScopeValue(page, value) {
+  return Boolean(SOURCE_TYPES_BY_PAGE[page]?.includes(value));
+}
+
 module.exports = {
   LIBRARY_COLLECTION_LIMITER,
   SOURCE_TYPES_BY_PAGE,
   buildScopedSearch,
+  isScopeValue,
 };

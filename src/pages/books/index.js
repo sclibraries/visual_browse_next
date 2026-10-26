@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
@@ -7,9 +7,9 @@ import MaterialDisplay from '../../components/MaterialDisplay'
 
 function Books() {
     const [loadMore, setLoadMore] = useState(false);
+    const executeSearchRef = useRef(null);
 
     const [
-        query,
         setBookData,
         setBookFacets,
         setBookAppliedFacets,
@@ -32,14 +32,9 @@ function Books() {
         setBookTotalPages,
         setLoading,
         dateLimiter,
-        bookRefine,
         bookSort,
-        bookAction,
-        bookLimiter,
         setBookRefine,
-        fieldCode
     ] = useStore(useShallow(state => [
-        state.query,
         state.setBookData,
         state.setBookFacets,
         state.setBookAppliedFacets,
@@ -62,45 +57,42 @@ function Books() {
         state.setBookTotalPages,
         state.setLoading,
         state.dateLimiter,
-        state.bookRefine,
         state.bookSort,
-        state.bookAction,
-        state.bookLimiter,
         state.setBookRefine,
-        state.fieldCode
     ]))
 
     useEffect(() => {
         setShouldRefetch(true)
-    }, [])
+    }, [setShouldRefetch])
 
 
     useEffect(() => {
         if (shouldRefetch) {
+          const state = useStore.getState();
           let variables = {}
           
-          if(bookRefine === 'y'){
+          if(state.bookRefine === 'y'){
             variables = {
-                query: bookResultsQueryString,
+                query: state.bookResultsQueryString,
                 refine: 'y',
-                sort: bookSort,
-                ...(bookFacetAction && { action: bookFacetAction }),
+                sort: state.bookSort,
+                ...(state.bookFacetAction && { action: state.bookFacetAction }),
               };
           } else {
             variables = {
-                query: query,
+                query: state.query,
                 refine: 'n',
-                fieldcode: fieldCode,
-                sort: bookSort,
-                action: bookAction,
-                limiter: bookLimiter
+                fieldcode: state.fieldCode,
+                sort: state.bookSort,
+                action: state.bookAction,
+                limiter: state.bookLimiter
             }
           }
       
-          executeSearch({ variables });
-          setShouldRefetch(false);
+          executeSearchRef.current({ variables });
+          state.setShouldRefetch(false);
         }
-      }, [bookQueryString, bookResultsQueryString, bookFacetAction, bookSort, bookLimiter, dateLimiter, shouldRefetch, setShouldRefetch, setBookFacetAction]);
+      }, [bookQueryString, bookResultsQueryString, bookFacetAction, bookSort, dateLimiter, shouldRefetch, setShouldRefetch, setBookFacetAction]);
 
     const handleOnComplete = data => {
         setBookData(data?.search?.records)
@@ -116,6 +108,7 @@ function Books() {
         fetchPolicy: 'network-only',
         onCompleted: data => { handleOnComplete(data) }
     })
+    executeSearchRef.current = executeSearch;
 
     useEffect(() => {
       // Assuming 'data' is the state that gets updated with the query result

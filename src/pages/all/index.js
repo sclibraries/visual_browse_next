@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { GET_BROWSE } from '../../lib/api';
 import { useStore } from '../../store/store'
@@ -7,9 +7,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 function All() {
     const [loadMore, setLoadMore] = useState(false);
+    const executeSearchRef = useRef(null);
 
     const [
-        query,
         setAllData,
         setAllFacets,
         setAllAppliedFacets,
@@ -33,13 +33,8 @@ function All() {
         allTotalPages,
         setAllTotalPages,
         setLoading,
-        allRefine,
-        allAction,
-        allLimiter,
         setAllRefine,
-        fieldCode
     ] = useStore(useShallow(state => [
-        state.query,
         state.setAllData,
         state.setAllFacets,
         state.setAllAppliedFacets,
@@ -63,47 +58,44 @@ function All() {
         state.allTotalPages,
         state.setAllTotalPages,
         state.setLoading,
-        state.allRefine,
-        state.allAction,
-        state.allLimiter,
         state.setAllRefine,
-        state.fieldCode
     ]))
 
   useEffect(() => {
     setShouldRefetch(true);
-},[])
+}, [setShouldRefetch])
 
 useEffect(() => {
     if (shouldRefetch) {
+        const state = useStore.getState();
         let variables = {}
-        if(allRefine === 'y') {
+        if(state.allRefine === 'y') {
             variables = {
-                query: allResultsQueryString,
+                query: state.allResultsQueryString,
                 refine: 'y',
                 sort: allSort,
-                ...(allFacetAction && { action: allFacetAction }),
+                ...(state.allFacetAction && { action: state.allFacetAction }),
             };
         } else {
             variables = {
-                query: query,
-                fieldcode: fieldCode,
+                query: state.query,
+                fieldcode: state.fieldCode,
                 refine: 'n',
                 sort: allSort,
-                action: allAction,
-                limiter: allLimiter
+                action: state.allAction,
+                limiter: state.allLimiter
             }
         }
 
-        executeSearch({ variables });
-        setShouldRefetch(false);
+        executeSearchRef.current({ variables });
+        state.setShouldRefetch(false);
 
         // Reset allFacetAction if it was used
-        if (allFacetAction) {
-            setAllFacetAction('');
+        if (state.allFacetAction) {
+            state.setAllFacetAction('');
         }
     }
-}, [allQueryString, allFacetAction, allSort, allDateLimiter, allLimiter, shouldRefetch, setAllFacetAction]);
+}, [allQueryString, allFacetAction, allSort, allDateLimiter, shouldRefetch, setAllFacetAction, setShouldRefetch]);
 
 
     const handleOnComplete = data => {
@@ -120,6 +112,7 @@ useEffect(() => {
         fetchPolicy: 'network-only',
         onCompleted: data => { handleOnComplete(data) }
     })
+    executeSearchRef.current = executeSearch;
 
     useEffect(() => {
         // Assuming 'data' is the state that gets updated with the query result

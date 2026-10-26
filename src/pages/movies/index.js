@@ -1,4 +1,4 @@
-import { useEffect, useState} from 'react'
+import { useEffect, useState, useRef} from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { GET_BROWSE } from '../../lib/api'
 import { useStore } from '../../store/store'
@@ -9,9 +9,9 @@ import MaterialDisplay from '../../components/MaterialDisplay'
 function Movies() {
     
     const [loadMore, setLoadMore] = useState(false);
+    const executeSearchRef = useRef(null);
 
     const [
-        query,
         setMovieData,
         setMovieFacets,
         setMovieAppliedFacets,
@@ -34,14 +34,8 @@ function Movies() {
         moviePage,
         setMoviePage,
         setLoading,
-        movieRefine,
-        movieSort,
-        movieAction,
-        movieLimiter,
         setMovieRefine,
-        fieldCode
     ] = useStore(useShallow(state => [
-        state.query,
         state.setMovieData,
         state.setMovieFacets,
         state.setMovieAppliedFacets,
@@ -64,39 +58,35 @@ function Movies() {
         state.moviePage,
         state.setMoviePage,
         state.setLoading,
-        state.movieRefine,
-        state.movieSort,
-        state.movieAction,
-        state.movieLimiter,
         state.setMovieRefine,
-        state.fieldCode
     ]))
 
     useEffect(() => {
         setShouldRefetch(true);
-    },[])
+    }, [setShouldRefetch])
 
 
     useEffect(() => {
         if (shouldRefetch) {
+            const state = useStore.getState();
 
             let variables = {}
 
-            if(movieRefine === 'y'){
+            if(state.movieRefine === 'y'){
                 variables = {
-                    query: movieResultsQueryString,
+                    query: state.movieResultsQueryString,
                     refine: 'y',
-                    sort: movieSort, // Assuming 'sort' is defined and holds the sorting parameter
-                    ...(movieFacetAction && { action: movieFacetAction }),
+                    sort: state.movieSort, // Keep movie sort value current without adding a trigger.
+                    ...(state.movieFacetAction && { action: state.movieFacetAction }),
                 };
             } else {
                 variables = {
-                    query: query,
-                    fieldcode: fieldCode,
+                    query: state.query,
+                    fieldcode: state.fieldCode,
                     refine: 'n',
-                    sort: movieSort,
-                    action: movieAction,
-                    limiter: movieLimiter
+                    sort: state.movieSort,
+                    action: state.movieAction,
+                    limiter: state.movieLimiter
                 }
             }
 
@@ -107,15 +97,15 @@ function Movies() {
             //     ...(movieFacetAction && { action: movieFacetAction }),
             // };
     
-            executeSearch({ variables });
-            setShouldRefetch(false);
+            executeSearchRef.current({ variables });
+            state.setShouldRefetch(false);
     
             // Reset movieFacetAction if it was used
-            if (movieFacetAction) {
-                setMovieFacetAction('');
+            if (state.movieFacetAction) {
+                state.setMovieFacetAction('');
             }
         }
-    }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, movieLimiter, shouldRefetch, setMovieFacetAction]);
+    }, [movieQueryString, movieResultsQueryString, movieFacetAction, sort, shouldRefetch, setMovieFacetAction, setShouldRefetch]);
     
       
 
@@ -133,6 +123,7 @@ function Movies() {
         fetchPolicy: 'network-only',
         onCompleted: data => { handleOnComplete(data) }
     });
+    executeSearchRef.current = executeSearch;
 
     useEffect(() => {
         // Assuming 'data' is the state that gets updated with the query result
