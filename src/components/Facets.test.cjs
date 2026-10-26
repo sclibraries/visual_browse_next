@@ -57,6 +57,7 @@ test('gives locked and removable facet chips descriptive accessible names', asyn
   assert.match(lockedButton.attributes, /aria-label="Books \(always applied on this page\)"/);
   assert.match(removableButton.attributes, /aria-label="Remove filter: OAPEN"/);
   assert.match(providerButton.attributes, /aria-label="Remove filter: Five Colleges Catalog"/);
+  assert.match(removableButton.attributes, /class="btn btn-outline-secondary"/);
 });
 
 test('keeps decorative remove icons out of the accessibility tree', async () => {

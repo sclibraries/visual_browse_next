@@ -148,7 +148,8 @@ function Facets({
                 const isDisabled = isScopeValue(SEARCH_SCOPE_BY_MATERIAL_TYPE[materialType], facetValue);
                 return (
                 <Button
-                    color={isDisabled ? 'secondary' : 'success'}
+                    color="secondary"
+                    outline={!isDisabled}
                     key={`${value.FacetValue.Value}-${index}`} // Changed to use value and index to ensure key uniqueness
                     onClick={() => handleRemoveFacetAction(value.RemoveAction)}
                     type="button"
