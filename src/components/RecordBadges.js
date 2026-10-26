@@ -20,7 +20,7 @@ export default function RecordBadges({ record }) {
     <div role="group" aria-label="Format and access" style={{
       position: 'absolute', top: '8px', left: '8px', right: '8px',
       display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '6px',
-      zIndex: 10, pointerEvents: 'none',
+      pointerEvents: 'none',
     }}>
       {ebook && <span style={{ ...badgeStyle, backgroundColor: '#164e63' }}>E-BOOK</span>}
       {openAccess && (
