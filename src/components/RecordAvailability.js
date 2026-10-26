@@ -1,7 +1,8 @@
 import { useQuery } from '@apollo/client';
 import { FOLIORTAC } from '../lib/api';
-import styled from 'styled-components';
+import { styled } from 'styled-components';
 const { formatCallNumber, formatVolume, hasVolumes } = require('../utils/callNumber.cjs');
+const { folioIdFromAn } = require('../lib/folioId.cjs');
 
 // Styled Components for RecordAvailability
 const TableContainer = styled.div`
@@ -63,26 +64,16 @@ const StatusTd = styled(StyledTd)`
 `;
 
 
-function RecordAvailability(props) {
+function RecordAvailability({ id }) {
+    const cleanId = folioIdFromAn(id);
+    const hasFolioId = Boolean(cleanId);
 
-        
-    const { id } = props;
-
-    // Transform the id to the needed format ahead of time
-    let cleanId = '';
-    if (id.includes('fs00001006')) {
-        const suffix = id.split('fs00001006.')[1] || '';
-        cleanId = suffix.replace(/\./g, '-');
-    }
-
-    // Use the `skip` option to conditionally bypass the query
     const { data, loading, error } = useQuery(FOLIORTAC, {
-        skip: !id.includes('fs00001006'), // The query will be skipped if 'fs00001006' is not in the id
+        skip: !hasFolioId,
         variables: { id: cleanId },
     });
 
-    // Directly return null if id does not contain 'fs00001006'
-    if (!id.includes('fs00001006')) {
+    if (!hasFolioId) {
         return null;
     }
 

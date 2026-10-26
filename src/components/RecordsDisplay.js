@@ -8,7 +8,7 @@ import {
   ModalHeader,
   ModalBody,
 } from 'reactstrap';
-import RecordAvailability from './RecordAvailability';
+import RecordAccessPanel from './RecordAccessPanel';
 import FullCast from './FullCast';
 import RecommendationDisplay from './Recommendations';
 import { useFavorite } from '../hooks/useFavorite';
@@ -30,6 +30,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 
 const { isEbook } = require('../utils/ebook.cjs');
+const { cleanUrl, getRecordAccess } = require('../utils/recordAccess.cjs');
 
 function RecordsDisplay() {
   const containerRef = useRef(null);
@@ -58,6 +59,8 @@ function RecordsDisplay() {
       state.setFieldCode,
       state.setSearchValue,
     ]));
+
+  const access = getRecordAccess({ an, dbid, record: recordData });
 
   // Change from single open state to array of all accordion IDs
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,15 +128,6 @@ function RecordsDisplay() {
     setIsModalOpen(!isModalOpen);
   };
 
-
-  // Utility function to clean and format URLs
-  const cleanUrl = (urlString) => {
-    if (!urlString || typeof urlString !== 'string') return '';
-    
-    // Extract just the URL part before any spaces or notes
-    const urlMatch = urlString.match(/^(https?:\/\/[^\s]+)/);
-    return urlMatch ? urlMatch[1] : urlString.trim();
-  };
 
   useEffect(() => {
     if (recordData?.urlItem) {
@@ -714,7 +708,7 @@ function RecordsDisplay() {
             </div>
 
             {/* Ebook Access Notice */}
-            {hasEbook && (
+            {hasEbook && !access.openAccess && (
               <div style={{
                 background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
                 border: '1px solid #f59e0b',
@@ -743,31 +737,7 @@ function RecordsDisplay() {
               </div>
             )}
 
-            {/* Quick Availability Info - Only show for MARC records, not finding aids */}
-            {recordData?.pubType !== 'Primary Source' && (
-              <div style={{
-                background: 'rgba(255,255,255,0.95)',
-                borderRadius: '12px',
-                padding: '16px',
-                marginTop: '16px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                backdropFilter: 'blur(8px)'
-              }}>
-                <h4 style={{ 
-                  color: '#1e293b', 
-                  marginBottom: '12px',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  📍 Availability
-                </h4>
-                <RecordAvailability id={an} />
-              </div>
-            )}
+            {recordData?.pubType !== 'Primary Source' && <RecordAccessPanel access={access} />}
           </div>
         </div>
       </div>
