@@ -374,7 +374,7 @@ function RecordsDisplay() {
               )}
             </div>
               
-              <RecordBadges record={recordData} isOpenAccess={access.openAccess} />
+              <RecordBadges record={recordData} />
 
               {/* Upload Button */}
               {loggedIn && (

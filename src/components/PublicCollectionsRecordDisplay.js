@@ -263,7 +263,7 @@ return (
           ariaLabel={`No cover for ${titleFull}`}
         />
       )}
-      <RecordBadges record={record} isOpenAccess={openAccess} />
+      <RecordBadges record={record} />
     </button>
     <div className="card-info">
       <div className="record-title" id={`titleTooltip-${sanitizedAn}`}>
