@@ -11,4 +11,13 @@ function normalizeSearchInput(value) {
   return doiMatch ? doiMatch[1] : trimmedValue;
 }
 
-module.exports = { normalizeSearchInput };
+function searchFromUrlParam(param) {
+  const searchValue = normalizeSearchInput(decodeURIComponent(param));
+
+  return {
+    query: encodeURIComponent(searchValue),
+    searchValue,
+  };
+}
+
+module.exports = { normalizeSearchInput, searchFromUrlParam };

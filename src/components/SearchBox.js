@@ -10,7 +10,7 @@ const {
   buildSearchNavigation,
   getSearchScope,
 } = require('../utils/collectionSearchRouting.cjs');
-const { normalizeSearchInput } = require('../utils/searchInput.cjs');
+const { normalizeSearchInput, searchFromUrlParam } = require('../utils/searchInput.cjs');
 
 function SearchBox() {
   const router = useRouter();
@@ -56,8 +56,8 @@ function SearchBox() {
     useEffect(() => {
       if (prevSearchQuery.current !== router.query.search) {
         if (router.query.search) {
-          const normalizedSearch = normalizeSearchInput(decodeURIComponent(router.query.search));
-          setQuery(normalizedSearch);
+          const { query, searchValue: normalizedSearch } = searchFromUrlParam(router.query.search);
+          setQuery(query);
           if(router.query.fieldcode) {
             setFieldCode(router.query.fieldcode)
           }
